@@ -9,6 +9,7 @@
 package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
+import de.rub.nds.sshstatelearner.sul.SshSul
 
 object ArgsSul {
     @Parameter(names = ["--hostname"], description = "Hostname of the system where the target SSH server is running")
@@ -20,10 +21,10 @@ object ArgsSul {
         private set
 
     @Parameter(names = ["--timeout"], description = "Timeout in milliseconds when reading incoming traffic from the network socket")
-    var timeout: Long = 1000
+    var timeout: Long = SshSul.DEFAULT_TRANSPORT_HANDLER_TIMEOUT
         private set
 
     @Parameter(names = ["--resetDelay"], description = "Delay in milliseconds during reset of a SUL instance")
-    var resetDelay: Long = 0
+    var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY
         private set
 }

@@ -73,7 +73,8 @@ fun main(vararg args: String) {
     handleArgs(args)
     adjustLogLevels()
     val alphabet = constructAlphabet()
-    val hypothesis = SshSulLearner(alphabet, SshSul(), ArgsLearner.learningAlgorithm).apply {
+    val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay)
+    val hypothesis = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithm).apply {
         equivRandomWordsMinLength = ArgsLearner.equivRandomWordsMinLength
         equivRandomWordsMaxLength = ArgsLearner.equivRandomWordsMaxLength
         equivRandomWordsMaxTests = ArgsLearner.equivRandomWordsMaxTests

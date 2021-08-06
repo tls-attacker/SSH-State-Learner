@@ -12,7 +12,6 @@ import de.learnlib.api.SUL
 import de.learnlib.api.exception.SULException
 import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.state.State
-import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import de.rub.nds.sshstatelearner.util.LoggerCompanion
@@ -22,7 +21,7 @@ import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
 
-class SshSul : SUL<SshSymbol, ResponseFingerprint> {
+class SshSul(val hostname: String, val port: Int, val timeout: Long, val resetDelay: Long) : SUL<SshSymbol, ResponseFingerprint> {
     /**
      * The config of the SSH-Attacker
      */
@@ -34,9 +33,10 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
     private lateinit var state: State
 
     /**
-     * Indicates whether the underlying sockets are available or closed
+     * Indicates whether the underlying network connection is available or closed
      */
-    private var closed = false
+    var connectionClosed = false
+        private set
 
     /**
      * A list of all executed steps on the current SSH connection
@@ -44,12 +44,15 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
     private val executedSteps = mutableListOf<SshSymbol>()
 
     companion object : LoggerCompanion() {
-        const val DEFAULT_TRANSPORT_HANDLER_TIMEOUT = 1000
-        const val DEFAULT_SUL_RESET_DELAY = 0
+        const val DEFAULT_TRANSPORT_HANDLER_TIMEOUT: Long = 1000
+        const val DEFAULT_SUL_RESET_DELAY: Long = 0
     }
 
+    constructor(hostname: String, port: Int) : this(hostname, port, DEFAULT_TRANSPORT_HANDLER_TIMEOUT)
+    constructor(hostname: String, port: Int, timeout: Long) : this(hostname, port, timeout, DEFAULT_SUL_RESET_DELAY)
+
     /**
-     * Set up the SSH SUL by instantiating a new SSH-Attacker state and connecting to the peer
+     * Set up the SSH SUL by instantiating a new SSH-Attacker state and connection to the peer
      */
     override fun pre() {
         config = Config.createConfig().apply {
@@ -57,10 +60,10 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
             stopActionsAfterIOException = false
         }
         state = State(config).apply {
-            sshContext.transportHandler = ClientTcpTransportHandler(ArgsSul.timeout, ArgsSul.timeout, ArgsSul.hostname, ArgsSul.port)
+            sshContext.transportHandler = ClientTcpTransportHandler(timeout, timeout, hostname, port)
             sshContext.initTransportHandler()
         }
-        closed = false
+        connectionClosed = false
     }
 
     /**
@@ -69,7 +72,8 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
     override fun post() {
         try {
             state.sshContext.transportHandler.closeConnection()
-            Thread.sleep(ArgsSul.resetDelay)
+            connectionClosed = true
+            Thread.sleep(resetDelay)
         } catch (e: IOException) {
             LOGGER.error("Unable to close transport handler connection during post() call", e)
         } catch (e: InterruptedException) {
@@ -94,7 +98,7 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
             }
 
             // If the connection is closed, we do not expect any response from the server and therefore can respond without execution
-            if (closed) {
+            if (connectionClosed) {
                 return ResponseFingerprint(emptyList(), SocketState.CLOSED)
             }
 
@@ -106,20 +110,20 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
                  * by a RST or FIN), we close the transport handler and respond all further steps with a SocketState.CLOSED
                  */
                 state.sshContext.transportHandler.closeConnection()
-                closed = true
+                connectionClosed = true
             } else if (response.socketState == SocketState.DATA_AVAILABLE) {
                 /*
                  * If the socketState is SocketState.DATA_AVAILABLE, more data is available to read. As a consequence,
                  * the response fingerprint does not contain all response messages from the server.
                  * This can lead to the algorithm not terminating due to different behaviours on the same words. It must
-                 * be avoided by all costs (i.e. increase delay between send and receive actions)
+                 * be avoided at all costs (i.e. increase delay between send and receive actions)
                  */
                 LOGGER.warn("The responses' socket state indicates more data is available, increase delay between send and receive to avoid incomplete responses")
             }
             return response
         } catch (e: IOException) {
             state.sshContext.transportHandler.closeConnection()
-            closed = true
+            connectionClosed = true
             LOGGER.error("Caught an IOException while stepping the SUL with the following SshWord: $p0", e)
             throw SULException(e)
         }
@@ -136,10 +140,10 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
      * Returns a new SUL instance that must behave exactly as the original SUL
      */
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        return SshSul()
+        return SshSul(hostname, port, timeout, resetDelay)
     }
 
     override fun toString(): String {
-        return "SshSul[executedSteps=$executedSteps]"
+        return "SshSul[hostname=$hostname,port=$port,timeout=$timeout,resetDelay=$resetDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"
     }
 }
