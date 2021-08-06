@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="CLI Usage" type="JetRunConfigurationType">
-    <option name="MAIN_CLASS_NAME" value="de.rub.nds.sshstatelearner.MainKt" />
+    <option name="MAIN_CLASS_NAME" value="de.rub.nds.sshstatelearner.cli.MainKt" />
     <module name="SSH-State-Learner" />
     <option name="PROGRAM_PARAMETERS" value="--help" />
     <shortenClasspath name="NONE" />
