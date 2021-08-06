@@ -6,8 +6,12 @@
  * Licensed under Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0.txt
  */
-package de.rub.nds.sshstatelearner
+package de.rub.nds.sshstatelearner.cli.args
 
-fun main() {
-    println("Hello, World!")
+import com.beust.jcommander.Parameter
+
+object ArgsGeneral {
+    @Parameter(names = ["--help"], help = true, description = "Print this help screen", descriptionKey = "General")
+    var help: Boolean = false
+        private set
 }
