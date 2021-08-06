@@ -21,6 +21,11 @@ import de.rub.nds.tlsattacker.transport.socket.SocketState
 import java.io.IOException
 
 abstract class SshSymbol {
+
+    companion object {
+        const val DEFAULT_RECEIVE_DELAY: Long = 100
+    }
+
     abstract fun execute(state: State): ResponseFingerprint
 
     protected fun sendMessage(message: Message<*>, state: State) {

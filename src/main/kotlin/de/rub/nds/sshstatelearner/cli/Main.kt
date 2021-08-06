@@ -59,13 +59,13 @@ private fun adjustLogLevels() {
 private fun constructAlphabet(): Alphabet<SshSymbol> {
     // TODO: Allow specification of alphabet through CLI
     return ListAlphabet(mutableListOf(
-        GenericMessageSymbol(KeyExchangeInitMessage()),
-        GenericMessageSymbol(VersionExchangeMessage()),
-        GenericMessageSymbol(DisconnectMessage()),
-        GenericMessageSymbol(DhGexKeyExchangeRequestMessage()),
-        GenericMessageSymbol(IgnoreMessage()),
-        GenericMessageSymbol(DebugMessage()),
-        GenericMessageSymbol(ServiceRequestMessage())
+        GenericMessageSymbol(KeyExchangeInitMessage(), ArgsSul.receiveDelay),
+        GenericMessageSymbol(VersionExchangeMessage(), ArgsSul.receiveDelay),
+        GenericMessageSymbol(DisconnectMessage(), ArgsSul.receiveDelay),
+        GenericMessageSymbol(DhGexKeyExchangeRequestMessage(), ArgsSul.receiveDelay),
+        GenericMessageSymbol(IgnoreMessage(), ArgsSul.receiveDelay),
+        GenericMessageSymbol(DebugMessage(), ArgsSul.receiveDelay),
+        GenericMessageSymbol(ServiceRequestMessage(), ArgsSul.receiveDelay)
     ))
 }
 

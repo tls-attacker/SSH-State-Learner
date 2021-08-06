@@ -21,6 +21,7 @@ import net.automatalib.words.WordBuilder
 class ReuseCapableSulOracle<I, O>(private val sul: SUL<I, O>) : ReuseCapableOracle<Word<I>, I, O> {
 
     override fun continueQuery(trace: Word<I>, state: Word<I>): ReuseCapableOracle.QueryResult<Word<I>, O> {
+        println("Trace: $trace \nState: $state")
         sul.pre()
         try {
             for (symbol in state) {
@@ -31,7 +32,10 @@ class ReuseCapableSulOracle<I, O>(private val sul: SUL<I, O>) : ReuseCapableOrac
             for (symbol in trace) {
                 wb.add(sul.step(symbol))
             }
-            return ReuseCapableOracle.QueryResult(wb.toWord(), state.concat(trace))
+            val result = ReuseCapableOracle.QueryResult(wb.toWord(), state.concat(trace))
+            println("Output: ${result.output}")
+            println("New state: ${result.newState}\n")
+            return result
         } finally {
             sul.post()
         }

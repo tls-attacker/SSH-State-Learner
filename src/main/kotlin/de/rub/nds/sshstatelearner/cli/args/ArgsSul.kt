@@ -10,6 +10,7 @@ package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
 import de.rub.nds.sshstatelearner.sul.SshSul
+import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 
 object ArgsSul {
     @Parameter(names = ["--hostname"], description = "Hostname of the system where the target SSH server is running")
@@ -26,5 +27,9 @@ object ArgsSul {
 
     @Parameter(names = ["--resetDelay"], description = "Delay in milliseconds during reset of a SUL instance")
     var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY
+        private set
+
+    @Parameter(names = ["--receiveDelay"], description = "Delay in milliseconds between sending messages and receiving the server response. Larger delays avoid DATA_AVAILABLE socket states while increasing overall runtime")
+    var receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY
         private set
 }

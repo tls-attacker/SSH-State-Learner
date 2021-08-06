@@ -12,21 +12,20 @@ import de.learnlib.api.SUL
 import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
-import de.learnlib.filter.reuse.ReuseOracle
 import de.learnlib.filter.statistic.Counter
 import de.learnlib.filter.statistic.sul.ResetCounterSUL
 import de.learnlib.filter.statistic.sul.SymbolCounterSUL
 import de.learnlib.oracle.equivalence.RandomWordsEQOracle
+import de.learnlib.oracle.membership.SULOracle
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithm
-import de.rub.nds.sshstatelearner.sul.ReuseCapableSulOracle
+import de.rub.nds.sshstatelearner.learner.cache.ResponseTreeCache
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
-import de.rub.nds.sshstatelearner.util.LoggerCompanion
-import de.rub.nds.tlsattacker.transport.socket.SocketState
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Alphabet
 import net.automatalib.words.Word
+import org.apache.logging.log4j.LogManager
 
 class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithm) {
 
@@ -50,16 +49,16 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
         this.resetCounter = (this.sul as ResetCounterSUL<SshSymbol, ResponseFingerprint>).statisticalData
     }
 
-    companion object : LoggerCompanion() {
+    companion object {
+        private val LOGGER = LogManager.getLogger()
+
         const val DEFAULT_EQUIV_RANDOM_WORDS_MIN_LENGTH = 5
         const val DEFAULT_EQUIV_RANDOM_WORDS_MAX_LENGTH = 15
         const val DEFAULT_EQUIV_RANDOM_WORDS_MAX_TESTS = 1000
     }
 
     private fun constructMembershipOracle(): MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint> {
-        return ReuseOracle.ReuseOracleBuilder(alphabet) { ReuseCapableSulOracle(sul) }
-            .withFailureOutputs(setOf(ResponseFingerprint(emptyList(), SocketState.CLOSED)))
-            .build()
+        return ResponseTreeCache(SULOracle(this.sul))
     }
 
     private fun constructEquivalenceOracle(): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {

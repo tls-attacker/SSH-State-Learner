@@ -13,15 +13,17 @@ import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.LoggerCompanion
 
-class GenericMessageSymbol(private val message: Message<*>) : SshSymbol() {
+class GenericMessageSymbol(private val message: Message<*>, private val receiveDelay: Long) : SshSymbol() {
 
     companion object : LoggerCompanion()
+
+    constructor(message: Message<*>) : this(message, DEFAULT_RECEIVE_DELAY)
 
     override fun execute(state: State): ResponseFingerprint {
         LOGGER.trace("Sending message: ${message.toCompactString()}")
         message.getPreparator(state.sshContext).prepare()
         sendMessage(message, state)
-        Thread.sleep(100)
+        Thread.sleep(receiveDelay)
         return retrieveMessages(state)
     }
 
