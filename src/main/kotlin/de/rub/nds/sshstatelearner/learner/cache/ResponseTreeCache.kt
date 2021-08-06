@@ -10,6 +10,7 @@ package de.rub.nds.sshstatelearner.learner.cache
 
 import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.oracle.MembershipOracle
+import de.learnlib.api.query.DefaultQuery
 import de.learnlib.api.query.Query
 import de.learnlib.filter.cache.LearningCacheOracle
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -123,7 +124,9 @@ class ResponseTreeCache(private val delegate: MembershipOracle.MealyMembershipOr
     }
 
     override fun createCacheConsistencyTest(): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
-        TODO("Not yet implemented")
+        return EquivalenceOracle.MealyEquivalenceOracle { hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>, _: MutableCollection<out SshSymbol> ->
+            return@MealyEquivalenceOracle root.checkHypothesisConsistency(hypothesis, Word.epsilon(), Word.epsilon())
+        }
     }
 
     private inner class Node(val symbol: SshSymbol?, val fingerprint: ResponseFingerprint?) {
@@ -135,6 +138,32 @@ class ResponseTreeCache(private val delegate: MembershipOracle.MealyMembershipOr
 
         fun findChild(symbol: SshSymbol): Node? {
             return children.find { it.symbol == symbol }
+        }
+
+        fun checkHypothesisConsistency(hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>, inputPrefix: Word<SshSymbol>, outputPrefix: Word<ResponseFingerprint>): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
+            if ((symbol == null || fingerprint == null) && inputPrefix.length() > 0) {
+                // Symbol or fingerprint is null and this node is not the root node, unable to check consistency
+                return null
+            }
+
+            val input = if (symbol != null) inputPrefix.append(symbol) else inputPrefix
+            val expectedOutput = if (fingerprint != null) outputPrefix.append(fingerprint) else outputPrefix
+            if (children.size == 0) {
+                // The current node is a leaf, compute the output on the current input word and check for consistency
+                val hypothesisOutput = hypothesis.computeOutput(input)
+                expectedOutput.zip(hypothesisOutput).forEach {
+                    if (it.first != it.second) return DefaultQuery(input, expectedOutput)
+                }
+            } else {
+                // The current node is no leaf, recursively descend the cache tree
+                for (child in children) {
+                    val counterExample = child.checkHypothesisConsistency(hypothesis, input, expectedOutput)
+                    if (counterExample != null) {
+                        return counterExample
+                    }
+                }
+            }
+            return null
         }
 
         override fun toString(): String {

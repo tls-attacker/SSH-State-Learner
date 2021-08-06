@@ -10,11 +10,11 @@ package de.rub.nds.sshstatelearner.learner
 
 import de.learnlib.api.SUL
 import de.learnlib.api.oracle.EquivalenceOracle
-import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.learnlib.filter.statistic.Counter
 import de.learnlib.filter.statistic.sul.ResetCounterSUL
 import de.learnlib.filter.statistic.sul.SymbolCounterSUL
+import de.learnlib.oracle.equivalence.EQOracleChain
 import de.learnlib.oracle.equivalence.RandomWordsEQOracle
 import de.learnlib.oracle.membership.SULOracle
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithm
@@ -34,7 +34,7 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
     private val symbolCounter: Counter
     private val resetCounter: Counter
 
-    private lateinit var membershipOracle: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
+    private lateinit var membershipOracle: ResponseTreeCache
     private lateinit var equivalenceOracle: EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>
     private lateinit var learningAlgorithm: de.learnlib.api.algorithm.LearningAlgorithm.MealyLearner<SshSymbol, ResponseFingerprint>
 
@@ -57,12 +57,15 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
         const val DEFAULT_EQUIV_RANDOM_WORDS_MAX_TESTS = 1000
     }
 
-    private fun constructMembershipOracle(): MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint> {
+    private fun constructMembershipOracle(): ResponseTreeCache {
         return ResponseTreeCache(SULOracle(this.sul))
     }
 
     private fun constructEquivalenceOracle(): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
-        return RandomWordsEQOracle(membershipOracle, equivRandomWordsMinLength, equivRandomWordsMaxLength, equivRandomWordsMaxTests)
+        return EQOracleChain(
+            membershipOracle.createCacheConsistencyTest(),
+            RandomWordsEQOracle(membershipOracle, equivRandomWordsMinLength, equivRandomWordsMaxLength, equivRandomWordsMaxTests)
+        )
     }
 
     private fun constructOracles() {
