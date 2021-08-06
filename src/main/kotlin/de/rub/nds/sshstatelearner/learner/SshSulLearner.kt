@@ -22,11 +22,11 @@ import de.rub.nds.sshstatelearner.sul.ReuseCapableSulOracle
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
+import de.rub.nds.sshstatelearner.util.LoggerCompanion
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Alphabet
 import net.automatalib.words.Word
-import org.apache.logging.log4j.LogManager
 
 class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithm) {
 
@@ -50,9 +50,7 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
         this.resetCounter = (this.sul as ResetCounterSUL<SshSymbol, ResponseFingerprint>).statisticalData
     }
 
-    companion object {
-        private val LOGGER = LogManager.getLogger()
-
+    companion object : LoggerCompanion() {
         const val DEFAULT_EQUIV_RANDOM_WORDS_MIN_LENGTH = 5
         const val DEFAULT_EQUIV_RANDOM_WORDS_MAX_LENGTH = 15
         const val DEFAULT_EQUIV_RANDOM_WORDS_MAX_TESTS = 1000

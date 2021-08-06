@@ -15,19 +15,14 @@ import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
+import de.rub.nds.sshstatelearner.util.LoggerCompanion
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import de.rub.nds.tlsattacker.transport.tcp.ClientTcpTransportHandler
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
-import org.apache.logging.log4j.LogManager
 
 class SshSul : SUL<SshSymbol, ResponseFingerprint> {
-
-    companion object {
-        private val LOGGER = LogManager.getLogger()
-    }
-
     /**
      * The config of the SSH-Attacker
      */
@@ -47,6 +42,11 @@ class SshSul : SUL<SshSymbol, ResponseFingerprint> {
      * A list of all executed steps on the current SSH connection
      */
     private val executedSteps = mutableListOf<SshSymbol>()
+
+    companion object : LoggerCompanion() {
+        const val DEFAULT_TRANSPORT_HANDLER_TIMEOUT = 1000
+        const val DEFAULT_SUL_RESET_DELAY = 0
+    }
 
     /**
      * Set up the SSH SUL by instantiating a new SSH-Attacker state and connecting to the peer
