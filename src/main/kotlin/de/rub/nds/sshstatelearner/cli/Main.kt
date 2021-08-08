@@ -15,9 +15,12 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.DisconnectMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.IgnoreMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
+import de.rub.nds.sshattacker.core.protocol.transport.message.UnimplementedMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.protocol.transport.preparator.DhGexKeyExchangeRequestMessagePreparator
 import de.rub.nds.sshattacker.core.workflow.action.GenericReceiveAction
+import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
+import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
@@ -65,8 +68,35 @@ private fun constructAlphabet(): Alphabet<SshSymbol> {
         GenericMessageSymbol(DhGexKeyExchangeRequestMessage(), ArgsSul.receiveDelay),
         GenericMessageSymbol(IgnoreMessage(), ArgsSul.receiveDelay),
         GenericMessageSymbol(DebugMessage(), ArgsSul.receiveDelay),
-        GenericMessageSymbol(ServiceRequestMessage(), ArgsSul.receiveDelay)
+        GenericMessageSymbol(ServiceRequestMessage(), ArgsSul.receiveDelay),
+        GenericMessageSymbol(UnimplementedMessage(), ArgsSul.receiveDelay)
     ))
+}
+
+private fun setEquivalenceOracleDefaults() {
+    when(ArgsLearner.equivOracleType) {
+        EquivalenceOracleType.COMPLETE_EXPLORATION -> EquivalenceOracleType.setCompleteExplorationDefaults(
+            ArgsLearner.equivCompleteExplorationMinDepth,
+            ArgsLearner.equivCompleteExplorationMaxDepth
+        )
+        EquivalenceOracleType.RANDOM_WORDS -> EquivalenceOracleType.setRandomWordsDefaults(
+            ArgsLearner.equivRandomWordsMinLength,
+            ArgsLearner.equivRandomWordsMaxLength,
+            ArgsLearner.equivRandomWordsMaxTests
+        )
+        EquivalenceOracleType.RANDOM_WALK -> EquivalenceOracleType.setRandomWalkDefaults(
+            ArgsLearner.equivRandomWalkResetProbability,
+            ArgsLearner.equivRandomWalkMaxSteps
+        )
+        EquivalenceOracleType.W, EquivalenceOracleType.WP -> EquivalenceOracleType.setWDefaults(
+            ArgsLearner.equivWMaxDepth
+        )
+        EquivalenceOracleType.RANDOM_W, EquivalenceOracleType.RANDOM_WP -> EquivalenceOracleType.setRandomWDefaults(
+            ArgsLearner.equivRandomWMinimalSize,
+            ArgsLearner.equivRandomWRndLength,
+            ArgsLearner.equivRandomWBound
+        )
+    }
 }
 
 fun main(vararg args: String) {
@@ -74,10 +104,7 @@ fun main(vararg args: String) {
     adjustLogLevels()
     val alphabet = constructAlphabet()
     val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay)
-    val hypothesis = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithm).apply {
-        equivRandomWordsMinLength = ArgsLearner.equivRandomWordsMinLength
-        equivRandomWordsMaxLength = ArgsLearner.equivRandomWordsMaxLength
-        equivRandomWordsMaxTests = ArgsLearner.equivRandomWordsMaxTests
-    }.learn()
+    setEquivalenceOracleDefaults()
+    val hypothesis = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleType).learn()
     Visualization.visualize(hypothesis, alphabet)
 }

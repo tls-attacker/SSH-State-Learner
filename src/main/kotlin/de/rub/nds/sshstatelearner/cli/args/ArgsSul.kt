@@ -13,23 +13,23 @@ import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 
 object ArgsSul {
-    @Parameter(names = ["--hostname"], description = "Hostname of the system where the target SSH server is running")
+    @Parameter(names = ["--hostname", "-h"], description = "Hostname of the system where the target SSH server is running", order = 10)
     var hostname: String = "localhost"
         private set
 
-    @Parameter(names = ["--port"], description = "Port on which the target SSH server is listening for incoming connection")
+    @Parameter(names = ["--port", "-p"], description = "Port on which the target SSH server is listening for incoming connection", order = 11)
     var port: Int = 22
         private set
 
-    @Parameter(names = ["--timeout"], description = "Timeout in milliseconds when reading incoming traffic from the network socket")
+    @Parameter(names = ["--timeout", "-t"], description = "Timeout in milliseconds when reading incoming traffic from the network socket", order = 12)
     var timeout: Long = SshSul.DEFAULT_TRANSPORT_HANDLER_TIMEOUT
         private set
 
-    @Parameter(names = ["--resetDelay"], description = "Delay in milliseconds during reset of a SUL instance")
+    @Parameter(names = ["--resetDelay"], description = "Delay in milliseconds during reset of a SUL instance", order = 13)
     var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY
         private set
 
-    @Parameter(names = ["--receiveDelay"], description = "Delay in milliseconds between sending messages and receiving the server response. Larger delays avoid DATA_AVAILABLE socket states while increasing overall runtime")
+    @Parameter(names = ["--receiveDelay"], description = "Delay in milliseconds between sending messages and receiving the server response. Larger delays avoid DATA_AVAILABLE socket states while increasing overall runtime", order = 14)
     var receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY
         private set
 }

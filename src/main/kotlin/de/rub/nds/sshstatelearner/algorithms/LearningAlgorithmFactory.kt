@@ -13,29 +13,30 @@ import de.learnlib.algorithms.discriminationtree.mealy.DTLearnerMealyBuilder
 import de.learnlib.algorithms.kv.mealy.KearnsVaziraniMealyBuilder
 import de.learnlib.algorithms.lstar.mealy.ExtensibleLStarMealyBuilder
 import de.learnlib.algorithms.ttt.mealy.TTTLearnerMealyBuilder
+import de.learnlib.api.algorithm.LearningAlgorithm
 import de.learnlib.api.oracle.MembershipOracle
 import net.automatalib.words.Alphabet
 
 open class LearningAlgorithmFactory internal constructor() {
-    fun <I, O> create(algorithm: LearningAlgorithm, alphabet: Alphabet<I>, membershipOracle: MembershipOracle.MealyMembershipOracle<I, O>): de.learnlib.api.algorithm.LearningAlgorithm.MealyLearner<I, O> {
+    fun <I, O> create(algorithm: LearningAlgorithmType, alphabet: Alphabet<I>, membershipOracle: MembershipOracle.MealyMembershipOracle<I, O>): LearningAlgorithm.MealyLearner<I, O> {
         return when (algorithm) {
-            LearningAlgorithm.DHC -> MealyDHCBuilder<I, O>()
+            LearningAlgorithmType.DHC -> MealyDHCBuilder<I, O>()
                 .withAlphabet(alphabet)
                 .withOracle(membershipOracle)
                 .create()
-            LearningAlgorithm.DT -> DTLearnerMealyBuilder<I, O>()
+            LearningAlgorithmType.DT -> DTLearnerMealyBuilder<I, O>()
                 .withAlphabet(alphabet)
                 .withOracle(membershipOracle)
                 .create()
-            LearningAlgorithm.KV -> KearnsVaziraniMealyBuilder<I, O>()
+            LearningAlgorithmType.KV -> KearnsVaziraniMealyBuilder<I, O>()
                 .withAlphabet(alphabet)
                 .withOracle(membershipOracle)
                 .create()
-            LearningAlgorithm.LSTAR -> ExtensibleLStarMealyBuilder<I, O>()
+            LearningAlgorithmType.LSTAR -> ExtensibleLStarMealyBuilder<I, O>()
                 .withAlphabet(alphabet)
                 .withOracle(membershipOracle)
                 .create()
-            LearningAlgorithm.TTT -> TTTLearnerMealyBuilder<I, O>()
+            LearningAlgorithmType.TTT -> TTTLearnerMealyBuilder<I, O>()
                 .withAlphabet(alphabet)
                 .withOracle(membershipOracle)
                 .create()

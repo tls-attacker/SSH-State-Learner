@@ -15,9 +15,9 @@ import de.learnlib.filter.statistic.Counter
 import de.learnlib.filter.statistic.sul.ResetCounterSUL
 import de.learnlib.filter.statistic.sul.SymbolCounterSUL
 import de.learnlib.oracle.equivalence.EQOracleChain
-import de.learnlib.oracle.equivalence.RandomWordsEQOracle
 import de.learnlib.oracle.membership.SULOracle
-import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithm
+import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleType
+import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.learner.cache.ResponseTreeCache
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -27,7 +27,7 @@ import net.automatalib.words.Alphabet
 import net.automatalib.words.Word
 import org.apache.logging.log4j.LogManager
 
-class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithm) {
+class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT, val equivalenceOracleType: EquivalenceOracleType = EquivalenceOracleType.RANDOM_WORDS) {
 
     var sul: SUL<SshSymbol, ResponseFingerprint>
         private set
@@ -38,10 +38,6 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
     private lateinit var equivalenceOracle: EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>
     private lateinit var learningAlgorithm: de.learnlib.api.algorithm.LearningAlgorithm.MealyLearner<SshSymbol, ResponseFingerprint>
 
-    var equivRandomWordsMinLength = DEFAULT_EQUIV_RANDOM_WORDS_MIN_LENGTH
-    var equivRandomWordsMaxLength = DEFAULT_EQUIV_RANDOM_WORDS_MAX_LENGTH
-    var equivRandomWordsMaxTests = DEFAULT_EQUIV_RANDOM_WORDS_MAX_TESTS
-
     init {
         this.sul = SymbolCounterSUL("Symbol Counter", sul)
         this.symbolCounter = (this.sul as SymbolCounterSUL<SshSymbol, ResponseFingerprint>).statisticalData
@@ -51,10 +47,6 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
 
     companion object {
         private val LOGGER = LogManager.getLogger()
-
-        const val DEFAULT_EQUIV_RANDOM_WORDS_MIN_LENGTH = 5
-        const val DEFAULT_EQUIV_RANDOM_WORDS_MAX_LENGTH = 15
-        const val DEFAULT_EQUIV_RANDOM_WORDS_MAX_TESTS = 1000
     }
 
     private fun constructMembershipOracle(): ResponseTreeCache {
@@ -62,10 +54,16 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
     }
 
     private fun constructEquivalenceOracle(): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
-        return EQOracleChain(
-            membershipOracle.createCacheConsistencyTest(),
-            RandomWordsEQOracle(membershipOracle, equivRandomWordsMinLength, equivRandomWordsMaxLength, equivRandomWordsMaxTests)
-        )
+        return if (equivalenceOracleType == EquivalenceOracleType.RANDOM_WALK)
+            EQOracleChain(
+                membershipOracle.createCacheConsistencyTest(),
+                EquivalenceOracleType.create(equivalenceOracleType, sul)
+            )
+        else
+            EQOracleChain(
+                membershipOracle.createCacheConsistencyTest(),
+                EquivalenceOracleType.create(equivalenceOracleType, membershipOracle)
+            )
     }
 
     private fun constructOracles() {
@@ -75,7 +73,7 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
 
     fun learn(): MealyMachine<*, SshSymbol, *, ResponseFingerprint> {
         constructOracles()
-        learningAlgorithm = LearningAlgorithm.create(algorithm, alphabet, membershipOracle)
+        learningAlgorithm = LearningAlgorithmType.create(algorithm, alphabet, membershipOracle)
 
         var hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>
         var counterExample: DefaultQuery<*, *>?

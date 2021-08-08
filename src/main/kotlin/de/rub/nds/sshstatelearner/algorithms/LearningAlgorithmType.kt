@@ -8,7 +8,7 @@
  */
 package de.rub.nds.sshstatelearner.algorithms
 
-enum class LearningAlgorithm {
+enum class LearningAlgorithmType {
     /**
      * Direct hypothesis construction
      */
