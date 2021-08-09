@@ -25,11 +25,11 @@ object ArgsSul {
     var timeout: Long = SshSul.DEFAULT_TRANSPORT_HANDLER_TIMEOUT
         private set
 
-    @Parameter(names = ["--resetDelay"], description = "Delay in milliseconds during reset of a SUL instance", order = 13)
+    @Parameter(names = ["--reset-delay"], description = "Delay in milliseconds during reset of a SUL instance", order = 13)
     var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY
         private set
 
-    @Parameter(names = ["--receiveDelay"], description = "Delay in milliseconds between sending messages and receiving the server response. Larger delays avoid DATA_AVAILABLE socket states while increasing overall runtime", order = 14)
+    @Parameter(names = ["--receive-delay"], description = "Delay in milliseconds between sending messages and receiving the server response. Larger delays avoid DATA_AVAILABLE socket states while increasing overall runtime", order = 14)
     var receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY
         private set
 }
