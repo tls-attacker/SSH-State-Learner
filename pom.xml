@@ -37,6 +37,11 @@
 
     <dependencies>
         <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.69</version>
+        </dependency>
+        <dependency>
             <groupId>de.rub.nds.sshattacker</groupId>
             <artifactId>SSH-Core</artifactId>
             <version>0.1</version>

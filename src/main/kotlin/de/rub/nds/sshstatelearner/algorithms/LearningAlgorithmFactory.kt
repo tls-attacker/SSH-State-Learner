@@ -17,7 +17,7 @@ import de.learnlib.api.algorithm.LearningAlgorithm
 import de.learnlib.api.oracle.MembershipOracle
 import net.automatalib.words.Alphabet
 
-open class LearningAlgorithmFactory internal constructor() {
+object LearningAlgorithmFactory {
     fun <I, O> create(algorithm: LearningAlgorithmType, alphabet: Alphabet<I>, membershipOracle: MembershipOracle.MealyMembershipOracle<I, O>): LearningAlgorithm.MealyLearner<I, O> {
         return when (algorithm) {
             LearningAlgorithmType.DHC -> MealyDHCBuilder<I, O>()

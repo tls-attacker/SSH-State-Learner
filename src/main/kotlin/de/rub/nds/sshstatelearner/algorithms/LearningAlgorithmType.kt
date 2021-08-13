@@ -33,6 +33,4 @@ enum class LearningAlgorithmType {
      * The TTT algorithm
      */
     TTT;
-
-    companion object : LearningAlgorithmFactory()
 }

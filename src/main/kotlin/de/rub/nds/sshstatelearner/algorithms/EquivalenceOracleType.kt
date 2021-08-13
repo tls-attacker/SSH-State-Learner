@@ -10,6 +10,14 @@ package de.rub.nds.sshstatelearner.algorithms
 
 enum class EquivalenceOracleType {
     /**
+     * Performs an equivalence check by checking cached responses against the hypothesis
+     */
+    CACHE_CONSISTENCY,
+    /**
+     * Performs an equivalence check by using a defined happy flow with optional suffixes
+     */
+    HAPPY_FLOW,
+    /**
      * Performs an equivalence check by complete, depth-bounded exploration
      */
     COMPLETE_EXPLORATION,
@@ -37,6 +45,4 @@ enum class EquivalenceOracleType {
      * Performs an equivalence check using the randomized Wp-method
      */
     RANDOM_WP;
-
-    companion object : EquivalenceOracleFactory() { }
 }

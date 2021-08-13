@@ -11,22 +11,32 @@ package de.rub.nds.sshstatelearner.algorithms
 import de.learnlib.api.SUL
 import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.oracle.MembershipOracle
+import de.learnlib.filter.cache.LearningCache
 import de.learnlib.oracle.equivalence.CompleteExplorationEQOracle
+import de.learnlib.oracle.equivalence.EQOracleChain
 import de.learnlib.oracle.equivalence.RandomWMethodEQOracle
 import de.learnlib.oracle.equivalence.RandomWordsEQOracle
 import de.learnlib.oracle.equivalence.RandomWpMethodEQOracle
 import de.learnlib.oracle.equivalence.WMethodEQOracle
 import de.learnlib.oracle.equivalence.WpMethodEQOracle
 import de.learnlib.oracle.equivalence.mealy.RandomWalkEQOracle
-import de.learnlib.oracle.membership.SULOracle
+import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
+import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import java.util.Random
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 
-open class EquivalenceOracleFactory internal constructor() {
+object EquivalenceOracleFactory {
     /*
      * Factory defaults
      */
+
+    /**
+     * The length of the suffix to append to each possible happy flow prefix.
+     */
+    var happyFlowSuffixLength: Int = 2
+        private set
+
     /**
      * Minimum exploration depth for complete exploration oracles. The oracle effectively generates all words with
      * length between completeExplorationMinDepth and completeExplorationMaxDepth.
@@ -100,6 +110,18 @@ open class EquivalenceOracleFactory internal constructor() {
         private set
 
     /**
+     * Sets the factory defaults for a happy flow equivalence oracle.
+     *
+     * @param suffixLength The length of the suffix to append to each possible happy flow prefix
+     */
+    fun setHappyFlowDefaults(suffixLength: Int) {
+        if (suffixLength < 0) {
+            throw IllegalArgumentException("Unable to set default values for a happy flow equivalence oracle. The suffix length (value: $suffixLength) is negative.")
+        }
+        happyFlowSuffixLength = suffixLength
+    }
+
+    /**
      * Sets the factory defaults for a complete exploration, depth-bounded equivalence oracle.
      *
      * @param minDepth Minimum exploration depth (i. e. minimum length of words to be tested).
@@ -128,7 +150,7 @@ open class EquivalenceOracleFactory internal constructor() {
             throw IllegalArgumentException("Unable to set default values for a random words equivalence oracle. Either the minimal length (value: $minLength) or maximal length (value: $maxLength) is negative.")
         }
         if (maxTests <= 0) {
-            throw IllegalArgumentException("Unable to set default values for a random words equivalence oracle. The maximum number of tests (value: $maxTests) is less or equal 0")
+            throw IllegalArgumentException("Unable to set default values for a random words equivalence oracle. The maximum number of tests (value: $maxTests) is less or equal 0.")
         }
         if (maxLength < minLength) {
             throw IllegalArgumentException("Unable to set default values for a random words equivalence oracle. The maximum length (value: $maxLength) must always be greater or equal to minLength ($minLength).")
@@ -176,7 +198,7 @@ open class EquivalenceOracleFactory internal constructor() {
      */
     fun setRandomWDefaults(minimalSize: Int, rndLength: Int, bound: Int) {
         if (minimalSize < 0 || rndLength < 0) {
-            throw IllegalArgumentException("Unable to set default values for a random W(p)-method equivalence oracle. The minimal size (value: $minimalSize) or random length (value: $rndLength)")
+            throw IllegalArgumentException("Unable to set default values for a random W(p)-method equivalence oracle. The minimal size (value: $minimalSize) or random length (value: $rndLength).")
         }
         if (bound < 0) {
             throw IllegalArgumentException("Unable to set default values for a random W(p)-method equivalence oracle. The maximum number of words to generate (value: $bound) is negative.")
@@ -187,36 +209,50 @@ open class EquivalenceOracleFactory internal constructor() {
     }
 
     /**
-     * Creates a new instance of the specified equivalence oracle type using the provided membership oracle and the
-     * factory defaults set prior to the create() call.
+     * Creates a new instance of the specified equivalence oracle type using the provided membership oracle / SUL /
+     * learning cache and the factory defaults set prior to the create() call.
      *
      * @param type The type of the equivalence oracle to create.
-     * @param membershipOracle A membership oracle of the system to learn.
+     * @param membershipOracle A membership oracle of the system to learn. Required if type is unequal RANDOM_WALK and CACHE_CONSISTENCY.
+     * @param sul The SUL. Only required if type is RANDOM_WALK.
+     * @param learningCache The learning cache. Only required if type is CACHE_CONSISTENCY
+     *
      */
-    fun <I, O> create(type: EquivalenceOracleType, membershipOracle: MembershipOracle<I, Word<O>>): EquivalenceOracle<MealyMachine<*, I, *, O>, I, Word<O>> {
+    fun create(
+        type: EquivalenceOracleType,
+        membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>? = null,
+        sul: SUL<SshSymbol, ResponseFingerprint>? = null,
+        learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>? = null
+    ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
         return when (type) {
-            EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(membershipOracle, completeExplorationMinDepth, completeExplorationMaxDepth)
-            EquivalenceOracleType.RANDOM_WORDS -> RandomWordsEQOracle(membershipOracle, randomWordsMinLength, randomWordsMaxLength, randomWordsMaxTests)
-            EquivalenceOracleType.RANDOM_WALK -> throw IllegalArgumentException("The random walk equivalence oracle requires a SUL rather than a membership oracle for instantiation.")
-            EquivalenceOracleType.W -> WMethodEQOracle(membershipOracle, wMaxDepth)
-            EquivalenceOracleType.RANDOM_W -> RandomWMethodEQOracle(membershipOracle, randomWMinimalSize, randomWRndLength, randomWBound)
-            EquivalenceOracleType.WP -> WpMethodEQOracle(membershipOracle, wMaxDepth)
-            EquivalenceOracleType.RANDOM_WP -> RandomWpMethodEQOracle(membershipOracle, randomWMinimalSize, randomWRndLength, randomWBound)
+            EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache?.createCacheConsistencyTest() ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
+            EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create HAPPY_FLOW equivalence oracle without a membership oracle"), happyFlowSuffixLength)
+            EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create COMPLETE_EXPLORATION equivalence oracle without a membership oracle"), completeExplorationMinDepth, completeExplorationMaxDepth)
+            EquivalenceOracleType.RANDOM_WORDS -> RandomWordsEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create RANDOM_WORDS equivalence oracle without a membership oracle"), randomWordsMinLength, randomWordsMaxLength, randomWordsMaxTests)
+            EquivalenceOracleType.RANDOM_WALK -> RandomWalkEQOracle(sul ?: throw IllegalArgumentException("Unable to create RANDOM_WALK equivalence oracle without a SUL"), randomWalkRestartProbability, randomWalkMaxSteps, Random())
+            EquivalenceOracleType.W -> WMethodEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create W equivalence oracle without a membership oracle"), wMaxDepth)
+            EquivalenceOracleType.RANDOM_W -> RandomWMethodEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create RANDOM_W equivalence oracle without a membership oracle"), randomWMinimalSize, randomWRndLength, randomWBound)
+            EquivalenceOracleType.WP -> WpMethodEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create WP equivalence oracle without a membership oracle"), wMaxDepth)
+            EquivalenceOracleType.RANDOM_WP -> RandomWpMethodEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create RANDOM_WP equivalence oracle without a membership oracle"), randomWMinimalSize, randomWRndLength, randomWBound)
         }
     }
 
     /**
-     * Creates a new instance of the specified equivalence oracle type using the provided SUL and the
-     * factory defaults set prior to the create() call.
+     * Creates a new equivalence oracle chain using the specified types. Each oracle is instantiated by calling the
+     * create method.
      *
-     * @param type The type of the equivalence oracle to create.
-     * @param sul The SUL. If the equivalence oracle type to create is not RANDOM_WALK, the SUL will be wrapped in a SULOracle instance.
+     * @param types The list of oracle types to create and chain.
+     * @param membershipOracle A membership oracle of the system to learn. Required if types contains a type that is unequal RANDOM_WALK and CACHE_CONSISTENCY.
+     * @param sul The SUL. Only required if types contains RANDOM_WALK.
+     * @param learningCache The learning cache. Only required if types contains CACHE_CONSISTENCY
      */
-    fun <I, O> create(type: EquivalenceOracleType, sul: SUL<I, O>): EquivalenceOracle<MealyMachine<*, I, *, O>, I, Word<O>> {
-        return when (type) {
-            EquivalenceOracleType.RANDOM_WALK -> RandomWalkEQOracle(sul, randomWalkRestartProbability, randomWalkMaxSteps, Random())
-            else -> create(type, SULOracle(sul).asOracle())
-        }
+    fun createChain(
+        types: Iterable<EquivalenceOracleType>,
+        membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>? = null,
+        sul: SUL<SshSymbol, ResponseFingerprint>? = null,
+        learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>? = null
+    ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
+        return EQOracleChain(types.map { create(it, membershipOracle, sul, learningCache) })
     }
 }

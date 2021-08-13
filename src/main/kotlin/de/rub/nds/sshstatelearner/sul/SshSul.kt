@@ -58,6 +58,9 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long, val resetDe
         config = Config.createConfig().apply {
             stopActionsAfterDisconnect = false
             stopActionsAfterIOException = false
+            avoidAdjustmentExceptions = true
+            avoidPreparationExceptions = true
+            serviceName = "ssh-userauth"
         }
         state = State(config).apply {
             sshContext.transportHandler = ClientTcpTransportHandler(timeout, timeout, hostname, port)

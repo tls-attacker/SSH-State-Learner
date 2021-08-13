@@ -14,9 +14,10 @@ import de.learnlib.api.query.DefaultQuery
 import de.learnlib.filter.statistic.Counter
 import de.learnlib.filter.statistic.sul.ResetCounterSUL
 import de.learnlib.filter.statistic.sul.SymbolCounterSUL
-import de.learnlib.oracle.equivalence.EQOracleChain
 import de.learnlib.oracle.membership.SULOracle
+import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleType
+import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.learner.cache.ResponseTreeCache
 import de.rub.nds.sshstatelearner.sul.SshSul
@@ -27,7 +28,7 @@ import net.automatalib.words.Alphabet
 import net.automatalib.words.Word
 import org.apache.logging.log4j.LogManager
 
-class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT, val equivalenceOracleType: EquivalenceOracleType = EquivalenceOracleType.RANDOM_WORDS) {
+class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT, val equivalenceOracleChainTypes: List<EquivalenceOracleType>) {
 
     var sul: SUL<SshSymbol, ResponseFingerprint>
         private set
@@ -49,31 +50,19 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
         private val LOGGER = LogManager.getLogger()
     }
 
-    private fun constructMembershipOracle(): ResponseTreeCache {
-        return ResponseTreeCache(SULOracle(this.sul))
-    }
-
-    private fun constructEquivalenceOracle(): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
-        return if (equivalenceOracleType == EquivalenceOracleType.RANDOM_WALK)
-            EQOracleChain(
-                membershipOracle.createCacheConsistencyTest(),
-                EquivalenceOracleType.create(equivalenceOracleType, sul)
-            )
-        else
-            EQOracleChain(
-                membershipOracle.createCacheConsistencyTest(),
-                EquivalenceOracleType.create(equivalenceOracleType, membershipOracle)
-            )
-    }
-
     private fun constructOracles() {
-        membershipOracle = constructMembershipOracle()
-        equivalenceOracle = constructEquivalenceOracle()
+        membershipOracle = ResponseTreeCache(SULOracle(sul))
+        equivalenceOracle = EquivalenceOracleFactory.createChain(
+            equivalenceOracleChainTypes,
+            membershipOracle.asOracle(),
+            sul,
+            membershipOracle
+        )
     }
 
     fun learn(): MealyMachine<*, SshSymbol, *, ResponseFingerprint> {
         constructOracles()
-        learningAlgorithm = LearningAlgorithmType.create(algorithm, alphabet, membershipOracle)
+        learningAlgorithm = LearningAlgorithmFactory.create(algorithm, alphabet, membershipOracle)
 
         var hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>
         var counterExample: DefaultQuery<*, *>?
