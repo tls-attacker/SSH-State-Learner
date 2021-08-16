@@ -17,6 +17,7 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMes
 import de.rub.nds.sshattacker.core.protocol.transport.message.NewKeysMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
+import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import de.rub.nds.sshstatelearner.sul.symbols.toSymbol
@@ -24,16 +25,21 @@ import de.rub.nds.sshstatelearner.util.combinations
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 
-class HappyFlowEQOracle(private val membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>, private val suffixLength: Int) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
+class HappyFlowEQOracle(private val membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>, private val stage: ProtocolStage, private val suffixLength: Int) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
 
     companion object {
-        val TRANSPORT_HAPPY_FLOW: Word<SshSymbol> = Word.fromSymbols(
-            VersionExchangeMessage().toSymbol(),
-            KeyExchangeInitMessage().toSymbol(),
-            DhGexKeyExchangeRequestMessage().toSymbol(),
-            DhGexKeyExchangeInitMessage().toSymbol(),
-            NewKeysMessage().toSymbol(),
-            ServiceRequestMessage().toSymbol()
+        val HAPPY_FLOWS: Map<ProtocolStage, Word<SshSymbol>> = mapOf(
+            ProtocolStage.TRANSPORT to Word.fromSymbols(
+                VersionExchangeMessage().toSymbol(),
+                KeyExchangeInitMessage().toSymbol(),
+                DhGexKeyExchangeRequestMessage().toSymbol(),
+                DhGexKeyExchangeInitMessage().toSymbol(),
+                NewKeysMessage().toSymbol(),
+                ServiceRequestMessage().toSymbol()
+            ),
+            // TODO: Define happy flows for ProtocolStage.AUTHENTICATION and ProtocolStage.CONNECTION
+            ProtocolStage.AUTHENTICATION to Word.epsilon(),
+            ProtocolStage.CONNECTION to Word.epsilon()
         )
     }
 
@@ -41,7 +47,7 @@ class HappyFlowEQOracle(private val membershipOracle: MembershipOracle<SshSymbol
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
-        val happyFlowPrefixes = TRANSPORT_HAPPY_FLOW.prefixes(true)
+        val happyFlowPrefixes = HAPPY_FLOWS[stage]!!.prefixes(true)
         for (prefix in happyFlowPrefixes) {
             val suffixes = alphabet.combinations(suffixLength).map { Word.fromList(it) }
             for (suffix in suffixes) {

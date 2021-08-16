@@ -9,6 +9,7 @@
 package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
+import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 
@@ -31,5 +32,9 @@ object ArgsSul {
 
     @Parameter(names = ["--receive-delay"], description = "Delay in milliseconds between sending messages and receiving the server response. Larger delays avoid DATA_AVAILABLE socket states while increasing overall runtime", order = 14)
     var receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY
+        private set
+
+    @Parameter(names = ["--stage"], description = "The SSH protocol stage whose state machine is to be extracted", order = 15)
+    var protocolStage: ProtocolStage = ProtocolStage.TRANSPORT
         private set
 }

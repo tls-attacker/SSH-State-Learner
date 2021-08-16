@@ -21,38 +21,62 @@ import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
 
-class SshSul(val hostname: String, val port: Int, val timeout: Long, val resetDelay: Long) : SUL<SshSymbol, ResponseFingerprint> {
+class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT, val resetDelay: Long = DEFAULT_SUL_RESET_DELAY, val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE) : SUL<SshSymbol, ResponseFingerprint> {
     /**
-     * The config of the SSH-Attacker
+     * The config of the SSH-Attacker.
      */
     private lateinit var config: Config
 
     /**
-     * The state of the SSH-Attacker
+     * The state of the SSH-Attacker.
      */
     private lateinit var state: State
 
     /**
-     * Indicates whether the underlying network connection is available or closed
+     * Indicates whether the underlying network connection is available or closed.
      */
     var connectionClosed = false
         private set
 
     /**
-     * A list of all executed steps on the current SSH connection
+     * A list of SshSymbols that need to be executed within pre() to reach the defined protocol stage.
+     */
+    private val preamble: List<SshSymbol> = constructPreamble()
+
+    /**
+     * A list of all executed steps on the current SSH connection.
      */
     private val executedSteps = mutableListOf<SshSymbol>()
 
     companion object : LoggerCompanion() {
+        /**
+         * A non-negative integer value indicating the default transport handler timeout.
+         */
         const val DEFAULT_TRANSPORT_HANDLER_TIMEOUT: Long = 1000
+
+        /**
+         * A non-negative integer value indicating the delay when resetting the SUL.
+         */
         const val DEFAULT_SUL_RESET_DELAY: Long = 0
+
+        /**
+         * The default protocol stage to execute on
+         */
+        val DEFAULT_PROTOCOL_STAGE: ProtocolStage = ProtocolStage.TRANSPORT
     }
 
-    constructor(hostname: String, port: Int) : this(hostname, port, DEFAULT_TRANSPORT_HANDLER_TIMEOUT)
-    constructor(hostname: String, port: Int, timeout: Long) : this(hostname, port, timeout, DEFAULT_SUL_RESET_DELAY)
+    /**
+     * Constructs a list of SshSymbols that need to be executed to reach the provided SSH protocol stage.
+     *
+     * @return List of SshSymbols whose execution lead to the provided SSH protocol stage.
+     */
+    private fun constructPreamble(): List<SshSymbol> {
+        // TODO: Define preamble for ProtocolStage.AUTHENTICATION and ProtocolStage.CONNECTION
+        return emptyList()
+    }
 
     /**
-     * Set up the SSH SUL by instantiating a new SSH-Attacker state and connection to the peer
+     * Set up the SSH SUL by instantiating a new SSH-Attacker state and connection to the peer.
      */
     override fun pre() {
         config = Config.createConfig().apply {
@@ -67,10 +91,14 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long, val resetDe
             sshContext.initTransportHandler()
         }
         connectionClosed = false
+        // TODO: Exception handling for preamble
+        preamble.forEach {
+            it.execute(state)
+        }
     }
 
     /**
-     * Tear down all stateful components of this SUL, like the internal sulState and transport handler connection
+     * Tear down all stateful components of this SUL, like the internal sulState and transport handler connection.
      */
     override fun post() {
         try {
@@ -86,7 +114,7 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long, val resetDe
     }
 
     /**
-     * Step the SUL by executing a single SshWord
+     * Step the SUL by executing a single SshWord.
      */
     override fun step(p0: SshSymbol?): ResponseFingerprint {
         try {
@@ -133,14 +161,14 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long, val resetDe
     }
 
     /**
-     * Indicates whether this SUL can be forked for parallel queries
+     * Indicates whether this SUL can be forked for parallel queries.
      */
     override fun canFork(): Boolean {
         return true
     }
 
     /**
-     * Returns a new SUL instance that must behave exactly as the original SUL
+     * Returns a new SUL instance that must behave exactly as the original SUL.
      */
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
         return SshSul(hostname, port, timeout, resetDelay)

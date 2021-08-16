@@ -20,6 +20,7 @@ import de.learnlib.oracle.equivalence.RandomWpMethodEQOracle
 import de.learnlib.oracle.equivalence.WMethodEQOracle
 import de.learnlib.oracle.equivalence.WpMethodEQOracle
 import de.learnlib.oracle.equivalence.mealy.RandomWalkEQOracle
+import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import java.util.Random
@@ -30,6 +31,12 @@ object EquivalenceOracleFactory {
     /*
      * Factory defaults
      */
+
+    /**
+     * The default protocol stage used to determine the correct happy flow to use.
+     */
+    var happyFlowProtocolStage: ProtocolStage = ProtocolStage.CONNECTION
+        private set
 
     /**
      * The length of the suffix to append to each possible happy flow prefix.
@@ -114,10 +121,11 @@ object EquivalenceOracleFactory {
      *
      * @param suffixLength The length of the suffix to append to each possible happy flow prefix
      */
-    fun setHappyFlowDefaults(suffixLength: Int) {
+    fun setHappyFlowDefaults(stage: ProtocolStage, suffixLength: Int) {
         if (suffixLength < 0) {
             throw IllegalArgumentException("Unable to set default values for a happy flow equivalence oracle. The suffix length (value: $suffixLength) is negative.")
         }
+        happyFlowProtocolStage = stage
         happyFlowSuffixLength = suffixLength
     }
 
@@ -227,7 +235,7 @@ object EquivalenceOracleFactory {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
         return when (type) {
             EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache?.createCacheConsistencyTest() ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
-            EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create HAPPY_FLOW equivalence oracle without a membership oracle"), happyFlowSuffixLength)
+            EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create HAPPY_FLOW equivalence oracle without a membership oracle"), happyFlowProtocolStage, happyFlowSuffixLength)
             EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create COMPLETE_EXPLORATION equivalence oracle without a membership oracle"), completeExplorationMinDepth, completeExplorationMaxDepth)
             EquivalenceOracleType.RANDOM_WORDS -> RandomWordsEQOracle(membershipOracle ?: throw IllegalArgumentException("Unable to create RANDOM_WORDS equivalence oracle without a membership oracle"), randomWordsMinLength, randomWordsMaxLength, randomWordsMaxTests)
             EquivalenceOracleType.RANDOM_WALK -> RandomWalkEQOracle(sul ?: throw IllegalArgumentException("Unable to create RANDOM_WALK equivalence oracle without a SUL"), randomWalkRestartProbability, randomWalkMaxSteps, Random())

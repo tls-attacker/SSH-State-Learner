@@ -11,7 +11,7 @@ package de.rub.nds.sshstatelearner.cli.args
 import com.beust.jcommander.Parameter
 
 object ArgsGeneral {
-    @Parameter(names = ["--help"], help = true, description = "Print this help screen", descriptionKey = "General", order = 0)
+    @Parameter(names = ["--help"], help = true, description = "Print this help screen", order = 0)
     var help: Boolean = false
         private set
 }
