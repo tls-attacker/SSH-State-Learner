@@ -12,10 +12,19 @@ import com.beust.jcommander.Parameter
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmType
+import de.rub.nds.sshstatelearner.learner.OutputFormat
 
 object ArgsLearner {
     @Parameter(names = ["--algorithm", "-a"], description = "The learning algorithm to use", order = 50)
     var learningAlgorithmType: LearningAlgorithmType = LearningAlgorithmType.TTT
+        private set
+
+    @Parameter(names = ["--output-formats", "-o"], description = "The formats of the hypothesis output(s)", order = 51)
+    var outputFormats: List<OutputFormat> = listOf(OutputFormat.SERIALIZED, OutputFormat.SIMPLE_VISUALIZATION)
+        private set
+
+    @Parameter(names = ["--output-intermediate-hypothesis"], description = "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis", order = 52)
+    var outputIntermediateHypothesis: Boolean = false
         private set
 
     @Parameter(names = ["--equiv-oracle-chain"], description = "The equivalence oracle chain to use (comma-separated combination of CACHE_CONSISTENCY, HAPPY_FLOW, COMPLETE_EXPLORATION, RANDOM_WORDS, RANDOM_WALK, RANDOM_W, RANDOM_WP, W, WP)", listConverter = EQOracleChainSplitter::class, order = 100)

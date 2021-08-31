@@ -9,6 +9,7 @@
 package de.rub.nds.sshstatelearner.learner
 
 import de.learnlib.api.SUL
+import de.learnlib.api.algorithm.LearningAlgorithm
 import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.query.DefaultQuery
 import de.learnlib.filter.statistic.Counter
@@ -23,10 +24,10 @@ import de.rub.nds.sshstatelearner.learner.cache.ResponseTreeCache
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
+import de.rub.nds.sshstatelearner.util.LoggerCompanion
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Alphabet
 import net.automatalib.words.Word
-import org.apache.logging.log4j.LogManager
 
 class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT, val equivalenceOracleChainTypes: List<EquivalenceOracleType>) {
 
@@ -37,7 +38,9 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
 
     private lateinit var membershipOracle: ResponseTreeCache
     private lateinit var equivalenceOracle: EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>
-    private lateinit var learningAlgorithm: de.learnlib.api.algorithm.LearningAlgorithm.MealyLearner<SshSymbol, ResponseFingerprint>
+    private lateinit var learningAlgorithm: LearningAlgorithm.MealyLearner<SshSymbol, ResponseFingerprint>
+
+    var outputManager: OutputManager<SshSymbol>? = null
 
     init {
         this.sul = SymbolCounterSUL("Symbol Counter", sul)
@@ -46,9 +49,7 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
         this.resetCounter = (this.sul as ResetCounterSUL<SshSymbol, ResponseFingerprint>).statisticalData
     }
 
-    companion object {
-        private val LOGGER = LogManager.getLogger()
-    }
+    companion object : LoggerCompanion()
 
     private fun constructOracles() {
         membershipOracle = ResponseTreeCache(SULOracle(sul))
@@ -63,6 +64,7 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
     fun learn(): MealyMachine<*, SshSymbol, *, ResponseFingerprint> {
         constructOracles()
         learningAlgorithm = LearningAlgorithmFactory.create(algorithm, alphabet, membershipOracle)
+        outputManager?.prepare()
 
         var hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>
         var counterExample: DefaultQuery<*, *>?
@@ -72,6 +74,7 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
         learningAlgorithm.startLearning()
         do {
             hypothesis = learningAlgorithm.hypothesisModel
+            outputManager?.storeIntermediateHypothesis(alphabet, hypothesis, learningRound)
             LOGGER.info("Finished learning round ${learningRound++}, searching for counter examples (executed SUL steps: ${symbolCounter.count})")
             counterExample = equivalenceOracle.findCounterExample(hypothesis, alphabet)
             if (counterExample != null) {
@@ -81,6 +84,7 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
             }
         } while (counterExample != null)
 
+        outputManager?.storeFinalHypothesis(alphabet, hypothesis, learningRound)
         val endTime = System.currentTimeMillis()
         LOGGER.info("Finished learning the target SUL, took ${endTime - startTime} ms")
         LOGGER.info("Total steps: ${symbolCounter.count} | Total resets: ${resetCounter.count}")

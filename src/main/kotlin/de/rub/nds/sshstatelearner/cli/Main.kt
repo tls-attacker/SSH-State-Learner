@@ -14,6 +14,7 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
+import de.rub.nds.sshstatelearner.learner.OutputManager
 import de.rub.nds.sshstatelearner.learner.SshSulLearner
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -22,7 +23,6 @@ import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import java.security.Security
 import kotlin.system.exitProcess
 import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.visualization.Visualization
 import net.automatalib.words.Alphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
@@ -92,17 +92,14 @@ private fun setEquivalenceOracleDefaults() {
 private fun conductProtocolLearning(): Pair<Alphabet<SshSymbol>, MealyMachine<*, SshSymbol, *, ResponseFingerprint>> {
     val alphabet = AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.receiveDelay)
     val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage)
-    val hypothesis = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes).learn()
+    val learner = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes).apply {
+        outputManager = OutputManager<SshSymbol>().apply {
+            outputFormats = ArgsLearner.outputFormats.toMutableList()
+            outputIntermediateHypothesis = ArgsLearner.outputIntermediateHypothesis
+        }
+    }
+    val hypothesis = learner.learn()
     return Pair(alphabet, hypothesis)
-}
-
-/**
- * Process the output produced by the actual protocol learning step.
- * This includes visualization, serialization and any other possible output method.
- */
-private fun processOutput(alphabet: Alphabet<SshSymbol>, hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>) {
-    // TODO: Refine visualization / output logic
-    Visualization.visualize(hypothesis, alphabet)
 }
 
 fun main(vararg args: String) {
@@ -110,6 +107,5 @@ fun main(vararg args: String) {
     prepareJCE()
     handleArgs(args)
     setEquivalenceOracleDefaults()
-    val learnerOutput = conductProtocolLearning()
-    processOutput(learnerOutput.first, learnerOutput.second)
+    conductProtocolLearning()
 }

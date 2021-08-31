@@ -1,0 +1,110 @@
+/*
+ * SSH State Learner - A tool for extracting state machines from SSH server implementations
+ *
+ * Copyright 2021 Ruhr University Bochum, Paderborn University, Hackmanit GmbH
+ *
+ * Licensed under Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0.txt
+ */
+package de.rub.nds.sshstatelearner.learner
+
+import de.rub.nds.sshstatelearner.util.LoggerCompanion
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import net.automatalib.automata.transducers.MealyMachine
+import net.automatalib.serialization.dot.GraphDOT
+import net.automatalib.visualization.Visualization
+import net.automatalib.words.Alphabet
+
+open class OutputManager<I> {
+
+    /**
+     * If set to true, the OutputManager not only stores the final hypothesis but rather all intermediate hypotheses.
+     */
+    var outputIntermediateHypothesis: Boolean = false
+
+    /**
+     * A list of output formats for a hypothesis.
+     */
+    var outputFormats: MutableList<OutputFormat> = mutableListOf()
+
+    companion object : LoggerCompanion() {
+        /**
+         * The output directory for serialized hypothesis files.
+         */
+        private const val OUTPUT_DIR = "./out/"
+    }
+
+    /**
+     * Prepares the OutputManager to store hypotheses by preparing the output directory. This function is
+     * called by the SshSulLearner before the learning process is started.
+     */
+    fun prepare() {
+        val outputDir = File(OUTPUT_DIR)
+        if (outputDir.exists()) {
+            LOGGER.warn("The output directory already exists, deleting it")
+            outputDir.deleteRecursively()
+        }
+        File(OUTPUT_DIR).mkdirs()
+    }
+
+    /**
+     * Outputs an intermediate hypothesis if outputIntermediateHypothesis is set to true. This function is
+     * called by the SshSulLearner after the learning algorithm outputs a new hypothesis.
+     *
+     * @param alphabet The alphabet of the hypothesis
+     * @param hypothesis The intermediate hypothesis
+     * @param round The learning round
+     */
+    fun storeIntermediateHypothesis(alphabet: Alphabet<I>, hypothesis: MealyMachine<*, I, *, *>, round: Int) {
+        if (outputIntermediateHypothesis) {
+            handleHypothesis(alphabet, hypothesis, round)
+        }
+    }
+
+    /**
+     * Outputs the final hypothesis. This function is called by the SshSulLearner once the EquivalenceOracle was
+     * unable to find a counterexample.
+     *
+     * @param alphabet The alphabet of the hypothesis
+     * @param hypothesis The final hypothesis
+     * @param totalRounds The total number of rounds
+     */
+    fun storeFinalHypothesis(alphabet: Alphabet<I>, hypothesis: MealyMachine<*, I, *, *>, totalRounds: Int) {
+        handleHypothesis(alphabet, hypothesis, totalRounds)
+    }
+
+    /**
+     * Handle a hypothesis according to the outputFormats list.
+     *
+     * @param alphabet The alphabet of the hypothesis
+     * @param hypothesis The hypothesis
+     * @param round The learning round
+     */
+    protected fun handleHypothesis(alphabet: Alphabet<I>, hypothesis: MealyMachine<*, I, *, *>, round: Int) {
+        outputFormats.forEach {
+            when (it) {
+                OutputFormat.SERIALIZED -> serializeHypothesis(alphabet, hypothesis, round)
+                OutputFormat.SIMPLE_VISUALIZATION -> Visualization.visualize(hypothesis, alphabet)
+            }
+        }
+    }
+
+    /**
+     * Outputs a hypothesis into an output file using the GraphDOT serializer.
+     *
+     * @param alphabet The alphabet of the hypothesis
+     * @param hypothesis The hypothesis
+     * @param round The learning round
+     */
+    protected fun serializeHypothesis(alphabet: Alphabet<I>, hypothesis: MealyMachine<*, I, *, *>, round: Int) {
+        try {
+            LOGGER.info("Serializing hypothesis after round $round into file out/hyp_round_$round.dot")
+            val outputFile = File(OUTPUT_DIR, "hyp_round_$round.dot")
+            GraphDOT.write(hypothesis, alphabet, FileWriter(outputFile))
+        } catch (e: IOException) {
+            LOGGER.error("Unable to export hypothesis after round $round")
+        }
+    }
+}
