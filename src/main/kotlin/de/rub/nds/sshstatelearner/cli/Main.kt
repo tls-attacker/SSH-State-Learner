@@ -90,7 +90,7 @@ private fun setEquivalenceOracleDefaults() {
  * @return A pair of the alphabet used and the hypothesis returned by the SshSulLearner
  */
 private fun conductProtocolLearning(): Pair<Alphabet<SshSymbol>, MealyMachine<*, SshSymbol, *, ResponseFingerprint>> {
-    val alphabet = AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.receiveDelay)
+    val alphabet = AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm, ArgsSul.receiveDelay)
     val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage)
     val learner = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes).apply {
         outputManager = OutputManager<SshSymbol>().apply {

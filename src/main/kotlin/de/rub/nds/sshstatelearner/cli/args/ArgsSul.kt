@@ -9,6 +9,7 @@
 package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
+import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
@@ -36,5 +37,9 @@ object ArgsSul {
 
     @Parameter(names = ["--stage"], description = "The SSH protocol stage whose state machine is to be extracted", order = 15)
     var protocolStage: ProtocolStage = ProtocolStage.TRANSPORT
+        private set
+
+    @Parameter(names = ["--kex"], description = "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm", order = 16)
+    var kexAlgorithm: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256
         private set
 }
