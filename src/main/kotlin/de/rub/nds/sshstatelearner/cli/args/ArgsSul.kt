@@ -36,10 +36,10 @@ object ArgsSul {
         private set
 
     @Parameter(names = ["--stage"], description = "The SSH protocol stage whose state machine is to be extracted", order = 15)
-    var protocolStage: ProtocolStage = ProtocolStage.TRANSPORT
+    var protocolStage: ProtocolStage = SshSul.DEFAULT_PROTOCOL_STAGE
         private set
 
     @Parameter(names = ["--kex"], description = "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm", order = 16)
-    var kexAlgorithm: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256
+    var kexAlgorithm: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM
         private set
 }

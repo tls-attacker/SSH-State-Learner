@@ -59,6 +59,7 @@ private fun handleArgs(args: Array<out String>) {
 private fun setEquivalenceOracleDefaults() {
     EquivalenceOracleFactory.setHappyFlowDefaults(
         ArgsSul.protocolStage,
+        ArgsSul.kexAlgorithm,
         ArgsLearner.equivHappyFlowSuffixLength
     )
     EquivalenceOracleFactory.setCompleteExplorationDefaults(
@@ -91,7 +92,7 @@ private fun setEquivalenceOracleDefaults() {
  */
 private fun conductProtocolLearning(): Pair<Alphabet<SshSymbol>, MealyMachine<*, SshSymbol, *, ResponseFingerprint>> {
     val alphabet = AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm, ArgsSul.receiveDelay)
-    val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage)
+    val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
     val learner = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes).apply {
         outputManager = OutputManager<SshSymbol>().apply {
             outputFormats = ArgsLearner.outputFormats.toMutableList()

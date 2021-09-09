@@ -11,6 +11,7 @@ package de.rub.nds.sshstatelearner.sul
 import de.learnlib.api.SUL
 import de.learnlib.api.exception.SULException
 import de.rub.nds.sshattacker.core.config.Config
+import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
@@ -21,7 +22,7 @@ import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
 
-class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT, val resetDelay: Long = DEFAULT_SUL_RESET_DELAY, val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE) : SUL<SshSymbol, ResponseFingerprint> {
+class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT, val resetDelay: Long = DEFAULT_SUL_RESET_DELAY, val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE, val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM) : SUL<SshSymbol, ResponseFingerprint> {
     /**
      * The config of the SSH-Attacker.
      */
@@ -63,6 +64,11 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
          * The default protocol stage to execute on
          */
         val DEFAULT_PROTOCOL_STAGE: ProtocolStage = ProtocolStage.TRANSPORT
+
+        /**
+         * The default key exchange algorithm
+         */
+        val DEFAULT_KEX_ALGORITHM: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256
     }
 
     /**
@@ -84,6 +90,7 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
             stopActionsAfterIOException = false
             avoidAdjustmentExceptions = true
             avoidPreparationExceptions = true
+            clientSupportedKeyExchangeAlgorithms = listOf(kex)
             serviceName = "ssh-userauth"
         }
         state = State(config).apply {
