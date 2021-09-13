@@ -27,7 +27,7 @@ data class ResponseFingerprint(val messages: List<Message<*>>, var socketState: 
      */
     override fun toString(): String {
         val messagesString = messages.joinToString(",") { it.toCompactString() }
-        return "ResponseFingerprint[messages=[$messagesString],socketState=$socketState]"
+        return "$messagesString | SocketState: $socketState"
     }
 
     /**

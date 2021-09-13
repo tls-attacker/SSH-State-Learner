@@ -54,7 +54,7 @@ class GenericMessageSymbol(private val message: Message<*>, private val receiveD
      * @return A string representing this symbol.
      */
     override fun toString(): String {
-        return "${javaClass.simpleName}[message=${message.toCompactString()}]"
+        return message.toCompactString()
     }
 
     /**
