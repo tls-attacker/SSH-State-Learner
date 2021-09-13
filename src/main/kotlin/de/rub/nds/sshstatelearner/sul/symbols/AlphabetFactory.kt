@@ -14,6 +14,11 @@ import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthBanne
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthFailureMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthSuccessMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelEofMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelFailureMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelRequestExecMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelWindowAdjustMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeOldRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeRequestMessage
@@ -50,7 +55,6 @@ object AlphabetFactory {
 
     fun construct(stage: ProtocolStage = ProtocolStage.TRANSPORT, kex: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256, receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY): Alphabet<SshSymbol> {
         return when (stage) {
-            // TODO: Define alphabet for transport stage
             ProtocolStage.TRANSPORT -> ListAlphabet(
                 listOf(
                     VersionExchangeMessage().toSymbol(receiveDelay),
@@ -62,15 +66,21 @@ object AlphabetFactory {
             )
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
-                    UserAuthPasswordMessage().toSymbol(),
-                    UserAuthFailureMessage().toSymbol(),
-                    UserAuthSuccessMessage().toSymbol(),
-                    UserAuthBannerMessage().toSymbol()
+                    UserAuthPasswordMessage().toSymbol(receiveDelay),
+                    UserAuthFailureMessage().toSymbol(receiveDelay),
+                    UserAuthSuccessMessage().toSymbol(receiveDelay),
+                    UserAuthBannerMessage().toSymbol(receiveDelay)
                 )
             )
-            ProtocolStage.CONNECTION -> ListAlphabet(listOf(
-                // TODO: Define alphabet for connection stage
-            ))
+            ProtocolStage.CONNECTION -> ListAlphabet(
+                listOf(
+                    ChannelEofMessage().toSymbol(receiveDelay),
+                    ChannelFailureMessage().toSymbol(receiveDelay),
+                    ChannelOpenMessage().toSymbol(receiveDelay),
+                    ChannelRequestExecMessage().toSymbol(receiveDelay),
+                    ChannelWindowAdjustMessage().toSymbol(receiveDelay)
+                )
+            )
         }
     }
 }

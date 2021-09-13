@@ -3,6 +3,8 @@ package de.rub.nds.sshstatelearner.sul.symbols
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelRequestExecMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhKeyExchangeInitMessage
@@ -43,7 +45,10 @@ object HappyFlowFactory {
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
                 UserAuthPasswordMessage().toSymbol()
             )
-            else -> TODO("Happy flow of protocol stage $stage not yet defined")
+            ProtocolStage.CONNECTION -> Word.fromSymbols(
+                ChannelOpenMessage().toSymbol(),
+                ChannelRequestExecMessage().toSymbol()
+            )
         }
     }
 }
