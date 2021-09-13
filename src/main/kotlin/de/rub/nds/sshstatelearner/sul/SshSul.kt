@@ -19,10 +19,10 @@ import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import de.rub.nds.sshstatelearner.util.LoggerCompanion
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import de.rub.nds.tlsattacker.transport.tcp.ClientTcpTransportHandler
-import net.automatalib.words.Word
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
+import net.automatalib.words.Word
 
 class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT, val resetDelay: Long = DEFAULT_SUL_RESET_DELAY, val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE, val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM) : SUL<SshSymbol, ResponseFingerprint> {
     /**
@@ -79,7 +79,7 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
      * @return List of SshSymbols whose execution lead to the provided SSH protocol stage.
      */
     private fun constructPreamble(): Word<SshSymbol> {
-        return when(stage) {
+        return when (stage) {
             ProtocolStage.TRANSPORT -> Word.epsilon()
             ProtocolStage.AUTHENTICATION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex)
             ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex).concat(
