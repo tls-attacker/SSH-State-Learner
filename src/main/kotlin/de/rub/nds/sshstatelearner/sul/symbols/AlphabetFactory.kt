@@ -10,6 +10,10 @@ package de.rub.nds.sshstatelearner.sul.symbols
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
+import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthBannerMessage
+import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthFailureMessage
+import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
+import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthSuccessMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeOldRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeRequestMessage
@@ -56,9 +60,14 @@ object AlphabetFactory {
                     ServiceRequestMessage().toSymbol(receiveDelay)
                 )
             )
-            ProtocolStage.AUTHENTICATION -> ListAlphabet(listOf(
-                    // TODO: Define alphabet for authentication stage
-                ))
+            ProtocolStage.AUTHENTICATION -> ListAlphabet(
+                listOf(
+                    UserAuthPasswordMessage().toSymbol(),
+                    UserAuthFailureMessage().toSymbol(),
+                    UserAuthSuccessMessage().toSymbol(),
+                    UserAuthBannerMessage().toSymbol()
+                )
+            )
             ProtocolStage.CONNECTION -> ListAlphabet(listOf(
                 // TODO: Define alphabet for connection stage
             ))

@@ -14,10 +14,12 @@ import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
+import de.rub.nds.sshstatelearner.sul.symbols.HappyFlowFactory
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import de.rub.nds.sshstatelearner.util.LoggerCompanion
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import de.rub.nds.tlsattacker.transport.tcp.ClientTcpTransportHandler
+import net.automatalib.words.Word
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
@@ -42,7 +44,7 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
     /**
      * A list of SshSymbols that need to be executed within pre() to reach the defined protocol stage.
      */
-    private val preamble: List<SshSymbol> = constructPreamble()
+    private val preamble: Word<SshSymbol> = constructPreamble()
 
     /**
      * A list of all executed steps on the current SSH connection.
@@ -76,9 +78,14 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
      *
      * @return List of SshSymbols whose execution lead to the provided SSH protocol stage.
      */
-    private fun constructPreamble(): List<SshSymbol> {
-        // TODO: Define preamble for ProtocolStage.AUTHENTICATION and ProtocolStage.CONNECTION
-        return emptyList()
+    private fun constructPreamble(): Word<SshSymbol> {
+        return when(stage) {
+            ProtocolStage.TRANSPORT -> Word.epsilon()
+            ProtocolStage.AUTHENTICATION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex)
+            ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex).concat(
+                HappyFlowFactory.constructHappyFlow(ProtocolStage.AUTHENTICATION, kex)
+            )
+        }
     }
 
     /**
