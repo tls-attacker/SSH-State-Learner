@@ -20,7 +20,29 @@ import de.rub.nds.sshstatelearner.util.combinations
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 
-class HappyFlowEQOracle(private val membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>, private val stage: ProtocolStage, private val kex: KeyExchangeAlgorithm, private val suffixLength: Int) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
+/**
+ * A simple equivalence oracle that checks if equivalence holds for a predefined happy flow (and each of its prefixes)
+ * with random suffixes of configurable length. The happy flow is constructed using the HappyFlowFactory.
+ *
+ * @param membershipOracle The membership oracle representing the SUL to learn.
+ * @param stage The protocol stage to check equivalence for.
+ * @param kex The key exchange algorithm to check equivalence for.
+ * @param suffixLength The length of the randomly generated suffix.
+ */
+class HappyFlowEQOracle(
+    private val membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
+    private val stage: ProtocolStage,
+    private val kex: KeyExchangeAlgorithm,
+    private val suffixLength: Int
+) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
+    /**
+     * Searches for a counter example to disprove the hypothesis by iterating all prefixes of the happy flow
+     * and combining it with random suffixes.
+     *
+     * @param hypothesis The hypothesis to check equivalence with the provided membership oracle.
+     * @param alphabet The alphabet to check equivalence for.
+     * @return A counter example to the hypothesis or null, if no counter example was found.
+     */
     override fun findCounterExample(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>

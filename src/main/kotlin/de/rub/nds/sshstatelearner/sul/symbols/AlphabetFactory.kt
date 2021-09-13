@@ -33,7 +33,18 @@ import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import net.automatalib.words.Alphabet
 import net.automatalib.words.impl.ListAlphabet
 
+/**
+ * This object is capable of constructing the SSH alphabet given a protocol stage as well as a key exchange algorithm
+ * to use. The receive delay of a single symbol may also be specified with the corresponding parameter.
+ */
 object AlphabetFactory {
+    /**
+     * Constructs an array of symbols to use with the given key exchange algorithm.
+     *
+     * @param kex The key exchange algorithm to construct the symbols for.
+     * @param receiveDelay The receive delay for a single message symbol.
+     * @return An array of symbol to use with the given key exchange algorithm.
+     */
     private fun constructKexSymbols(kex: KeyExchangeAlgorithm, receiveDelay: Long): Array<out SshSymbol> {
         return when (kex.flowType) {
             KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
@@ -53,7 +64,21 @@ object AlphabetFactory {
         }
     }
 
-    fun construct(stage: ProtocolStage = ProtocolStage.TRANSPORT, kex: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256, receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY): Alphabet<SshSymbol> {
+    /**
+     * Constructs the alphabet given a protocol stage and key exchange algorithm. The receive delay of a single message
+     * symbol may also be specified.
+     *
+     * @param stage The protocol stage to construct the alphabet for.
+     * @param kex The key exchange algorithm to construct the alphabet for. If stage is not equal to TRANSPORT,
+     *            this parameter does not influence the resulting alphabet.
+     * @param receiveDelay The receive delay for a single message symbol. If omitted, a default value will be used.
+     * @return An alphabet with valid SSH symbols to use within the given protocol stage and key exchange algorithm.
+     */
+    fun construct(
+        stage: ProtocolStage = ProtocolStage.TRANSPORT,
+        kex: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256,
+        receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY
+    ): Alphabet<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> ListAlphabet(
                 listOf(

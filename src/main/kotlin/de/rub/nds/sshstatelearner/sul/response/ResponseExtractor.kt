@@ -13,18 +13,38 @@ import de.rub.nds.sshattacker.core.workflow.action.ReceivingAction
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import de.rub.nds.tlsattacker.transport.tcp.TcpTransportHandler
 
+/**
+ * A utility object capable of extracting the ResponseFingerprint from a given SSH attacker state and receive action.
+ */
 object ResponseExtractor {
+    /**
+     * Extracts the response fingerprint of the receiving action from the provided state.
+     *
+     * @param state The state of the SSH attacker.
+     * @param action The receiving action to extract the response fingerprint for.
+     * @return A response fingerprint indicating the received messages as well as the socket state.
+     */
     fun getFingerprint(state: State, action: ReceivingAction): ResponseFingerprint {
         val messages = action.receivedMessages
         val socketState = extractSocketState(state)
         return ResponseFingerprint(messages, socketState)
     }
 
+    /**
+     * Extracts the response fingerprint of the last receiving action executed on the provided state.
+     *
+     * @param state The state of the SSH attacker.
+     */
     fun getFingerprint(state: State): ResponseFingerprint {
         val action = state.workflowTrace.lastReceivingAction
         return getFingerprint(state, action)
     }
 
+    /**
+     * Extracts the socket state of the underlying transport handler.
+     *
+     * @param state The state of the SSH attacker.
+     */
     private fun extractSocketState(state: State): SocketState {
         return when (val transportHandler = state.sshContext.transportHandler) {
             is TcpTransportHandler -> transportHandler.socketState

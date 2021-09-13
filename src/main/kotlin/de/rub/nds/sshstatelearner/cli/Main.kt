@@ -103,6 +103,9 @@ private fun conductProtocolLearning(): Pair<Alphabet<SshSymbol>, MealyMachine<*,
     return Pair(alphabet, hypothesis)
 }
 
+/**
+ * This is the main entrypoint for the SSH-State-Learner module when running in CLI mode.
+ */
 fun main(vararg args: String) {
     // TODO: This should be part of the SSH attacker library
     prepareJCE()

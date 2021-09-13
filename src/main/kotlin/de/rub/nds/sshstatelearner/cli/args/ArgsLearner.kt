@@ -14,6 +14,10 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.learner.OutputFormat
 
+/**
+ * This object contains all arguments for the JCommander CLI parser which change the behaviour of the SUL learner. This
+ * includes algorithms, equivalence oracle defaults and output formats.
+ */
 object ArgsLearner {
     @Parameter(names = ["--algorithm", "-a"], description = "The learning algorithm to use", order = 50)
     var learningAlgorithmType: LearningAlgorithmType = LearningAlgorithmType.TTT

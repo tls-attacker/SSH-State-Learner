@@ -10,6 +10,9 @@ package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
 
+/**
+ * This object contains all arguments for the JCommander CLI parser that do not fall in a specific category.
+ */
 object ArgsGeneral {
     @Parameter(names = ["--help"], help = true, description = "Print this help screen", order = 0)
     var help: Boolean = false

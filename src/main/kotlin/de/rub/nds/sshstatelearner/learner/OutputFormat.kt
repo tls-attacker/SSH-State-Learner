@@ -8,6 +8,9 @@
  */
 package de.rub.nds.sshstatelearner.learner
 
+/**
+ * An enumeration representing different output formats of automaton hypothesis.
+ */
 enum class OutputFormat {
     /**
      * A serialized output of a hypothesis using the GraphDOT serialization format.

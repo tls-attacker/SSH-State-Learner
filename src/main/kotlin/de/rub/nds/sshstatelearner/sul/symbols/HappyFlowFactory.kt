@@ -16,7 +16,19 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMes
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import net.automatalib.words.Word
 
+/**
+ * This object is capable of constructing happy flows for different SSH protocol stages. A happy flow is considered any
+ * valid combination of input symbols that lead to a desired output. For the TRANSPORT protocol, this is a successful
+ * key exchange, for the AUTHENTICATION protocol a successful authentication and for the CONNECTION protocol a successful
+ * command execution.
+ */
 object HappyFlowFactory {
+    /**
+     * Constructs an array of key exchange specific messages based on the flow type of the selected key exchange algorithm.
+     *
+     * @param kex The selected key exchange algorithm.
+     * @return An array of key exchange specific messages in valid order.
+     */
     private fun constructKexFlow(kex: KeyExchangeAlgorithm): Array<SshSymbol> {
         return when (kex.flowType) {
             KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
@@ -33,6 +45,13 @@ object HappyFlowFactory {
         }
     }
 
+    /**
+     * Constructs a happy flow which, applied on a fresh SUL oracle, lead to a desired output.
+     *
+     * @param stage The protocol stage to construct a happy flow for.
+     * @param kex The selected key exchange method to construct a happy flow for.
+     * @return The word representing a happy flow within the provided protocol stage and key exchange algorithm.
+     */
     fun constructHappyFlow(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> Word.fromSymbols(

@@ -8,6 +8,9 @@
  */
 package de.rub.nds.sshstatelearner.sul
 
+/**
+ * An enumeration representing a protocol "stage" within the SSH protocol.
+ */
 enum class ProtocolStage {
     /**
      * The SSH transport layer protocol stage (RFC 4253)

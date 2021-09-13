@@ -29,17 +29,55 @@ import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Alphabet
 import net.automatalib.words.Word
 
-class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT, val equivalenceOracleChainTypes: List<EquivalenceOracleType>) {
+/**
+ * A wrapper for learning an SSH SUL oracle. It exposes a single method, learn(), which constructs all necessary
+ * oracles and conducts the specified learning algorithm on these oracles.
+ *
+ * @param alphabet The alphabet to use with the learning algorithm.
+ * @param sul The SUL to learn.
+ * @param algorithm The learning algorithm to use in order to learn the SUL.
+ * @param equivalenceOracleChainTypes A list of equivalence oracle types to use as the equivalence oracle within the
+ *                                    learning process.
+ */
+class SshSulLearner(
+    val alphabet: Alphabet<SshSymbol>,
+    sul: SshSul,
+    val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT,
+    val equivalenceOracleChainTypes: List<EquivalenceOracleType>
+) {
 
+    /**
+     * The SUL to learn.
+     */
     var sul: SUL<SshSymbol, ResponseFingerprint>
         private set
+
+    /**
+     * A simple counter representing the total number of symbols executed on the SUL.
+     */
     private val symbolCounter: Counter
+    /**
+     * A simple counter representing the total number of resets executed on the SUL.
+     */
     private val resetCounter: Counter
 
+    /**
+     * The membership oracle that is used within the learning algorithm. A cached variant of a SULOracle is used.
+     */
     private lateinit var membershipOracle: ResponseTreeCache
+    /**
+     * The equivalence oracle that is used during the learning process.
+     */
     private lateinit var equivalenceOracle: EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>
+    /**
+     * The instance of the learning algorithm.
+     */
     private lateinit var learningAlgorithm: LearningAlgorithm.MealyLearner<SshSymbol, ResponseFingerprint>
 
+    /**
+     * The output manager used to output intermediate and final hypothesis models. If set to null, the hypothesis
+     * is not outputted.
+     */
     var outputManager: OutputManager<SshSymbol>? = null
 
     init {
@@ -51,6 +89,9 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
 
     companion object : LoggerCompanion()
 
+    /**
+     * Constructs the membership and equivalence oracle to use within the learning process.
+     */
     private fun constructOracles() {
         membershipOracle = ResponseTreeCache(SULOracle(sul))
         equivalenceOracle = EquivalenceOracleFactory.createChain(
@@ -61,6 +102,11 @@ class SshSulLearner(val alphabet: Alphabet<SshSymbol>, sul: SshSul, val algorith
         )
     }
 
+    /**
+     * Conducts the learning algorithm on the previously provided SUL.
+     *
+     * @return The final hypothesis of the learning algorithm.
+     */
     fun learn(): MealyMachine<*, SshSymbol, *, ResponseFingerprint> {
         constructOracles()
         learningAlgorithm = LearningAlgorithmFactory.create(algorithm, alphabet, membershipOracle)

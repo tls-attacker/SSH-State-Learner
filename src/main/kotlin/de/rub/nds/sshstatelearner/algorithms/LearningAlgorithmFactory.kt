@@ -17,8 +17,24 @@ import de.learnlib.api.algorithm.LearningAlgorithm
 import de.learnlib.api.oracle.MembershipOracle
 import net.automatalib.words.Alphabet
 
+/**
+ * This object is capable of creating learning algorithm instances via the create method.
+ */
 object LearningAlgorithmFactory {
-    fun <I, O> create(algorithm: LearningAlgorithmType, alphabet: Alphabet<I>, membershipOracle: MembershipOracle.MealyMembershipOracle<I, O>): LearningAlgorithm.MealyLearner<I, O> {
+    /**
+     * Creates a learning algorithm instance specified by the algorithm parameter.
+     *
+     * @param algorithm The algorithm of the learning algorithm instance.
+     * @param alphabet The alphabet to use with the learning algorithm.
+     * @param membershipOracle The membership oracle representing the SUL to learn.
+     * @return An instance of a learning algorithm specified by the algorithm parameter seeded
+     *         with the provided alphabet and oracle.
+     */
+    fun <I, O> create(
+        algorithm: LearningAlgorithmType,
+        alphabet: Alphabet<I>,
+        membershipOracle: MembershipOracle.MealyMembershipOracle<I, O>
+    ): LearningAlgorithm.MealyLearner<I, O> {
         return when (algorithm) {
             LearningAlgorithmType.DHC -> MealyDHCBuilder<I, O>()
                 .withAlphabet(alphabet)

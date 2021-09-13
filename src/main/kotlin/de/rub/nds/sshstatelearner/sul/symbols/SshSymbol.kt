@@ -20,14 +20,29 @@ import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import java.io.IOException
 
+/**
+ * An abstract superclass to all SSH related symbols.
+ */
 abstract class SshSymbol {
 
     companion object {
         const val DEFAULT_RECEIVE_DELAY: Long = 100
     }
 
+    /**
+     * Executes the symbol on the provided state and returns the output of the SSH peer.
+     *
+     * @param state The state of the SSH attacker to execute this symbol on.
+     * @return The response fingerprint returned by the SSH peer.
+     */
     abstract fun execute(state: State): ResponseFingerprint
 
+    /**
+     * A simple wrapper to send a single message to the SSH peer.
+     *
+     * @param message Message to send.
+     * @param state The state of the SSH attacker to send this message on.
+     */
     protected fun sendMessage(message: Message<*>, state: State) {
         val helper = SendMessageHelper()
         try {
@@ -41,6 +56,12 @@ abstract class SshSymbol {
         }
     }
 
+    /**
+     * A simple wrapper to retrieve messages from the SSH peer.
+     *
+     * @param state The state of the SSH attacker to retrieve messages on.
+     * @return The response fingerprint returned by the SSH peer.
+     */
     protected fun retrieveMessages(state: State): ResponseFingerprint {
         try {
             if (state.sshContext.transportHandler.isClosed) {

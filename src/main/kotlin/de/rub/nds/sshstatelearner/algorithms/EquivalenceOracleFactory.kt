@@ -29,11 +29,14 @@ import java.util.Random
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 
+/**
+ * This object is capable of creating equivalence oracle instances to use within an active automaton learning
+ * setup. It allows default values to be set via the according setter functions for each equivalence algorithm.
+ */
 object EquivalenceOracleFactory {
     /*
      * Factory defaults
      */
-
     /**
      * The default protocol stage used to determine the correct happy flow to use.
      */
@@ -236,7 +239,7 @@ object EquivalenceOracleFactory {
      * @param membershipOracle A membership oracle of the system to learn. Required if type is unequal RANDOM_WALK and CACHE_CONSISTENCY.
      * @param sul The SUL. Only required if type is RANDOM_WALK.
      * @param learningCache The learning cache. Only required if type is CACHE_CONSISTENCY
-     *
+     * @return An instance of the equivalence oracle specified by type and the predefined defaults.
      */
     fun create(
         type: EquivalenceOracleType,
@@ -266,6 +269,7 @@ object EquivalenceOracleFactory {
      * @param membershipOracle A membership oracle of the system to learn. Required if types contains a type that is unequal RANDOM_WALK and CACHE_CONSISTENCY.
      * @param sul The SUL. Only required if types contains RANDOM_WALK.
      * @param learningCache The learning cache. Only required if types contains CACHE_CONSISTENCY
+     * @return A chain of multiple equivalence oracles specified by types and the predefined defaults.
      */
     fun createChain(
         types: Iterable<EquivalenceOracleType>,

@@ -14,6 +14,10 @@ import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 
+/**
+ * This object contains all arguments for the JCommander CLI parser which change the behaviour of the SUL itself.
+ * This includes connection parameters, protocol stage and key exchange algorithm to use.
+ */
 object ArgsSul {
     @Parameter(names = ["--hostname", "-h"], description = "Hostname of the system where the target SSH server is running", order = 10)
     var hostname: String = "localhost"

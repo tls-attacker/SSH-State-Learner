@@ -8,6 +8,9 @@
  */
 package de.rub.nds.sshstatelearner.algorithms
 
+/**
+ * An enumeration representing different active automaton learning algorithms.
+ */
 enum class LearningAlgorithmType {
     /**
      * Direct hypothesis construction
