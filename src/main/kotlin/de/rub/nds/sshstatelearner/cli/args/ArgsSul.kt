@@ -35,15 +35,15 @@ object ArgsSul {
     var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY
         private set
 
-    @Parameter(names = ["--receive-delay"], description = "Delay in milliseconds between sending messages and receiving the server response. Larger delays avoid DATA_AVAILABLE socket states while increasing overall runtime", order = 14)
-    var receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY
-        private set
-
     @Parameter(names = ["--stage"], description = "The SSH protocol stage whose state machine is to be extracted", order = 15)
     var protocolStage: ProtocolStage = SshSul.DEFAULT_PROTOCOL_STAGE
         private set
 
     @Parameter(names = ["--kex"], description = "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm", order = 16)
     var kexAlgorithm: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM
+        private set
+
+    @Parameter(names = ["--alphabet"], description = "A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm", listConverter = SshSymbolSplitter::class, order = 17)
+    var alphabet: List<SshSymbol>? = null
         private set
 }

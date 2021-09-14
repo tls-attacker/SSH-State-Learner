@@ -10,100 +10,79 @@ package de.rub.nds.sshstatelearner.sul.symbols
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
-import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthBannerMessage
-import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthFailureMessage
-import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
-import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthSuccessMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelEofMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelFailureMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelRequestExecMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelWindowAdjustMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeOldRequestMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeRequestMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.DhKeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.EcdhKeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.NewKeysMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshstatelearner.exceptions.IllegalKeyExchangeException
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import net.automatalib.words.Alphabet
 import net.automatalib.words.impl.ListAlphabet
 
 /**
- * This object is capable of constructing the SSH alphabet given a protocol stage as well as a key exchange algorithm
- * to use. The receive delay of a single symbol may also be specified with the corresponding parameter.
+ * This object is capable of constructing the SSH alphabet given a protocol stage as well as a key exchange algorithm to use.
  */
 object AlphabetFactory {
     /**
-     * Constructs an array of symbols to use with the given key exchange algorithm.
+     * Returns an array of symbols to use with the given key exchange algorithm.
      *
      * @param kex The key exchange algorithm to construct the symbols for.
-     * @param receiveDelay The receive delay for a single message symbol.
      * @return An array of symbol to use with the given key exchange algorithm.
      */
-    private fun constructKexSymbols(kex: KeyExchangeAlgorithm, receiveDelay: Long): Array<out SshSymbol> {
+    private fun getKexSymbols(kex: KeyExchangeAlgorithm): Array<out SshSymbol> {
         return when (kex.flowType) {
             KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
-                DhGexKeyExchangeRequestMessage().toSymbol(receiveDelay),
-                DhGexKeyExchangeOldRequestMessage().toSymbol(receiveDelay),
-                DhGexKeyExchangeInitMessage().toSymbol(receiveDelay)
+                SshSymbol.MSG_KEX_DH_GEX_REQUEST,
+                SshSymbol.MSG_KEX_DH_GEX_REQUEST_OLD,
+                SshSymbol.MSG_KEX_DH_GEX_INIT
             )
             KeyExchangeFlowType.DIFFIE_HELLMAN -> arrayOf(
-                DhKeyExchangeInitMessage().toSymbol(receiveDelay)
+                SshSymbol.MSG_KEXDH_INIT
             )
             KeyExchangeFlowType.ECDH -> arrayOf(
-                EcdhKeyExchangeInitMessage().toSymbol(receiveDelay)
+                SshSymbol.MSG_KEX_ECDH_INIT
             )
             KeyExchangeFlowType.ECMQV -> TODO("ECMQV kex algorithm is not yet implemented in SSH-Attacker")
             KeyExchangeFlowType.RSA -> TODO("RSA kex algorithm is not yet implemented in SSH-Attacker")
-            null -> throw IllegalKeyExchangeException("Unable to construct kex symbols for extension info - ext-info-s and ext-info-c are no valid kex algorithms")
+            null -> throw IllegalKeyExchangeException("Unable to get kex symbols for extension info - ext-info-s and ext-info-c are no valid kex algorithms")
         }
     }
 
     /**
-     * Constructs the alphabet given a protocol stage and key exchange algorithm. The receive delay of a single message
-     * symbol may also be specified.
+     * Constructs the alphabet given a protocol stage and key exchange algorithm.
      *
      * @param stage The protocol stage to construct the alphabet for.
      * @param kex The key exchange algorithm to construct the alphabet for. If stage is not equal to TRANSPORT,
      *            this parameter does not influence the resulting alphabet.
-     * @param receiveDelay The receive delay for a single message symbol. If omitted, a default value will be used.
      * @return An alphabet with valid SSH symbols to use within the given protocol stage and key exchange algorithm.
      */
     fun construct(
         stage: ProtocolStage = ProtocolStage.TRANSPORT,
-        kex: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256,
-        receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY
+        kex: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256
     ): Alphabet<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> ListAlphabet(
                 listOf(
-                    VersionExchangeMessage().toSymbol(receiveDelay),
-                    KeyExchangeInitMessage().toSymbol(receiveDelay),
-                    *constructKexSymbols(kex, receiveDelay),
-                    NewKeysMessage().toSymbol(receiveDelay),
-                    ServiceRequestMessage().toSymbol(receiveDelay)
+                    SshSymbol.VERSION_EXCHANGE,
+                    SshSymbol.MSG_KEXINIT,
+                    *getKexSymbols(kex),
+                    SshSymbol.MSG_NEWKEYS,
+                    SshSymbol.MSG_SERVICE_REQUEST
                 )
             )
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
-                    UserAuthPasswordMessage().toSymbol(receiveDelay),
-                    UserAuthFailureMessage().toSymbol(receiveDelay),
-                    UserAuthSuccessMessage().toSymbol(receiveDelay),
-                    UserAuthBannerMessage().toSymbol(receiveDelay)
+                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
+                    SshSymbol.MSG_USERAUTH_SUCCESS,
+                    SshSymbol.MSG_USERAUTH_FAILURE,
+                    SshSymbol.MSG_USERAUTH_BANNER
                 )
             )
             ProtocolStage.CONNECTION -> ListAlphabet(
                 listOf(
-                    ChannelEofMessage().toSymbol(receiveDelay),
-                    ChannelFailureMessage().toSymbol(receiveDelay),
-                    ChannelOpenMessage().toSymbol(receiveDelay),
-                    ChannelRequestExecMessage().toSymbol(receiveDelay),
-                    ChannelWindowAdjustMessage().toSymbol(receiveDelay)
+                    SshSymbol.MSG_CHANNEL_EOF,
+                    SshSymbol.MSG_CHANNEL_SUCCESS,
+                    SshSymbol.MSG_CHANNEL_FAILURE,
+                    SshSymbol.MSG_CHANNEL_OPEN,
+                    SshSymbol.MSG_CHANNEL_REQUEST_EXEC,
+                    SshSymbol.MSG_CHANNEL_WINDOW_ADJUST
                 )
             )
         }

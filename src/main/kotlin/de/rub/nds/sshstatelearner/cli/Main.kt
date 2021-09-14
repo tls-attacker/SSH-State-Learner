@@ -24,6 +24,7 @@ import java.security.Security
 import kotlin.system.exitProcess
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Alphabet
+import net.automatalib.words.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 /**
@@ -91,7 +92,7 @@ private fun setEquivalenceOracleDefaults() {
  * @return A pair of the alphabet used and the hypothesis returned by the SshSulLearner
  */
 private fun conductProtocolLearning(): Pair<Alphabet<SshSymbol>, MealyMachine<*, SshSymbol, *, ResponseFingerprint>> {
-    val alphabet = AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm, ArgsSul.receiveDelay)
+    val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
     val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
     val learner = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes).apply {
         outputManager = OutputManager<SshSymbol>().apply {

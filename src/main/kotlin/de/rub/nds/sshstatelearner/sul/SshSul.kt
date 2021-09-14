@@ -107,7 +107,7 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
         connectionClosed = false
         // TODO: Exception handling for preamble
         preamble.forEach {
-            it.execute(state)
+            it.symbolImpl.execute(state)
         }
     }
 
@@ -147,7 +147,7 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
                 return ResponseFingerprint(emptyList(), SocketState.CLOSED)
             }
 
-            val response = p0.execute(state)
+            val response = p0.symbolImpl.execute(state)
             executedSteps.add(p0)
             if (response.socketState == SocketState.SOCKET_EXCEPTION || response.socketState == SocketState.CLOSED) {
                 /*

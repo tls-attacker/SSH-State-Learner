@@ -11,10 +11,17 @@ package de.rub.nds.sshstatelearner.sul.symbols
 import de.rub.nds.sshattacker.core.protocol.common.Message
 
 /**
- * Wraps the SSH message into a GenericMessageSymbol with the specified receive delay.
- *
- * @param receiveDelay An optional receive delay to wait between sending and retrieving messages.
+ * Wraps the SSH message into a GenericMessageSymbolImpl.
  */
-fun <T : Message<T>> Message<T>.toSymbol(receiveDelay: Long = SshSymbol.DEFAULT_RECEIVE_DELAY): GenericMessageSymbol {
-    return GenericMessageSymbol(this, receiveDelay)
+fun <T : Message<T>> Message<T>.toSymbolImpl(): GenericMessageSymbolImpl {
+    return GenericMessageSymbolImpl(this)
+}
+
+/**
+ * Wraps the SSH message into a GenericMessageSymbolImpl.
+ *
+ * @param retrieveDelay The delay between sending the message and retrieving the response of the peer.
+ */
+fun <T : Message<T>> Message<T>.toSymbolImpl(retrieveDelay: Long): GenericMessageSymbolImpl {
+    return GenericMessageSymbolImpl(this, retrieveDelay)
 }

@@ -10,17 +10,6 @@ package de.rub.nds.sshstatelearner.sul.symbols
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
-import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelRequestExecMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeRequestMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.DhKeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.EcdhKeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.NewKeysMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import net.automatalib.words.Word
 
@@ -32,22 +21,22 @@ import net.automatalib.words.Word
  */
 object HappyFlowFactory {
     /**
-     * Constructs an array of key exchange specific messages based on the flow type of the selected key exchange algorithm.
+     * Constructs an array of key exchange specific symbols based on the flow type of the selected key exchange algorithm.
      *
      * @param kex The selected key exchange algorithm.
-     * @return An array of key exchange specific messages in valid order.
+     * @return An array of key exchange specific symbols in valid order.
      */
     private fun constructKexFlow(kex: KeyExchangeAlgorithm): Array<SshSymbol> {
         return when (kex.flowType) {
             KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
-                DhGexKeyExchangeRequestMessage().toSymbol(),
-                DhGexKeyExchangeInitMessage().toSymbol()
+                SshSymbol.MSG_KEX_DH_GEX_REQUEST,
+                SshSymbol.MSG_KEX_DH_GEX_INIT
             )
             KeyExchangeFlowType.DIFFIE_HELLMAN -> arrayOf(
-                DhKeyExchangeInitMessage().toSymbol()
+                SshSymbol.MSG_KEXDH_INIT
             )
             KeyExchangeFlowType.ECDH -> arrayOf(
-                EcdhKeyExchangeInitMessage().toSymbol()
+                SshSymbol.MSG_KEX_ECDH_INIT
             )
             else -> TODO("Key exchange algorithm flow type ${kex.flowType} is not yet supported by SSH-Attacker")
         }
@@ -63,18 +52,18 @@ object HappyFlowFactory {
     fun constructHappyFlow(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> Word.fromSymbols(
-                VersionExchangeMessage().toSymbol(),
-                KeyExchangeInitMessage().toSymbol(),
+                SshSymbol.VERSION_EXCHANGE,
+                SshSymbol.MSG_KEXINIT,
                 *constructKexFlow(kex),
-                NewKeysMessage().toSymbol(),
-                ServiceRequestMessage().toSymbol()
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_REQUEST
             )
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
-                UserAuthPasswordMessage().toSymbol()
+                SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID
             )
             ProtocolStage.CONNECTION -> Word.fromSymbols(
-                ChannelOpenMessage().toSymbol(),
-                ChannelRequestExecMessage().toSymbol()
+                SshSymbol.MSG_CHANNEL_OPEN,
+                SshSymbol.MSG_CHANNEL_REQUEST_EXEC
             )
         }
     }
