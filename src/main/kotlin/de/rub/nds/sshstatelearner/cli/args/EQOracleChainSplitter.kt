@@ -9,7 +9,7 @@
 package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.IStringConverter
-import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleType
+import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 
 /**
  * A simple StringConverter converting a comma-separated string of oracle types to a list of (parsed) oracle types.

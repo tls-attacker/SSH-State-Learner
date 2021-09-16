@@ -10,9 +10,9 @@ package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 
 /**
  * This object contains all arguments for the JCommander CLI parser which change the behaviour of the SUL itself.

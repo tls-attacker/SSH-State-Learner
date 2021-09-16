@@ -9,7 +9,7 @@
 package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.IStringConverter
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
 /**
  * A simple StringConverter converting a comma-separated string of ssh symbol names to a list of (parsed) ssh symbols.

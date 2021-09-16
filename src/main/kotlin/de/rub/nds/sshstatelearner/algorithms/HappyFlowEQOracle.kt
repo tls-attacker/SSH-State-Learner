@@ -12,10 +12,10 @@ import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.algorithms.symbols.HappyFlowFactory
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import de.rub.nds.sshstatelearner.sul.symbols.HappyFlowFactory
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import de.rub.nds.sshstatelearner.util.combinations
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word

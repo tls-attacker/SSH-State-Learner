@@ -14,16 +14,11 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
-import de.rub.nds.sshstatelearner.learner.OutputManager
-import de.rub.nds.sshstatelearner.learner.SshSulLearner
+import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
+import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.SshSul
-import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import de.rub.nds.sshstatelearner.sul.symbols.AlphabetFactory
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import java.security.Security
 import kotlin.system.exitProcess
-import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.words.Alphabet
 import net.automatalib.words.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 
@@ -91,17 +86,11 @@ private fun setEquivalenceOracleDefaults() {
  *
  * @return A pair of the alphabet used and the hypothesis returned by the SshSulLearner
  */
-private fun conductProtocolLearning(): Pair<Alphabet<SshSymbol>, MealyMachine<*, SshSymbol, *, ResponseFingerprint>> {
+private fun conductProtocolLearning(): Extractor.ExtractorResult {
     val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
     val sul = SshSul(ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
-    val learner = SshSulLearner(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes).apply {
-        outputManager = OutputManager<SshSymbol>().apply {
-            outputFormats = ArgsLearner.outputFormats.toMutableList()
-            outputIntermediateHypothesis = ArgsLearner.outputIntermediateHypothesis
-        }
-    }
-    val hypothesis = learner.learn()
-    return Pair(alphabet, hypothesis)
+    val learner = Extractor(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes, ArgsLearner.outputIntermediateHypothesis)
+    return learner.extractStateMachine()
 }
 
 /**

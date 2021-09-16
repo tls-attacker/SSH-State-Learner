@@ -6,12 +6,13 @@
  * Licensed under Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0.txt
  */
-package de.rub.nds.sshstatelearner.sul.symbols
+package de.rub.nds.sshstatelearner.algorithms.symbols
 
 import de.rub.nds.sshattacker.core.protocol.common.Message
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import de.rub.nds.sshstatelearner.util.LoggerCompanion
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 /**
  * A generic message symbol implementation representing a single message being sent as well as capturing the SSH
@@ -21,9 +22,11 @@ import de.rub.nds.sshstatelearner.util.LoggerCompanion
  * @param retrieveDelay The delay between sending the message and retrieving the peers' response. By default this value
  *                      is initialized to 100 ms.
  */
-class GenericMessageSymbolImpl(private val message: Message<*>, private val retrieveDelay: Long = 100) : AbstractSshSymbolImpl() {
+class GenericMessageSymbol(private val message: Message<*>, private val retrieveDelay: Long = 100) : AbstractSshSymbol() {
 
-    companion object : LoggerCompanion()
+    companion object {
+        private val LOGGER: Logger = LogManager.getLogger()
+    }
 
     /**
      * Executes the GenericMessageSymbolImpl by sending the message as well as retrieving the peers' response.

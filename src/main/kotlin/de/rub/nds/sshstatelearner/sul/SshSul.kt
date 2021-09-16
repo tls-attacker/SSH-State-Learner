@@ -13,18 +13,28 @@ import de.learnlib.api.exception.SULException
 import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.state.State
+import de.rub.nds.sshstatelearner.algorithms.symbols.HappyFlowFactory
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import de.rub.nds.sshstatelearner.sul.symbols.HappyFlowFactory
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
-import de.rub.nds.sshstatelearner.util.LoggerCompanion
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import de.rub.nds.tlsattacker.transport.tcp.ClientTcpTransportHandler
 import java.io.IOException
 import java.lang.IllegalArgumentException
 import java.lang.RuntimeException
 import net.automatalib.words.Word
+import net.automatalib.words.WordBuilder
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
-class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT, val resetDelay: Long = DEFAULT_SUL_RESET_DELAY, val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE, val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM) : SUL<SshSymbol, ResponseFingerprint> {
+class SshSul(
+    val hostname: String,
+    val port: Int,
+    val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT,
+    val resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
+    val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
+    val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
+) : SUL<SshSymbol, ResponseFingerprint> {
+
     /**
      * The config of the SSH-Attacker.
      */
@@ -51,7 +61,12 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
      */
     private val executedSteps = mutableListOf<SshSymbol>()
 
-    companion object : LoggerCompanion() {
+    companion object {
+        /**
+         * Logger for the SshSul class.
+         */
+        private val LOGGER: Logger = LogManager.getLogger()
+
         /**
          * A non-negative integer value indicating the default transport handler timeout.
          */
@@ -172,6 +187,39 @@ class SshSul(val hostname: String, val port: Int, val timeout: Long = DEFAULT_TR
             LOGGER.error("Caught an IOException while stepping the SUL with the following SshWord: $p0", e)
             throw SULException(e)
         }
+    }
+
+    fun majorityVote(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, count: Int): Word<ResponseFingerprint> {
+        val voteList = mutableListOf<Word<ResponseFingerprint>>()
+        for (i in 0 until count) {
+            val wordBuilder = WordBuilder<ResponseFingerprint>()
+            pre()
+            for (symbol in prefix) {
+                step(symbol)
+            }
+            for (symbol in suffix) {
+                wordBuilder.append(step(symbol))
+            }
+            post()
+            voteList.add(wordBuilder.toWord())
+        }
+        return majorityElement(voteList)
+    }
+
+    private fun majorityElement(words: List<Word<ResponseFingerprint>>): Word<ResponseFingerprint> {
+        var majorityWord: Word<ResponseFingerprint> = words[0]
+        var counter = 1
+        for (word in words) {
+            if (counter == 0) {
+                majorityWord = word
+                counter = 1
+            } else if (word == majorityWord) {
+                counter++
+            } else {
+                counter--
+            }
+        }
+        return majorityWord
     }
 
     /**

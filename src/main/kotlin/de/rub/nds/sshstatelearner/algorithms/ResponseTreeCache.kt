@@ -6,18 +6,18 @@
  * Licensed under Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0.txt
  */
-package de.rub.nds.sshstatelearner.learner.cache
+package de.rub.nds.sshstatelearner.algorithms
 
 import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.learnlib.api.query.Query
 import de.learnlib.filter.cache.LearningCacheOracle
+import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.incremental.ConflictException
 import net.automatalib.words.Word
 import net.automatalib.words.WordBuilder
 
@@ -74,6 +74,12 @@ class ResponseTreeCache(
     }
 
     /**
+     *
+     */
+    fun overwrite(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, output: Word<ResponseFingerprint>) =
+        update(prefix, suffix, output, true)
+
+    /**
      * Searches for a query in the cache tree. If the cached information is sufficient to answer the query, the
      * resulting word is returned. If not, null is returned.
      *
@@ -86,7 +92,7 @@ class ResponseTreeCache(
         // Descend the tree according to prefix without recording fingerprints
         for (prefixSymbol in prefix) {
             current = current?.findChild(prefixSymbol)
-            if (current?.fingerprint == null) {
+            if (current?.outputSymbol == null) {
                 // The tree does not contain the answer to the query
                 return null
             } else if (current.isConnectionClosedLeaf()) {
@@ -104,11 +110,11 @@ class ResponseTreeCache(
                     .toWord()
             } else {
                 current = current?.findChild(suffixSymbol)
-                if (current?.fingerprint == null) {
+                if (current?.outputSymbol == null) {
                     // The tree does not contain the answer to the query
                     return null
                 }
-                outputBuilder.append(current.fingerprint)
+                outputBuilder.append(current.outputSymbol)
             }
         }
         return outputBuilder.toWord()
@@ -122,10 +128,10 @@ class ResponseTreeCache(
      * @param suffix The suffix of the query.
      * @param output The output word of the automaton when execution the suffix.
      *
-     * @throws ConflictException Thrown when the provided query and output and the stored information are inconsistent
+     * @throws CacheConflictException Thrown when the provided query and output and the stored information are inconsistent
      *                           with each other.
      */
-    private fun update(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, output: Word<ResponseFingerprint>) {
+    private fun update(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, output: Word<ResponseFingerprint>, force: Boolean = false) {
         var current: Node = root
         var next: Node?
         // Descend the tree according to the prefix and create nodes without response fingerprints if necessary
@@ -136,13 +142,14 @@ class ResponseTreeCache(
                 next = Node(prefixSymbol, null)
                 current.children.add(next)
             }
-            if (next.isConnectionClosedLeaf()) {
-                // The next nodes marks a closed connection, we do not need to update the tree
+            if (next.isConnectionClosedLeaf() && !force) {
+                // The next nodes marks a closed connection, abort if we're not forced to update
                 return
             }
             current = next
         }
         // Descend the tree according to the suffix and create nodes with their corresponding response fingerprint
+        var expectedOutput = Word.epsilon<ResponseFingerprint>()
         for (suffixSymbolIndex in 0 until suffix.length()) {
             val suffixSymbol = suffix.getSymbol(suffixSymbolIndex)
             val outputSymbol = output.getSymbol(suffixSymbolIndex)
@@ -152,12 +159,24 @@ class ResponseTreeCache(
                 // Node is not yet present in the tree, create a new one
                 next = Node(suffixSymbol, outputSymbol)
                 current.children.add(next)
-            } else if (next.fingerprint != outputSymbol) {
-                // Should not happen, but just in case we throw an exception
-                throw ConflictException("Unable to update tree node, conflicting response fingerprints for same node: $outputSymbol | ${next.fingerprint}")
+            } else if (next.outputSymbol != outputSymbol) {
+                // We were asked to update the cache, but the cached information is inconsistent with the provided prefix-suffix / output combination
+                // We'll throw an exception if the force parameter is false. If its value is true however, we'll overwrite the cached information and continue.
+                if (force) {
+                    next.outputSymbol = outputSymbol
+                } else {
+                    throw CacheConflictException(
+                        "Unable to update tree node non-forcefully, conflicting response fingerprints for same node: $outputSymbol | ${next.outputSymbol}",
+                        prefix,
+                        suffix.prefix(suffixSymbolIndex + 1),
+                        expectedOutput.append(next.outputSymbol),
+                        output.prefix(suffixSymbolIndex + 1)
+                    )
+                }
             }
-            if (next.isConnectionClosedLeaf()) {
-                // The next node marks a closed connection, we are done updating the tree
+            expectedOutput = expectedOutput.append(next.outputSymbol)
+            if (next.isConnectionClosedLeaf() && !force) {
+                // The next node marks a closed connection, abort if we're not forced to update
                 return
             }
             current = next
@@ -180,10 +199,10 @@ class ResponseTreeCache(
      * A nested class representing a single node within the cache tree. It stores the symbol that lead to the node
      * as well as the output of the SUL when executing the symbol.
      *
-     * @param symbol The symbol that lead to the node.
-     * @param fingerprint The output of the SUL when executing the symbol.
+     * @param inputSymbol The symbol that lead to the node.
+     * @param outputSymbol The output of the SUL when executing the symbol.
      */
-    private inner class Node(val symbol: SshSymbol?, val fingerprint: ResponseFingerprint?) {
+    private inner class Node(val inputSymbol: SshSymbol?, var outputSymbol: ResponseFingerprint?) {
         /**
          * The list of children nodes that can be reached from this node.
          */
@@ -195,7 +214,7 @@ class ResponseTreeCache(
          * @return True if the fingerprints' socket state indicates a closed connections.
          */
         fun isConnectionClosedLeaf(): Boolean {
-            return fingerprint?.socketState == SocketState.CLOSED
+            return outputSymbol?.socketState == SocketState.CLOSED
         }
 
         /**
@@ -206,7 +225,7 @@ class ResponseTreeCache(
          *         is not present.
          */
         fun findChild(symbol: SshSymbol): Node? {
-            return children.find { it.symbol == symbol }
+            return children.find { it.inputSymbol == symbol }
         }
 
         /**
@@ -220,13 +239,13 @@ class ResponseTreeCache(
          *         induced by this node. Returns null otherwise.
          */
         fun checkHypothesisConsistency(hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>, inputPrefix: Word<SshSymbol>, outputPrefix: Word<ResponseFingerprint>): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
-            if ((symbol == null || fingerprint == null) && inputPrefix.length() > 0) {
+            if ((inputSymbol == null || outputSymbol == null) && inputPrefix.length() > 0) {
                 // Symbol or fingerprint is null and this node is not the root node, unable to check consistency
                 return null
             }
 
-            val input = if (symbol != null) inputPrefix.append(symbol) else inputPrefix
-            val expectedOutput = if (fingerprint != null) outputPrefix.append(fingerprint) else outputPrefix
+            val input = if (inputSymbol != null) inputPrefix.append(inputSymbol) else inputPrefix
+            val expectedOutput = if (outputSymbol != null) outputPrefix.append(outputSymbol) else outputPrefix
             if (children.size == 0) {
                 // The current node is a leaf, compute the output on the current input word and check for consistency
                 val hypothesisOutput = hypothesis.computeOutput(input)
@@ -251,7 +270,7 @@ class ResponseTreeCache(
          * @return A string representing the node.
          */
         override fun toString(): String {
-            return "Node[symbol=$symbol,response=$fingerprint]"
+            return "Node[inputSymbol=$inputSymbol,outputSymbol=$outputSymbol]"
         }
     }
 }

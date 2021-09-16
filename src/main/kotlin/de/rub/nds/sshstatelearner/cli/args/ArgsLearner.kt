@@ -10,9 +10,8 @@ package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
-import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleType
-import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmType
-import de.rub.nds.sshstatelearner.learner.OutputFormat
+import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
+import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 
 /**
  * This object contains all arguments for the JCommander CLI parser which change the behaviour of the SUL learner. This
@@ -21,10 +20,6 @@ import de.rub.nds.sshstatelearner.learner.OutputFormat
 object ArgsLearner {
     @Parameter(names = ["--algorithm", "-a"], description = "The learning algorithm to use", order = 50)
     var learningAlgorithmType: LearningAlgorithmType = LearningAlgorithmType.TTT
-        private set
-
-    @Parameter(names = ["--output-formats", "-o"], description = "The formats of the hypothesis output(s)", order = 51)
-    var outputFormats: List<OutputFormat> = listOf(OutputFormat.SERIALIZED, OutputFormat.SIMPLE_VISUALIZATION)
         private set
 
     @Parameter(names = ["--output-intermediate-hypothesis"], description = "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis", order = 52)

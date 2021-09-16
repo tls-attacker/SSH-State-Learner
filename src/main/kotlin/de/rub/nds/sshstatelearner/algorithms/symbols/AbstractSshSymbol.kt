@@ -6,7 +6,7 @@
  * Licensed under Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0.txt
  */
-package de.rub.nds.sshstatelearner.sul.symbols
+package de.rub.nds.sshstatelearner.algorithms.symbols
 
 import de.learnlib.api.exception.SULException
 import de.rub.nds.sshattacker.core.exceptions.AdjustmentException
@@ -23,7 +23,7 @@ import java.io.IOException
 /**
  * An abstract superclass to all SSH related symbols.
  */
-abstract class AbstractSshSymbolImpl {
+abstract class AbstractSshSymbol {
 
     /**
      * Executes the symbol on the provided state and returns the output of the SSH peer.

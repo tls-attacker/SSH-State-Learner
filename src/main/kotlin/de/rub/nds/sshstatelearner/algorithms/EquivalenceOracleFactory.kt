@@ -21,10 +21,11 @@ import de.learnlib.oracle.equivalence.WMethodEQOracle
 import de.learnlib.oracle.equivalence.WpMethodEQOracle
 import de.learnlib.oracle.equivalence.mealy.RandomWalkEQOracle
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.exceptions.IllegalKeyExchangeException
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 import java.util.Random
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
@@ -268,7 +269,7 @@ object EquivalenceOracleFactory {
      * @param types The list of oracle types to create and chain.
      * @param membershipOracle A membership oracle of the system to learn. Required if types contains a type that is unequal RANDOM_WALK and CACHE_CONSISTENCY.
      * @param sul The SUL. Only required if types contains RANDOM_WALK.
-     * @param learningCache The learning cache. Only required if types contains CACHE_CONSISTENCY
+     * @param learningCache The learning cache. Only required if types contains CACHE_CONSISTENCY.
      * @return A chain of multiple equivalence oracles specified by types and the predefined defaults.
      */
     fun createChain(
