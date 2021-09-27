@@ -132,10 +132,12 @@ class Extractor(
         learningAlgorithm.startLearning()
         do {
             hypothesis = learningAlgorithm.hypothesisModel
-            val stateMachine = SshStateMachine(hypothesis, alphabet, sul.nestedSul.stage)
+            val stateMachine = SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
             extractorResult.addHypothesis(stateMachine)
 
             if (storeIntermediateHypotheses) {
+                // TODO: Remove analysis of intermediate hypotheses later on
+                stateMachine.analyzeMealyMachine()
                 serializeHypothesis(stateMachine, "hyp$rounds.dot")
             }
             LOGGER.info("Finished learning round ${rounds++}, searching for counter examples (executed SUL steps: ${sul.totalSymbolCount})")
@@ -154,7 +156,7 @@ class Extractor(
         LOGGER.info("Total steps: ${sul.totalSymbolCount} (Learning: ${sul.learnSymbolCount} | Equivalence: ${sul.equivSymbolCount})")
         LOGGER.info("Total resets: ${sul.totalResetCount} (Learning: ${sul.learnResetCount} | Equivalence: ${sul.equivResetCount})")
 
-        val stateMachine = SshStateMachine(hypothesis, alphabet, sul.nestedSul.stage)
+        val stateMachine = SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
         val statistics = Statistics(
             states = stateMachine.mealyMachine.size(),
             counterExampleCount = rounds - 1,
@@ -176,7 +178,7 @@ class Extractor(
     private fun serializeHypothesis(hypothesis: SshStateMachine<*, *>, name: String) {
         val folder = File(OUTPUT_DIR).also { it.mkdirs() }
         val graphFile = File(folder, name)
-        hypothesis.exportToDotAndPDF(graphFile, VisualizationDetail.LONG)
+        hypothesis.exportToDotAndPDF(graphFile, VisualizationDetail.MEDIUM)
     }
 
     private fun clearOutput() {

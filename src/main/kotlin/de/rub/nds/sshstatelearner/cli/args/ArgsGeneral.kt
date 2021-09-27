@@ -17,4 +17,8 @@ object ArgsGeneral {
     @Parameter(names = ["--help"], help = true, description = "Print this help screen", order = 0)
     var help: Boolean = false
         private set
+
+    @Parameter(names = ["-o", "--output"], description = "Folder to output the extracted state machine to")
+    var output: String = "out/"
+        private set
 }

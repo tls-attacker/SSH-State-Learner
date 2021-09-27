@@ -1,15 +1,14 @@
 package de.rub.nds.sshstatelearner.analysis.analyzer
 
-import de.rub.nds.sshstatelearner.analysis.data.SshAuthenticationGraphDetails
+import de.rub.nds.sshstatelearner.analysis.classifier.AuthenticationHappyFlowClassifier
+import de.rub.nds.sshstatelearner.analysis.classifier.CommonClassifier
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
-class SshAuthenticationAnalyzer<S, T>(graphDetails: SshAuthenticationGraphDetails<S, T>) : Analyzer<S, SshSymbol, T, ResponseFingerprint>(graphDetails) {
+class SshAuthenticationAnalyzer<S, T> : Analyzer<S, SshSymbol, T, ResponseFingerprint>() {
 
     init {
-        TODO("Register SSH authentication classifiers")
+        classifiers.add(CommonClassifier())
+        classifiers.add(AuthenticationHappyFlowClassifier())
     }
-
-    override val graphDetails: SshAuthenticationGraphDetails<S, T>
-        get() = super.graphDetails as SshAuthenticationGraphDetails<S, T>
 }

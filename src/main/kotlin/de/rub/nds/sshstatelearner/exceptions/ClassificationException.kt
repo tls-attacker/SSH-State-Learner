@@ -1,3 +1,3 @@
 package de.rub.nds.sshstatelearner.exceptions
 
-class VulnerabilityException : Exception()
+class ClassificationException : Exception()

@@ -12,17 +12,174 @@ import de.rub.nds.sshstatelearner.analysis.data.GraphDetails
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
+import net.automatalib.automata.concepts.OutputAutomaton
+import net.automatalib.automata.graphs.TransitionEdge
+import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.automata.transducers.TransitionOutputAutomaton
 import net.automatalib.automata.visualization.AutomatonVisualizationHelper
+import net.automatalib.visualization.VisualizationHelper
+import net.automatalib.words.Alphabet
+import net.automatalib.words.Word
 
-class ShortMealyVisualizationHelper<S, I, T, O>(
-    automaton: TransitionOutputAutomaton<S, I, T, O>,
-    private val graphDetails: GraphDetails<S, I, T>,
+class ShortMealyVisualizationHelper<S, T>(
+    automaton: MealyMachine<S, SshSymbol, T, ResponseFingerprint>,
+    private val alphabet: Alphabet<SshSymbol>,
+    private val graphDetails: GraphDetails<S, SshSymbol, T>,
     private val detail: VisualizationDetail
-) : AutomatonVisualizationHelper<S, I, T, TransitionOutputAutomaton<S, I, T, O>>(automaton) {
+) : AutomatonVisualizationHelper<S, SshSymbol, T, MealyMachine<S, SshSymbol, T, ResponseFingerprint>>(automaton) {
+
+    private val combinedEdges: MutableSet<Pair<S, S>> = mutableSetOf()
 
     constructor(
-        automaton: TransitionOutputAutomaton<S, I, T, O>,
-        graphDetails: GraphDetails<S, I, T>
-    ) : this(automaton, graphDetails, VisualizationDetail.LONG)
+        automaton: MealyMachine<S, SshSymbol, T, ResponseFingerprint>,
+        alphabet: Alphabet<SshSymbol>,
+        graphDetails: GraphDetails<S, SshSymbol, T>
+    ) : this(automaton, alphabet, graphDetails, VisualizationDetail.LONG)
+
+    override fun getEdgeProperties(
+        src: S,
+        edge: TransitionEdge<SshSymbol, T>,
+        tgt: S,
+        properties: MutableMap<String, String>
+    ): Boolean {
+        // Do not output an edge if super advices us to
+        if (!super.getEdgeProperties(src, edge, tgt, properties)) {
+            return false
+        }
+
+        // Output happy flow edges as a bold green edge
+        if(graphDetails.happyFlowTransitions.contains(edge.transition)) {
+            properties[VisualizationHelper.EdgeAttrs.COLOR] = "GREEN"
+            properties[VisualizationHelper.EdgeAttrs.STYLE] = "bold"
+        }
+
+        return when(detail) {
+            VisualizationDetail.SHORT -> getEdgePropertiesShort(src, edge, tgt, properties)
+            VisualizationDetail.MEDIUM -> getEdgePropertiesMedium(src, edge, tgt, properties)
+            VisualizationDetail.LONG -> getEdgePropertiesLong(src, edge, tgt, properties)
+        }
+    }
+
+    private fun getEdgePropertiesShort(src: S, edge: TransitionEdge<SshSymbol, T>, tgt: S, properties: MutableMap<String, String>): Boolean {
+        val transitionOutput = automaton.getTransitionOutput(edge.transition)
+        // Do not output a circular edge if no output is generated
+        if (src === tgt && transitionOutput.messages.isEmpty()) {
+            return false
+        }
+        // Do not output this edge if a combined edge was already outputted
+        // Exception: Happy flow transitions are excluded from edge combination
+        if (combinedEdges.contains(src to tgt) && !graphDetails.happyFlowTransitions.contains(edge.transition)) {
+            return false
+        }
+
+        if(!graphDetails.happyFlowTransitions.contains(edge.transition)) {
+            // Combine multiple edges between src and tgt into a single one
+            val label = alphabet.map { Triple(it, automaton.getTransition(src, it), automaton.getSuccessor(src, it)) }
+                .filter { it.third === tgt && !graphDetails.happyFlowTransitions.contains(it.second) }
+                .joinToString("\n") {
+                    val output = automaton.getTransitionOutput(it.second)
+                    return@joinToString if (output.messages.isEmpty())
+                        "${it.first}"
+                    else
+                        "${it.first} / ${output.messages.joinToString(",") {
+                                message -> message.toCompactString()
+                        }}"
+                }
+            properties[VisualizationHelper.EdgeAttrs.LABEL] = label
+            combinedEdges.add(src to tgt)
+        } else {
+            val output = automaton.getTransitionOutput(edge.transition)
+            if (output.messages.isEmpty()) {
+                properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input}"
+            } else {
+                properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / ${output.messages.joinToString(",") { it.toCompactString() }}"
+            }
+        }
+
+
+        return true
+    }
+
+    private fun getEdgePropertiesMedium(src: S, edge: TransitionEdge<SshSymbol, T>, tgt: S, properties: MutableMap<String, String>): Boolean {
+        val transitionOutput = automaton.getTransitionOutput(edge.transition)
+        // Do not output this edge if a combined edge was already outputted
+        // Exception: Happy flow transitions are excluded from edge combination
+        if (combinedEdges.contains(src to tgt) && !graphDetails.happyFlowTransitions.contains(edge.transition)) {
+            return false
+        }
+
+        if(!graphDetails.happyFlowTransitions.contains(edge.transition)) {
+            // Combine multiple edges between src and tgt into a single one
+            val label = alphabet.map { Triple(it, automaton.getTransition(src, it), automaton.getSuccessor(src, it)) }
+                .filter { it.third === tgt && !graphDetails.happyFlowTransitions.contains(it.second) }
+                .joinToString("\n") {
+                    val output = automaton.getTransitionOutput(it.second)
+                    return@joinToString if (output.messages.isEmpty())
+                        "${it.first}"
+                    else
+                        "${it.first} / ${output.messages.joinToString(",") {
+                                message -> message.toCompactString()
+                        }}"
+                }
+            properties[VisualizationHelper.EdgeAttrs.LABEL] = label
+            combinedEdges.add(src to tgt)
+        } else {
+            val output = automaton.getTransitionOutput(edge.transition)
+            if (output.messages.isEmpty()) {
+                properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / [No output]"
+            } else {
+                properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / ${output.messages.joinToString(",") { it.toCompactString() }}"
+            }
+        }
+
+        return true
+    }
+
+    private fun getEdgePropertiesLong(src: S, edge: TransitionEdge<SshSymbol, T>, tgt: S, properties: MutableMap<String, String>): Boolean {
+        val transitionOutput = automaton.getTransitionOutput(edge.transition)
+        // Compose edge label for long visualization
+        if (transitionOutput.messages.isEmpty()) {
+            properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / [No output]"
+        } else {
+            properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / ${
+                transitionOutput.messages.joinToString(",") { it.toCompactString() }
+            }"
+        }
+
+        return true
+    }
+
+    override fun getNodeProperties(node: S, properties: MutableMap<String, String>): Boolean {
+        // Do not output a node if super advices us to
+        if (!super.getNodeProperties(node, properties)) {
+            return false
+        }
+
+        val stateNames = graphDetails.extractStateNames()
+        val nodeLabelBuilder = StringBuilder()
+        if (stateNames.contains(node)) {
+            when (detail) {
+                VisualizationDetail.LONG ->
+                    nodeLabelBuilder.append("${stateNames[node]}\n(${node.toString()}")
+                VisualizationDetail.MEDIUM, VisualizationDetail.SHORT ->
+                    nodeLabelBuilder.append("${stateNames[node]}")
+            }
+        } else {
+            nodeLabelBuilder.append("Unknown State (${node.toString()})")
+        }
+        if (graphDetails.socketStateMap.contains(node)) {
+            nodeLabelBuilder.append("\n\nSocketState: ${graphDetails.socketStateMap[node]}")
+        }
+        properties[VisualizationHelper.NodeAttrs.LABEL] = nodeLabelBuilder.toString()
+
+        properties[VisualizationHelper.NodeAttrs.FIXEDSIZE] = "true"
+        properties[VisualizationHelper.NodeAttrs.WIDTH] = "2.3"
+        properties[VisualizationHelper.NodeAttrs.HEIGHT] = "2.3"
+
+        if (node === graphDetails.errorState) {
+            properties[VisualizationHelper.NodeAttrs.COLOR] = "RED"
+        }
+
+        return true
+    }
 }

@@ -1,15 +1,14 @@
 package de.rub.nds.sshstatelearner.analysis.analyzer
 
-import de.rub.nds.sshstatelearner.analysis.data.SshTransportGraphDetails
+import de.rub.nds.sshstatelearner.analysis.classifier.CommonClassifier
+import de.rub.nds.sshstatelearner.analysis.classifier.TransportHappyFlowClassifier
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
-class SshTransportAnalyzer<S, T>(graphDetails: SshTransportGraphDetails<S, T>) : Analyzer<S, SshSymbol, T, ResponseFingerprint>(graphDetails) {
+class SshTransportAnalyzer<S, T> : Analyzer<S, SshSymbol, T, ResponseFingerprint>() {
 
     init {
-        TODO("Register SSH transport classifiers")
+        classifiers.add(CommonClassifier())
+        classifiers.add(TransportHappyFlowClassifier())
     }
-
-    override val graphDetails: SshTransportGraphDetails<S, T>
-        get() = super.graphDetails as SshTransportGraphDetails<S, T>
 }

@@ -8,7 +8,7 @@ import kotlin.collections.HashMap
 abstract class Classifier<S, I, T, O> {
 
     // TODO: Add return type when classifiers are able to detect vulnerabilities
-    abstract fun getVulnerabilitiesOfClass(stateMachine: StateMachine<S, I, T, O>)
+    abstract fun performClassification(stateMachine: StateMachine<S, I, T, O>)
 
     protected fun getPathToState(stateMachine: StateMachine<S, I, T, O>, destState: S): Word<I>? {
         val initialState = stateMachine.mealyMachine.initialState

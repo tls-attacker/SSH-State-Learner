@@ -19,10 +19,10 @@ import org.apache.logging.log4j.Logger
  * peers response by performing a single retrieve action.
  *
  * @param message The message to send when this symbol is executed.
- * @param retrieveDelay The delay between sending the message and retrieving the peers' response. By default this value
- *                      is initialized to 100 ms.
+ * @param retrieveDelay The delay between sending the message and retrieving the peers' response. By default, this value
+ *                      is initialized to 150 ms.
  */
-class GenericMessageSymbol(private val message: Message<*>, private val retrieveDelay: Long = 100) : AbstractSshSymbol() {
+class GenericMessageSymbol(private val message: Message<*>, private val retrieveDelay: Long = 150) : AbstractSshSymbol() {
 
     companion object {
         private val LOGGER: Logger = LogManager.getLogger()

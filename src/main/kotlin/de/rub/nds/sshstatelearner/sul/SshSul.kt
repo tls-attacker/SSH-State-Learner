@@ -27,12 +27,13 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
 class SshSul(
+    val name: String,
     val hostname: String,
     val port: Int,
     val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT,
     val resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
-    val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
+    val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
 ) : SUL<SshSymbol, ResponseFingerprint> {
 
     /**
@@ -233,7 +234,7 @@ class SshSul(
      * Returns a new SUL instance that must behave exactly as the original SUL.
      */
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        return SshSul(hostname, port, timeout, resetDelay)
+        return SshSul(name, hostname, port, timeout, resetDelay)
     }
 
     override fun toString(): String {

@@ -8,13 +8,17 @@
  */
 package de.rub.nds.sshstatelearner.analysis.data
 
+import de.rub.nds.tlsattacker.transport.socket.SocketState
 import net.automatalib.words.Word
 
 abstract class GraphDetails<S, I, T> {
     var initialState: S? = null
     var errorState: S? = null
-    var happyFlows: MutableList<Word<S>> = mutableListOf()
+    var happyFlows: MutableList<List<S>> = mutableListOf()
     var happyFlowTransitions: MutableSet<T> = mutableSetOf()
+    var socketStateMap: MutableMap<S, MutableSet<SocketState>> = mutableMapOf()
 
-    abstract fun extractStateNames(): Map<S, String>
+    open fun extractStateNames(): Map<S?, String> {
+        return mapOf(initialState to "TCP Established", errorState to "TCP Closed")
+    }
 }
