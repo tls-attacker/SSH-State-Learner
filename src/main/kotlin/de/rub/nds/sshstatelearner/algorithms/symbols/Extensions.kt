@@ -6,15 +6,15 @@
  * Licensed under Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0.txt
  */
-package de.rub.nds.sshstatelearner.sul.symbols
+package de.rub.nds.sshstatelearner.algorithms.symbols
 
 import de.rub.nds.sshattacker.core.protocol.common.Message
 
 /**
  * Wraps the SSH message into a GenericMessageSymbolImpl.
  */
-fun <T : Message<T>> Message<T>.toSymbolImpl(): GenericMessageSymbolImpl {
-    return GenericMessageSymbolImpl(this)
+fun <T : Message<T>> Message<T>.toSymbol(): GenericMessageSymbol {
+    return GenericMessageSymbol(this)
 }
 
 /**
@@ -22,6 +22,6 @@ fun <T : Message<T>> Message<T>.toSymbolImpl(): GenericMessageSymbolImpl {
  *
  * @param retrieveDelay The delay between sending the message and retrieving the response of the peer.
  */
-fun <T : Message<T>> Message<T>.toSymbolImpl(retrieveDelay: Long): GenericMessageSymbolImpl {
-    return GenericMessageSymbolImpl(this, retrieveDelay)
+fun <T : Message<T>> Message<T>.toSymbol(retrieveDelay: Long): GenericMessageSymbol {
+    return GenericMessageSymbol(this, retrieveDelay)
 }

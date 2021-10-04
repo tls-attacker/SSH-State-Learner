@@ -15,6 +15,7 @@ import de.learnlib.algorithms.lstar.mealy.ExtensibleLStarMealyBuilder
 import de.learnlib.algorithms.ttt.mealy.TTTLearnerMealyBuilder
 import de.learnlib.api.algorithm.LearningAlgorithm
 import de.learnlib.api.oracle.MembershipOracle
+import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import net.automatalib.words.Alphabet
 
 /**

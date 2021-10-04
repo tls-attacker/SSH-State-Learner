@@ -6,7 +6,7 @@
  * Licensed under Apache License, Version 2.0
  * http://www.apache.org/licenses/LICENSE-2.0.txt
  */
-package de.rub.nds.sshstatelearner.sul.symbols
+package de.rub.nds.sshstatelearner.extraction
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
@@ -25,17 +25,17 @@ object AlphabetFactory {
      * @param kex The key exchange algorithm to construct the symbols for.
      * @return An array of symbol to use with the given key exchange algorithm.
      */
-    private fun getKexSymbols(kex: KeyExchangeAlgorithm): Array<out SshSymbol> {
+    private fun getKexSymbols(kex: KeyExchangeAlgorithm): List<SshSymbol> {
         return when (kex.flowType) {
-            KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
+            KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> listOf(
                 SshSymbol.MSG_KEX_DH_GEX_REQUEST,
                 SshSymbol.MSG_KEX_DH_GEX_REQUEST_OLD,
                 SshSymbol.MSG_KEX_DH_GEX_INIT
             )
-            KeyExchangeFlowType.DIFFIE_HELLMAN -> arrayOf(
+            KeyExchangeFlowType.DIFFIE_HELLMAN -> listOf(
                 SshSymbol.MSG_KEXDH_INIT
             )
-            KeyExchangeFlowType.ECDH -> arrayOf(
+            KeyExchangeFlowType.ECDH -> listOf(
                 SshSymbol.MSG_KEX_ECDH_INIT
             )
             KeyExchangeFlowType.ECMQV -> TODO("ECMQV kex algorithm is not yet implemented in SSH-Attacker")
@@ -52,16 +52,13 @@ object AlphabetFactory {
      *            this parameter does not influence the resulting alphabet.
      * @return An alphabet with valid SSH symbols to use within the given protocol stage and key exchange algorithm.
      */
-    fun construct(
-        stage: ProtocolStage = ProtocolStage.TRANSPORT,
-        kex: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256
-    ): Alphabet<SshSymbol> {
+    fun construct(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Alphabet<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> ListAlphabet(
                 listOf(
                     SshSymbol.VERSION_EXCHANGE,
                     SshSymbol.MSG_KEXINIT,
-                    *getKexSymbols(kex),
+                    *getKexSymbols(kex).toTypedArray(),
                     SshSymbol.MSG_NEWKEYS,
                     SshSymbol.MSG_SERVICE_REQUEST
                 )

@@ -10,28 +10,32 @@ package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
-import de.rub.nds.sshstatelearner.sul.symbols.SshSymbol
 
 /**
  * This object contains all arguments for the JCommander CLI parser which change the behaviour of the SUL itself.
  * This includes connection parameters, protocol stage and key exchange algorithm to use.
  */
 object ArgsSul {
-    @Parameter(names = ["--hostname", "-h"], description = "Hostname of the system where the target SSH server is running", order = 10)
+    @Parameter(names = ["--name"], description = "Human-readable name of the target SSH server (i. e. SSH server implementation and version)", order = 10)
+    var name: String = "Unspecified SSH Server"
+        private set
+
+    @Parameter(names = ["--hostname", "-h"], description = "Hostname of the system where the target SSH server is running", order = 11)
     var hostname: String = "localhost"
         private set
 
-    @Parameter(names = ["--port", "-p"], description = "Port on which the target SSH server is listening for incoming connection", order = 11)
+    @Parameter(names = ["--port", "-p"], description = "Port on which the target SSH server is listening for incoming connection", order = 12)
     var port: Int = 22
         private set
 
-    @Parameter(names = ["--timeout", "-t"], description = "Timeout in milliseconds when reading incoming traffic from the network socket", order = 12)
+    @Parameter(names = ["--timeout", "-t"], description = "Timeout in milliseconds when reading incoming traffic from the network socket", order = 13)
     var timeout: Long = SshSul.DEFAULT_TRANSPORT_HANDLER_TIMEOUT
         private set
 
-    @Parameter(names = ["--reset-delay"], description = "Delay in milliseconds during reset of a SUL instance", order = 13)
+    @Parameter(names = ["--reset-delay"], description = "Delay in milliseconds during reset of a SUL instance", order = 14)
     var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY
         private set
 
