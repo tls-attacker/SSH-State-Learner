@@ -1,3 +1,11 @@
+/*
+ * SSH State Learner - A tool for extracting state machines from SSH server implementations
+ *
+ * Copyright 2021 Ruhr University Bochum, Paderborn University, Hackmanit GmbH
+ *
+ * Licensed under Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0.txt
+ */
 package de.rub.nds.sshstatelearner.analysis.classifier
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
@@ -8,7 +16,7 @@ import de.rub.nds.sshstatelearner.exceptions.ClassificationException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
-class TransportHappyFlowClassifier<S, T>: Classifier<S, SshSymbol, T, ResponseFingerprint>() {
+class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseFingerprint>() {
     override fun performClassification(stateMachine: StateMachine<S, SshSymbol, T, ResponseFingerprint>) {
         stateMachine as SshStateMachine
         val machine = stateMachine.mealyMachine
@@ -58,7 +66,7 @@ class TransportHappyFlowClassifier<S, T>: Classifier<S, SshSymbol, T, ResponseFi
 
     private fun classifyKexHappyFlow(stateMachine: SshStateMachine<S, T>, kexInitState: S): Pair<List<S>, List<T>>? {
         val machine = stateMachine.mealyMachine
-        when(stateMachine.kexAlgorithm.flowType) {
+        when (stateMachine.kexAlgorithm.flowType) {
             KeyExchangeFlowType.ECDH -> {
                 val kexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEX_ECDH_INIT) ?: throw ClassificationException()
                 val kexDoneState = machine.getSuccessor(kexTransition)

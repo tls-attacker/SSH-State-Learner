@@ -1,4 +1,12 @@
-package de.rub.nds.sshstatelearner;
+/*
+ * SSH State Learner - A tool for extracting state machines from SSH server implementations
+ *
+ * Copyright 2021 Ruhr University Bochum, Paderborn University, Hackmanit GmbH
+ *
+ * Licensed under Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0.txt
+ */
+package de.rub.nds.sshstatelearner
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.analysis.analyzer.SshAuthenticationAnalyzer
@@ -17,13 +25,7 @@ import de.rub.nds.sshstatelearner.visualization.ShortMealyVisualizationHelper
 import net.automatalib.automata.graphs.TransitionEdge
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.serialization.dot.DOTVisualizationHelper
-import net.automatalib.serialization.dot.GraphDOT
 import net.automatalib.words.Alphabet
-import org.apache.logging.log4j.LogManager
-import org.apache.logging.log4j.Logger
-import java.io.File
-import java.io.IOException
-import java.io.Writer
 
 class SshStateMachine<S, T>(
     mealyMachine: MealyMachine<S, SshSymbol, T, ResponseFingerprint>,
@@ -35,10 +37,6 @@ class SshStateMachine<S, T>(
     mealyMachine,
     alphabet
 ) {
-
-    companion object {
-        private val LOGGER: Logger = LogManager.getLogger()
-    }
 
     override var graphDetails: GraphDetails<S, SshSymbol, T> = getEmptyGraphDetails()
 
@@ -52,7 +50,7 @@ class SshStateMachine<S, T>(
         )
 
     private fun getEmptyGraphDetails(): GraphDetails<S, SshSymbol, T> {
-        return when(stage) {
+        return when (stage) {
             ProtocolStage.TRANSPORT -> SshTransportGraphDetails()
             ProtocolStage.AUTHENTICATION -> SshAuthenticationGraphDetails()
             ProtocolStage.CONNECTION -> SshConnectionGraphDetails()
@@ -60,7 +58,7 @@ class SshStateMachine<S, T>(
     }
 
     override fun analyzeMealyMachine() {
-        when(stage) {
+        when (stage) {
             ProtocolStage.TRANSPORT -> SshTransportAnalyzer<S, T>().analyze(this)
             ProtocolStage.AUTHENTICATION -> SshAuthenticationAnalyzer<S, T>().analyze(this)
             ProtocolStage.CONNECTION -> SshConnectionAnalyzer<S, T>().analyze(this)

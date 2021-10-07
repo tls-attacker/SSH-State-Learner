@@ -9,7 +9,6 @@
 package de.rub.nds.sshstatelearner.analysis.data
 
 import de.rub.nds.tlsattacker.transport.socket.SocketState
-import net.automatalib.words.Word
 
 abstract class GraphDetails<S, I, T> {
     var initialState: S? = null

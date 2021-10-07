@@ -18,12 +18,12 @@ import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.SshSul
+import java.io.File
+import java.io.FileWriter
 import java.security.Security
 import kotlin.system.exitProcess
 import net.automatalib.words.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
-import java.io.File
-import java.io.FileWriter
 
 /**
  * Prepares the JCE (Java Cryptographic Extension) by adding the BouncyCastle provider and

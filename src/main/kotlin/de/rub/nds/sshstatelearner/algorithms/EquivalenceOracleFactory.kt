@@ -90,7 +90,7 @@ object EquivalenceOracleFactory {
 
     /**
      * The probability that the walk performed by a random walk equivalence oracle is restarted
-     * (i. e. a new word begins) after each step.
+     * (i.e. a new word begins) after each step.
      */
     var randomWalkRestartProbability: Double = 0.1
         private set
@@ -148,8 +148,8 @@ object EquivalenceOracleFactory {
     /**
      * Sets the factory defaults for a complete exploration, depth-bounded equivalence oracle.
      *
-     * @param minDepth Minimum exploration depth (i. e. minimum length of words to be tested).
-     * @param maxDepth Maximum exploration depth (i. e. maximum length of words to be tested).
+     * @param minDepth Minimum exploration depth (i.e. minimum length of words to be tested).
+     * @param maxDepth Maximum exploration depth (i.e. maximum length of words to be tested).
      */
     fun setCompleteExplorationDefaults(minDepth: Int, maxDepth: Int) {
         if (minDepth < 0 || maxDepth < 0) {
@@ -187,7 +187,7 @@ object EquivalenceOracleFactory {
     /**
      * Sets the factory defaults for a random walk equivalence oracle.
      *
-     * @param restartProbability The probability that the walk performed by a random walk equivalence oracle is restarted (i. e. a new word begins) after each step.
+     * @param restartProbability The probability that the walk performed by a random walk equivalence oracle is restarted (i.e. a new word begins) after each step.
      * @param maxSteps Maximum number of steps to walk before hypothesis and SUL are considered equal.
      */
     fun setRandomWalkDefaults(restartProbability: Double, maxSteps: Long) {

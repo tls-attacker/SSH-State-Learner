@@ -1,9 +1,18 @@
+/*
+ * SSH State Learner - A tool for extracting state machines from SSH server implementations
+ *
+ * Copyright 2021 Ruhr University Bochum, Paderborn University, Hackmanit GmbH
+ *
+ * Licensed under Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0.txt
+ */
 package de.rub.nds.sshstatelearner.analysis.classifier
 
 import de.rub.nds.sshstatelearner.StateMachine
-import net.automatalib.words.Word
-import java.util.*
+import java.util.LinkedList
+import java.util.Queue
 import kotlin.collections.HashMap
+import net.automatalib.words.Word
 
 abstract class Classifier<S, I, T, O> {
 
@@ -12,7 +21,7 @@ abstract class Classifier<S, I, T, O> {
 
     protected fun getPathToState(stateMachine: StateMachine<S, I, T, O>, destState: S): Word<I>? {
         val initialState = stateMachine.mealyMachine.initialState
-        return if(initialState == null) null else getPathToState(stateMachine, initialState, destState)
+        return if (initialState == null) null else getPathToState(stateMachine, initialState, destState)
     }
 
     protected fun getPathToState(stateMachine: StateMachine<S, I, T, O>, sourceState: S, destState: S): Word<I>? {

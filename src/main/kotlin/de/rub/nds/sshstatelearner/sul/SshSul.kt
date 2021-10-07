@@ -33,7 +33,7 @@ class SshSul(
     val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT,
     val resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
-    val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
+    val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
 ) : SUL<SshSymbol, ResponseFingerprint> {
 
     /**
@@ -168,7 +168,7 @@ class SshSul(
             if (response.socketState == SocketState.SOCKET_EXCEPTION || response.socketState == SocketState.CLOSED) {
                 /*
                  * Optimization for handling closed connection: If the response indicates a closed connection (either
-                 * by a RST or FIN), we close the transport handler and respond all further steps with a SocketState.CLOSED
+                 * by an RST or FIN), we close the transport handler and respond all further steps with a SocketState.CLOSED
                  */
                 state.sshContext.transportHandler.closeConnection()
                 connectionClosed = true

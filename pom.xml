@@ -164,6 +164,9 @@
                 <version>2.12.2</version>
                 <configuration>
                     <kotlin>
+                        <lineEndings>UNIX</lineEndings>
+                        <trimTrailingWhitespace />
+                        <endWithNewline />
                         <ktlint />
                         <licenseHeader>
                             <file>${project.basedir}/license_header_plain.txt</file>

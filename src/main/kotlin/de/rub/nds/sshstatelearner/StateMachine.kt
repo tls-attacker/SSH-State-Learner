@@ -10,12 +10,12 @@ package de.rub.nds.sshstatelearner
 
 import de.rub.nds.sshstatelearner.analysis.data.GraphDetails
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
-import net.automatalib.automata.graphs.TransitionEdge
 import java.io.File
 import java.io.FileWriter
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
+import net.automatalib.automata.graphs.TransitionEdge
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.serialization.dot.DOTVisualizationHelper
 import net.automatalib.serialization.dot.GraphDOT

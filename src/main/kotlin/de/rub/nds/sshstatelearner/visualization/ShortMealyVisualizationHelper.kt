@@ -12,14 +12,11 @@ import de.rub.nds.sshstatelearner.analysis.data.GraphDetails
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import net.automatalib.automata.concepts.OutputAutomaton
 import net.automatalib.automata.graphs.TransitionEdge
 import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.automata.transducers.TransitionOutputAutomaton
 import net.automatalib.automata.visualization.AutomatonVisualizationHelper
 import net.automatalib.visualization.VisualizationHelper
 import net.automatalib.words.Alphabet
-import net.automatalib.words.Word
 
 class ShortMealyVisualizationHelper<S, T>(
     automaton: MealyMachine<S, SshSymbol, T, ResponseFingerprint>,
@@ -48,12 +45,12 @@ class ShortMealyVisualizationHelper<S, T>(
         }
 
         // Output happy flow edges as a bold green edge
-        if(graphDetails.happyFlowTransitions.contains(edge.transition)) {
+        if (graphDetails.happyFlowTransitions.contains(edge.transition)) {
             properties[VisualizationHelper.EdgeAttrs.COLOR] = "GREEN"
             properties[VisualizationHelper.EdgeAttrs.STYLE] = "bold"
         }
 
-        return when(detail) {
+        return when (detail) {
             VisualizationDetail.SHORT -> getEdgePropertiesShort(src, edge, tgt, properties)
             VisualizationDetail.MEDIUM -> getEdgePropertiesMedium(src, edge, tgt, properties)
             VisualizationDetail.LONG -> getEdgePropertiesLong(src, edge, tgt, properties)
@@ -72,7 +69,7 @@ class ShortMealyVisualizationHelper<S, T>(
             return false
         }
 
-        if(!graphDetails.happyFlowTransitions.contains(edge.transition)) {
+        if (!graphDetails.happyFlowTransitions.contains(edge.transition)) {
             // Combine multiple edges between src and tgt into a single one
             val label = alphabet.map { Triple(it, automaton.getTransition(src, it), automaton.getSuccessor(src, it)) }
                 .filter { it.third === tgt && !graphDetails.happyFlowTransitions.contains(it.second) }
@@ -96,7 +93,6 @@ class ShortMealyVisualizationHelper<S, T>(
             }
         }
 
-
         return true
     }
 
@@ -108,7 +104,7 @@ class ShortMealyVisualizationHelper<S, T>(
             return false
         }
 
-        if(!graphDetails.happyFlowTransitions.contains(edge.transition)) {
+        if (!graphDetails.happyFlowTransitions.contains(edge.transition)) {
             // Combine multiple edges between src and tgt into a single one
             val label = alphabet.map { Triple(it, automaton.getTransition(src, it), automaton.getSuccessor(src, it)) }
                 .filter { it.third === tgt && !graphDetails.happyFlowTransitions.contains(it.second) }
@@ -160,12 +156,12 @@ class ShortMealyVisualizationHelper<S, T>(
         if (stateNames.contains(node)) {
             when (detail) {
                 VisualizationDetail.LONG ->
-                    nodeLabelBuilder.append("${stateNames[node]}\n(${node.toString()}")
+                    nodeLabelBuilder.append("${stateNames[node]}\n($node")
                 VisualizationDetail.MEDIUM, VisualizationDetail.SHORT ->
                     nodeLabelBuilder.append("${stateNames[node]}")
             }
         } else {
-            nodeLabelBuilder.append("Unknown State (${node.toString()})")
+            nodeLabelBuilder.append("Unknown State ($node)")
         }
         if (graphDetails.socketStateMap.contains(node)) {
             nodeLabelBuilder.append("\n\nSocketState: ${graphDetails.socketStateMap[node]}")

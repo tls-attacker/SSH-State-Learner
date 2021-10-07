@@ -1,3 +1,11 @@
+/*
+ * SSH State Learner - A tool for extracting state machines from SSH server implementations
+ *
+ * Copyright 2021 Ruhr University Bochum, Paderborn University, Hackmanit GmbH
+ *
+ * Licensed under Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0.txt
+ */
 package de.rub.nds.sshstatelearner.analysis.classifier
 
 import de.rub.nds.sshstatelearner.SshStateMachine
@@ -7,7 +15,7 @@ import de.rub.nds.sshstatelearner.exceptions.ClassificationException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
-class ConnectionHappyFlowClassifier<S, T>: Classifier<S, SshSymbol, T, ResponseFingerprint>() {
+class ConnectionHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseFingerprint>() {
     override fun performClassification(stateMachine: StateMachine<S, SshSymbol, T, ResponseFingerprint>) {
         stateMachine as SshStateMachine
         val machine = stateMachine.mealyMachine

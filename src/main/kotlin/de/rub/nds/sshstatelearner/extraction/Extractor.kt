@@ -12,7 +12,6 @@ import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.query.DefaultQuery
 import de.learnlib.oracle.membership.SULOracle
 import de.rub.nds.sshstatelearner.SshStateMachine
-import de.rub.nds.sshstatelearner.StateMachine
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCache
