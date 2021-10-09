@@ -45,7 +45,8 @@ class Extractor(
     sul: SshSul,
     private val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT,
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
-    private val storeIntermediateHypotheses: Boolean
+    private val storeIntermediateHypotheses: Boolean,
+    private val outputDirectory: String
 ) {
 
     /**
@@ -78,10 +79,6 @@ class Extractor(
 
     companion object {
         private val LOGGER: Logger = LogManager.getLogger()
-        /**
-         * The output directory for serialized hypothesis files.
-         */
-        private const val OUTPUT_DIR = "./out/"
     }
 
     /**
@@ -175,13 +172,13 @@ class Extractor(
     }
 
     private fun serializeHypothesis(hypothesis: SshStateMachine<*, *>, name: String) {
-        val folder = File(OUTPUT_DIR).also { it.mkdirs() }
+        val folder = File(outputDirectory).also { it.mkdirs() }
         val graphFile = File(folder, name)
         hypothesis.exportToDotAndPDF(graphFile, VisualizationDetail.MEDIUM)
     }
 
     private fun clearOutput() {
-        val folder = File(OUTPUT_DIR).also { it.mkdirs() }
+        val folder = File(outputDirectory).also { it.mkdirs() }
         for (file in folder.listFiles() ?: emptyArray()) {
             if (!file.isDirectory) file.delete()
         }

@@ -92,7 +92,7 @@ private fun setEquivalenceOracleDefaults() {
 private fun conductProtocolLearning(): Extractor.ExtractorResult {
     val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
     val sul = SshSul(ArgsSul.name, ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
-    val learner = Extractor(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes, ArgsLearner.outputIntermediateHypothesis)
+    val learner = Extractor(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes, ArgsLearner.outputIntermediateHypothesis, ArgsGeneral.output)
     return learner.extractStateMachine()
 }
 
