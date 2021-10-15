@@ -32,7 +32,7 @@ data class ResponseFingerprint(val messages: List<Message<*>>, var socketState: 
 
     /**
      * Checks whether the provided object is equal to this fingerprint. Two response fingerprints are considered
-     * equal if both response fingerprints contain the same message types (in the same order) and their socket
+     * equal if both response fingerprints contain the same message types (in any order) and their socket
      * states are equal.
      *
      * @param other The object which is being checked for equality with this.
@@ -45,19 +45,7 @@ data class ResponseFingerprint(val messages: List<Message<*>>, var socketState: 
 
         other as ResponseFingerprint
 
-        if (messages.size == other.messages.size) {
-            messages.zip(other.messages).forEach {
-                if (it.first.javaClass != it.second.javaClass) {
-                    return false
-                }
-            }
-        } else {
-            return false
-        }
-        if (socketState != other.socketState)
-            return false
-
-        return true
+        return this.hashCode() == other.hashCode()
     }
 
     /**
@@ -66,9 +54,5 @@ data class ResponseFingerprint(val messages: List<Message<*>>, var socketState: 
      *
      * @return The hash code of this response fingerprint.
      */
-    override fun hashCode(): Int {
-        var result = socketState.hashCode()
-        messages.forEach { result = 31 * result + it.javaClass.hashCode() }
-        return result
-    }
+    override fun hashCode(): Int = messages.fold(socketState.hashCode()) { hash, it -> hash + it.javaClass.hashCode() }
 }
