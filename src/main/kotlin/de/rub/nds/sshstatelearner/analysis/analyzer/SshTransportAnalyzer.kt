@@ -13,10 +13,10 @@ import de.rub.nds.sshstatelearner.analysis.classifier.TransportHappyFlowClassifi
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
-class SshTransportAnalyzer<S, T> : Analyzer<S, SshSymbol, T, ResponseFingerprint>() {
+class SshTransportAnalyzer<S, T>(versionExchangeIncluded: Boolean) : Analyzer<S, SshSymbol, T, ResponseFingerprint>() {
 
     init {
         classifiers.add(CommonClassifier())
-        classifiers.add(TransportHappyFlowClassifier())
+        classifiers.add(TransportHappyFlowClassifier(versionExchangeIncluded))
     }
 }

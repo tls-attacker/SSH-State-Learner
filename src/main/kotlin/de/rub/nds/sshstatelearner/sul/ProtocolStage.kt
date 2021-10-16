@@ -17,6 +17,12 @@ enum class ProtocolStage {
      */
     TRANSPORT,
     /**
+     * The SSH transport layer protocol as per RFC 4253 with completed version exchange.
+     * This stage may be used if the server accepts arbitrary data prior to version exchange which may
+     * result in large and inaccurate state machines (can be observed when using e.g. OpenSSH 7.2p1 or 7.4p1)
+     */
+    TRANSPORT_VEX_COMPLETE,
+    /**
      * The SSH authentication layer protocol stage (RFC 4252)
      */
     AUTHENTICATION,

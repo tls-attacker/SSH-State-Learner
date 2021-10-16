@@ -59,6 +59,12 @@ object HappyFlowFactory {
                 SshSymbol.MSG_NEWKEYS,
                 SshSymbol.MSG_SERVICE_REQUEST
             )
+            ProtocolStage.TRANSPORT_VEX_COMPLETE -> Word.fromSymbols(
+                SshSymbol.MSG_KEXINIT,
+                *constructKexFlow(kex),
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_REQUEST
+            )
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
                 SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID
             )

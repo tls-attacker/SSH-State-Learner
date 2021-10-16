@@ -97,6 +97,7 @@ class SshSul(
     private fun constructPreamble(): Word<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> Word.epsilon()
+            ProtocolStage.TRANSPORT_VEX_COMPLETE -> Word.fromLetter(SshSymbol.VERSION_EXCHANGE)
             ProtocolStage.AUTHENTICATION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex)
             ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex).concat(
                 HappyFlowFactory.constructHappyFlow(ProtocolStage.AUTHENTICATION, kex)

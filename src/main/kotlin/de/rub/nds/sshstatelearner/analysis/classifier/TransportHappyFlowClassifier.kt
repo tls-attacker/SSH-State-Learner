@@ -16,7 +16,7 @@ import de.rub.nds.sshstatelearner.exceptions.ClassificationException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
-class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseFingerprint>() {
+class TransportHappyFlowClassifier<S, T>(private val versionExchangeIncluded: Boolean) : Classifier<S, SshSymbol, T, ResponseFingerprint>() {
     override fun performClassification(stateMachine: StateMachine<S, SshSymbol, T, ResponseFingerprint>) {
         stateMachine as SshStateMachine
         val machine = stateMachine.mealyMachine
@@ -26,10 +26,13 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
         val happyFlow = mutableListOf<S>(initialState)
 
         // Identification of the version exchange transition and state
-        val vexTransition = machine.getTransition(initialState, SshSymbol.VERSION_EXCHANGE) ?: throw ClassificationException()
-        val vexState = machine.getSuccessor(vexTransition)
-        happyFlowTransitions.add(vexTransition)
-        happyFlow.add(vexState)
+        var vexState: S? = initialState
+        if (versionExchangeIncluded) {
+            val vexTransition = machine.getTransition(initialState, SshSymbol.VERSION_EXCHANGE) ?: throw ClassificationException()
+            vexState = machine.getSuccessor(vexTransition)
+            happyFlowTransitions.add(vexTransition)
+            happyFlow.add(vexState)
+        }
 
         // Identification of key exchange init transition and state
         val kexInitTransition = machine.getTransition(vexState, SshSymbol.MSG_KEXINIT) ?: throw ClassificationException()
