@@ -8,20 +8,20 @@
  */
 package de.rub.nds.sshstatelearner.algorithms.symbols
 
-import de.rub.nds.sshattacker.core.protocol.common.Message
+import de.rub.nds.sshattacker.core.protocol.common.SshMessage
 
 /**
- * Wraps the SSH message into a GenericMessageSymbolImpl.
+ * Wraps the SSH message into a message symbol implementation.
  */
-fun <T : Message<T>> Message<T>.toSymbol(): GenericMessageSymbol {
-    return GenericMessageSymbol(this)
+fun <T : SshMessage<T>> SshMessage<T>.toSymbol(): AbstractSshSymbol {
+    return BppMessageSymbol(this)
 }
 
 /**
- * Wraps the SSH message into a GenericMessageSymbolImpl.
+ * Wraps the SSH message into a message symbol implementation.
  *
  * @param retrieveDelay The delay between sending the message and retrieving the response of the peer.
  */
-fun <T : Message<T>> Message<T>.toSymbol(retrieveDelay: Long): GenericMessageSymbol {
-    return GenericMessageSymbol(this, retrieveDelay)
+fun <T : SshMessage<T>> SshMessage<T>.toSymbol(retrieveDelay: Long): AbstractSshSymbol {
+    return BppMessageSymbol(this, retrieveDelay)
 }

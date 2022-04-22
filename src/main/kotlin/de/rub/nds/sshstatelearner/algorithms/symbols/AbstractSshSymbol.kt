@@ -10,11 +10,10 @@ package de.rub.nds.sshstatelearner.algorithms.symbols
 
 import de.learnlib.api.exception.SULException
 import de.rub.nds.sshattacker.core.exceptions.AdjustmentException
-import de.rub.nds.sshattacker.core.protocol.common.Message
-import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
-import de.rub.nds.sshattacker.core.protocol.util.SendMessageHelper
+import de.rub.nds.sshattacker.core.protocol.common.SshMessage
 import de.rub.nds.sshattacker.core.state.State
-import de.rub.nds.sshattacker.core.workflow.action.GenericReceiveAction
+import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
+import de.rub.nds.sshattacker.core.workflow.action.executor.SendMessageHelper
 import de.rub.nds.sshstatelearner.sul.response.ResponseExtractor
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
@@ -39,14 +38,9 @@ abstract class AbstractSshSymbol {
      * @param message Message to send.
      * @param state The state of the SSH attacker to send this message on.
      */
-    protected fun sendMessage(message: Message<*>, state: State) {
-        val helper = SendMessageHelper()
+    protected fun sendMessage(message: SshMessage<*>, state: State) {
         try {
-            if (message is VersionExchangeMessage) {
-                helper.sendVersionExchangeMessage(message, state.sshContext)
-            } else {
-                helper.sendMessage(message, state.sshContext)
-            }
+            SendMessageHelper().sendMessage(state.sshContext, message)
         } catch (e: IOException) {
             throw SULException(e)
         }
@@ -67,10 +61,10 @@ abstract class AbstractSshSymbol {
             throw SULException(e)
         }
         try {
-            val action = GenericReceiveAction("client")
+            val action = ReceiveAction("client")
             try {
                 action.execute(state)
-            } catch (e: AdjustmentException) {
+            } catch (_: AdjustmentException) {
             }
             return ResponseExtractor.getFingerprint(state, action)
         } catch (e: IOException) {

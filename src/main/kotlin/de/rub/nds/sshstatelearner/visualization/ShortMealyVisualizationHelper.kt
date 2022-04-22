@@ -79,7 +79,8 @@ class ShortMealyVisualizationHelper<S, T>(
                         "${it.first}"
                     else
                         "${it.first} / ${output.messages.joinToString(",") {
-                                message -> message.toCompactString()
+                            message ->
+                            message.toCompactString()
                         }}"
                 }
             properties[VisualizationHelper.EdgeAttrs.LABEL] = label
@@ -114,7 +115,8 @@ class ShortMealyVisualizationHelper<S, T>(
                         "${it.first}"
                     else
                         "${it.first} / ${output.messages.joinToString(",") {
-                                message -> message.toCompactString()
+                            message ->
+                            message.toCompactString()
                         }}"
                 }
             properties[VisualizationHelper.EdgeAttrs.LABEL] = label
@@ -138,7 +140,7 @@ class ShortMealyVisualizationHelper<S, T>(
             properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / [No output]"
         } else {
             properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / ${
-                transitionOutput.messages.joinToString(",") { it.toCompactString() }
+            transitionOutput.messages.joinToString(",") { it.toCompactString() }
             }"
         }
 

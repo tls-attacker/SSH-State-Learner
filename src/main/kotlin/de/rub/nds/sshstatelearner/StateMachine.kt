@@ -10,11 +10,6 @@ package de.rub.nds.sshstatelearner
 
 import de.rub.nds.sshstatelearner.analysis.data.GraphDetails
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
-import java.io.File
-import java.io.FileWriter
-import java.io.IOException
-import java.io.StringWriter
-import java.io.Writer
 import net.automatalib.automata.graphs.TransitionEdge
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.serialization.dot.DOTVisualizationHelper
@@ -22,6 +17,11 @@ import net.automatalib.serialization.dot.GraphDOT
 import net.automatalib.words.Alphabet
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.io.File
+import java.io.FileWriter
+import java.io.IOException
+import java.io.StringWriter
+import java.io.Writer
 
 abstract class StateMachine<S, I, T, O>(
     var mealyMachine: MealyMachine<S, I, T, O>,

@@ -23,12 +23,12 @@ import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.sul.AdvancedStatisticSul
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import java.io.File
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Alphabet
 import net.automatalib.words.Word
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.io.File
 
 /**
  * A wrapper for learning an SSH SUL oracle. It exposes a single method, learn(), which constructs all necessary

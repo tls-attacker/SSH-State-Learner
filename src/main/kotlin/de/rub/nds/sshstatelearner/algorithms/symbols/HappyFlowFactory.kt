@@ -53,13 +53,6 @@ object HappyFlowFactory {
     fun constructHappyFlow(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> Word.fromSymbols(
-                SshSymbol.VERSION_EXCHANGE,
-                SshSymbol.MSG_KEXINIT,
-                *constructKexFlow(kex),
-                SshSymbol.MSG_NEWKEYS,
-                SshSymbol.MSG_SERVICE_REQUEST
-            )
-            ProtocolStage.TRANSPORT_VEX_COMPLETE -> Word.fromSymbols(
                 SshSymbol.MSG_KEXINIT,
                 *constructKexFlow(kex),
                 SshSymbol.MSG_NEWKEYS,

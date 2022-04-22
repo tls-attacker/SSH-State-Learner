@@ -51,7 +51,7 @@ class SshStateMachine<S, T>(
 
     private fun getEmptyGraphDetails(): GraphDetails<S, SshSymbol, T> {
         return when (stage) {
-            ProtocolStage.TRANSPORT, ProtocolStage.TRANSPORT_VEX_COMPLETE -> SshTransportGraphDetails()
+            ProtocolStage.TRANSPORT -> SshTransportGraphDetails()
             ProtocolStage.AUTHENTICATION -> SshAuthenticationGraphDetails()
             ProtocolStage.CONNECTION -> SshConnectionGraphDetails()
         }
@@ -59,8 +59,7 @@ class SshStateMachine<S, T>(
 
     override fun analyzeMealyMachine() {
         when (stage) {
-            ProtocolStage.TRANSPORT -> SshTransportAnalyzer<S, T>(true).analyze(this)
-            ProtocolStage.TRANSPORT_VEX_COMPLETE -> SshTransportAnalyzer<S, T>(false).analyze(this)
+            ProtocolStage.TRANSPORT -> SshTransportAnalyzer<S, T>().analyze(this)
             ProtocolStage.AUTHENTICATION -> SshAuthenticationAnalyzer<S, T>().analyze(this)
             ProtocolStage.CONNECTION -> SshConnectionAnalyzer<S, T>().analyze(this)
         }

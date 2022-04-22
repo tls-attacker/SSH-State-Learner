@@ -12,19 +12,25 @@ import de.learnlib.api.SUL
 import de.learnlib.api.exception.SULException
 import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshattacker.core.constants.PacketLayerType
+import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.State
+import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
+import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
+import de.rub.nds.sshattacker.core.workflow.action.SendAction
+import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
 import de.rub.nds.sshstatelearner.algorithms.symbols.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import de.rub.nds.tlsattacker.transport.tcp.ClientTcpTransportHandler
-import java.io.IOException
-import java.lang.IllegalArgumentException
-import java.lang.RuntimeException
 import net.automatalib.words.Word
 import net.automatalib.words.WordBuilder
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import java.io.IOException
+import java.lang.IllegalArgumentException
+import java.lang.RuntimeException
 
 class SshSul(
     val name: String,
@@ -86,7 +92,7 @@ class SshSul(
         /**
          * The default key exchange algorithm
          */
-        val DEFAULT_KEX_ALGORITHM: KeyExchangeAlgorithm = KeyExchangeAlgorithm.DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256
+        val DEFAULT_KEX_ALGORITHM: KeyExchangeAlgorithm = KeyExchangeAlgorithm.ECDH_SHA2_NISTP256
     }
 
     /**
@@ -97,7 +103,6 @@ class SshSul(
     private fun constructPreamble(): Word<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> Word.epsilon()
-            ProtocolStage.TRANSPORT_VEX_COMPLETE -> Word.fromLetter(SshSymbol.VERSION_EXCHANGE)
             ProtocolStage.AUTHENTICATION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex)
             ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex).concat(
                 HappyFlowFactory.constructHappyFlow(ProtocolStage.AUTHENTICATION, kex)
@@ -110,10 +115,10 @@ class SshSul(
      */
     override fun pre() {
         config = Config.createConfig().apply {
+            // TODO: Allow state initialization without specifying trace type
+            workflowTraceType = WorkflowTraceType.KEX_INIT_ONLY
             stopActionsAfterDisconnect = false
             stopActionsAfterIOException = false
-            avoidAdjustmentExceptions = true
-            avoidPreparationExceptions = true
             clientSupportedKeyExchangeAlgorithms = listOf(kex)
             serviceName = "ssh-userauth"
         }
@@ -122,10 +127,22 @@ class SshSul(
             sshContext.initTransportHandler()
         }
         connectionClosed = false
+
+        preExecuteVersionExchange()
         // TODO: Exception handling for preamble
         preamble.forEach {
             it.symbolImpl.execute(state)
         }
+    }
+
+    /**
+     * Executes a version exchange on the state and changes the packet layer to binary packets afterwards. This function
+     * will be called during the pre() lifecycle hook after initializing a new state and opening the connection.
+     */
+    private fun preExecuteVersionExchange() {
+        SendAction("client", VersionExchangeMessage()).execute(state)
+        ReceiveAction("client", VersionExchangeMessage()).execute(state)
+        ChangePacketLayerAction("client", PacketLayerType.BINARY_PACKET).execute(state)
     }
 
     /**
@@ -145,7 +162,7 @@ class SshSul(
     }
 
     /**
-     * Step the SUL by executing a single SshWord.
+     * Step the SUL by executing a single symbol.
      */
     override fun step(p0: SshSymbol?): ResponseFingerprint {
         try {

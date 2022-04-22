@@ -9,7 +9,6 @@
 package de.rub.nds.sshstatelearner.cli
 
 import com.beust.jcommander.JCommander
-import de.rub.nds.sshattacker.core.util.UnlimitedStrengthEnabler
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
@@ -18,20 +17,18 @@ import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.SshSul
+import net.automatalib.words.impl.ListAlphabet
+import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.File
 import java.io.FileWriter
 import java.security.Security
 import kotlin.system.exitProcess
-import net.automatalib.words.impl.ListAlphabet
-import org.bouncycastle.jce.provider.BouncyCastleProvider
 
 /**
- * Prepares the JCE (Java Cryptographic Extension) by adding the BouncyCastle provider and
- * disabling JDK restrictions for strong cryptography (if any).
+ * Prepares the JCE (Java Cryptographic Extension) by adding the BouncyCastle provider.
  */
 private fun prepareJCE() {
     Security.addProvider(BouncyCastleProvider())
-    UnlimitedStrengthEnabler.enable()
 }
 
 /**

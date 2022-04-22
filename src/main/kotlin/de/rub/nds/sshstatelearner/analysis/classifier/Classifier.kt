@@ -9,10 +9,10 @@
 package de.rub.nds.sshstatelearner.analysis.classifier
 
 import de.rub.nds.sshstatelearner.StateMachine
+import net.automatalib.words.Word
 import java.util.LinkedList
 import java.util.Queue
 import kotlin.collections.HashMap
-import net.automatalib.words.Word
 
 abstract class Classifier<S, I, T, O> {
 

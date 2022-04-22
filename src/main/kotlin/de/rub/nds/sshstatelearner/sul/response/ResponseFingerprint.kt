@@ -8,7 +8,7 @@
  */
 package de.rub.nds.sshstatelearner.sul.response
 
-import de.rub.nds.sshattacker.core.protocol.common.Message
+import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 
 /**
@@ -18,7 +18,7 @@ import de.rub.nds.tlsattacker.transport.socket.SocketState
  * @param messages Messages retrieved from the SSH peer.
  * @param socketState State of the underlying network socket after retrieving the messages.
  */
-data class ResponseFingerprint(val messages: List<Message<*>>, var socketState: SocketState) {
+data class ResponseFingerprint(val messages: List<ProtocolMessage<*>>, var socketState: SocketState) {
 
     /**
      * Serializes the response fingerprint into a human-readable string.

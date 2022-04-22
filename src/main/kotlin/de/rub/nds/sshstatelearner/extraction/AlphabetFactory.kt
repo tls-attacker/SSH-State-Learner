@@ -54,13 +54,8 @@ object AlphabetFactory {
      */
     fun construct(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Alphabet<SshSymbol> {
         return when (stage) {
-            /*
-             * We do still include VERSION_EXCHANGE in the TRANSPORT_VEX_COMPLETE stage to test for deviations
-             * like protocol restarts or unexpected behaviour
-             */
-            ProtocolStage.TRANSPORT, ProtocolStage.TRANSPORT_VEX_COMPLETE -> ListAlphabet(
+            ProtocolStage.TRANSPORT -> ListAlphabet(
                 listOf(
-                    SshSymbol.VERSION_EXCHANGE,
                     SshSymbol.MSG_KEXINIT,
                     *getKexSymbols(kex).toTypedArray(),
                     SshSymbol.MSG_NEWKEYS,

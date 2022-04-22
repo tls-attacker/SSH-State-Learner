@@ -26,9 +26,9 @@ import de.rub.nds.sshstatelearner.exceptions.IllegalKeyExchangeException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import java.util.Random
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
+import java.util.Random
 
 /**
  * This object is capable of creating equivalence oracle instances to use within an active automaton learning

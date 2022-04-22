@@ -44,7 +44,6 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.NewKeysMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceAcceptMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.UnimplementedMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshstatelearner.algorithms.symbols.AbstractSshSymbol
 import de.rub.nds.sshstatelearner.algorithms.symbols.toSymbol
 
@@ -52,7 +51,6 @@ enum class SshSymbol(val symbolImpl: AbstractSshSymbol) {
     /*
      * SSH transport protocol symbols
      */
-    VERSION_EXCHANGE(VersionExchangeMessage().toSymbol()),
     MSG_DISCONNECT(DisconnectMessage().toSymbol()),
     MSG_IGNORE(IgnoreMessage().toSymbol()),
     MSG_UNIMPLEMENTED(UnimplementedMessage().toSymbol()),
@@ -76,14 +74,16 @@ enum class SshSymbol(val symbolImpl: AbstractSshSymbol) {
     MSG_USERAUTH_REQUEST_PASSWD_VALID(UserAuthPasswordMessage().toSymbol()),
     // OpenSSH sends SSH_MSG_USERAUTH_FAILURE after a delay of approx. 2 seconds after trying to authenticate
     // with an invalid password. The increase in the retrieve delay ensures that the message is retrieved.
-    MSG_USERAUTH_REQUEST_PASSWD_INVALID(UserAuthPasswordMessage().apply {
-        passwordLength = ModifiableInteger().apply {
-            modification = IntegerModificationFactory.explicitValue(14)
-        }
-        password = ModifiableString().apply {
-            modification = StringModificationFactory.explicitValue("Wrong password")
-        }
-    }.toSymbol(3000)),
+    MSG_USERAUTH_REQUEST_PASSWD_INVALID(
+        UserAuthPasswordMessage().apply {
+            passwordLength = ModifiableInteger().apply {
+                modification = IntegerModificationFactory.explicitValue(14)
+            }
+            password = ModifiableString().apply {
+                modification = StringModificationFactory.explicitValue("Wrong password")
+            }
+        }.toSymbol(3000)
+    ),
     MSG_USERAUTH_SUCCESS(UserAuthSuccessMessage().toSymbol()),
     MSG_USERAUTH_FAILURE(UserAuthFailureMessage().toSymbol()),
     MSG_USERAUTH_BANNER(UserAuthBannerMessage().toSymbol()),
