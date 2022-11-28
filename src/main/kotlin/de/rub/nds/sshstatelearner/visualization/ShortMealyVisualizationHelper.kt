@@ -75,13 +75,14 @@ class ShortMealyVisualizationHelper<S, T>(
                 .filter { it.third === tgt && !graphDetails.happyFlowTransitions.contains(it.second) }
                 .joinToString("\n") {
                     val output = automaton.getTransitionOutput(it.second)
-                    return@joinToString if (output.messages.isEmpty())
+                    return@joinToString if (output.messages.isEmpty()) {
                         "${it.first}"
-                    else
+                    } else {
                         "${it.first} / ${output.messages.joinToString(",") {
-                            message ->
+                                message ->
                             message.toCompactString()
                         }}"
+                    }
                 }
             properties[VisualizationHelper.EdgeAttrs.LABEL] = label
             combinedEdges.add(src to tgt)
@@ -111,13 +112,14 @@ class ShortMealyVisualizationHelper<S, T>(
                 .filter { it.third === tgt && !graphDetails.happyFlowTransitions.contains(it.second) }
                 .joinToString("\n") {
                     val output = automaton.getTransitionOutput(it.second)
-                    return@joinToString if (output.messages.isEmpty())
+                    return@joinToString if (output.messages.isEmpty()) {
                         "${it.first}"
-                    else
+                    } else {
                         "${it.first} / ${output.messages.joinToString(",") {
-                            message ->
+                                message ->
                             message.toCompactString()
                         }}"
+                    }
                 }
             properties[VisualizationHelper.EdgeAttrs.LABEL] = label
             combinedEdges.add(src to tgt)

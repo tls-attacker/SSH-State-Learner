@@ -25,8 +25,8 @@ import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenMessag
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelRequestExecMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelSuccessMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelWindowAdjustMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.RequestFailureMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.RequestSuccessMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.GlobalRequestFailureMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.GlobalRequestSuccessMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DebugMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeGroupMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.DhGexKeyExchangeInitMessage
@@ -68,10 +68,12 @@ enum class SshSymbol(val symbolImpl: AbstractSshSymbol) {
     MSG_KEXDH_REPLY(DhKeyExchangeReplyMessage().toSymbol()),
     MSG_KEX_ECDH_INIT(EcdhKeyExchangeInitMessage().toSymbol()),
     MSG_KEX_ECDH_REPLY(EcdhKeyExchangeReplyMessage().toSymbol()),
+
     /*
      * SSH authentication protocol symbols
      */
     MSG_USERAUTH_REQUEST_PASSWD_VALID(UserAuthPasswordMessage().toSymbol()),
+
     // OpenSSH sends SSH_MSG_USERAUTH_FAILURE after a delay of approx. 2 seconds after trying to authenticate
     // with an invalid password. The increase in the retrieve delay ensures that the message is retrieved.
     MSG_USERAUTH_REQUEST_PASSWD_INVALID(
@@ -87,11 +89,12 @@ enum class SshSymbol(val symbolImpl: AbstractSshSymbol) {
     MSG_USERAUTH_SUCCESS(UserAuthSuccessMessage().toSymbol()),
     MSG_USERAUTH_FAILURE(UserAuthFailureMessage().toSymbol()),
     MSG_USERAUTH_BANNER(UserAuthBannerMessage().toSymbol()),
+
     /*
      * SSH connection protocol symbols
      */
-    MSG_REQUEST_SUCCESS(RequestSuccessMessage().toSymbol()),
-    MSG_REQUEST_FAILURE(RequestFailureMessage().toSymbol()),
+    MSG_REQUEST_SUCCESS(GlobalRequestSuccessMessage().toSymbol()),
+    MSG_REQUEST_FAILURE(GlobalRequestFailureMessage().toSymbol()),
     MSG_CHANNEL_OPEN(ChannelOpenMessage().toSymbol()),
     MSG_CHANNEL_OPEN_CONFIRMATION(ChannelOpenConfirmationMessage().toSymbol()),
     MSG_CHANNEL_OPEN_FAILURE(ChannelOpenFailureMessage().toSymbol()),

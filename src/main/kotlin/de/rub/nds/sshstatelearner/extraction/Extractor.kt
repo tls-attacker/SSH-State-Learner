@@ -58,6 +58,7 @@ class Extractor(
      * The membership oracle that is used within the learning algorithm. A cached variant of a SULOracle is used.
      */
     private lateinit var membershipOracle: ResponseTreeCache
+
     /**
      * The equivalence oracle that is used during the learning process.
      */

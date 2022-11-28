@@ -40,8 +40,9 @@ data class ResponseFingerprint(val messages: List<ProtocolMessage<*>>, var socke
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass)
+        if (javaClass != other?.javaClass) {
             return false
+        }
 
         other as ResponseFingerprint
 
