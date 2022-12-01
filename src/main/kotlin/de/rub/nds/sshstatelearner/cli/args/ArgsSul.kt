@@ -31,8 +31,8 @@ object ArgsSul {
     var port: Int = 22
         private set
 
-    @Parameter(names = ["--timeout", "-t"], description = "Timeout in milliseconds when reading incoming traffic from the network socket", order = 13)
-    var timeout: Long = SshSul.DEFAULT_TRANSPORT_HANDLER_TIMEOUT
+    @Parameter(names = ["--timeout", "-t"], description = "Timeout in milliseconds when executing a single symbol", order = 13)
+    var timeout: Long = SshSul.DEFAULT_SUL_TIMEOUT
         private set
 
     @Parameter(names = ["--reset-delay"], description = "Delay in milliseconds during reset of a SUL instance", order = 14)

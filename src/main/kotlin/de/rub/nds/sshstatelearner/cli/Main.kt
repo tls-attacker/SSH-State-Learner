@@ -16,7 +16,7 @@ import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
-import de.rub.nds.sshstatelearner.sul.SshSul
+import de.rub.nds.sshstatelearner.sul.NetworkSshSul
 import net.automatalib.words.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.File
@@ -88,7 +88,7 @@ private fun setEquivalenceOracleDefaults() {
  */
 private fun conductProtocolLearning(): Extractor.ExtractorResult {
     val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
-    val sul = SshSul(ArgsSul.name, ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
+    val sul = NetworkSshSul(ArgsSul.name, ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
     val learner = Extractor(alphabet, sul, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes, ArgsLearner.outputIntermediateHypothesis, ArgsGeneral.output)
     return learner.extractStateMachine()
 }
@@ -113,7 +113,6 @@ private fun serializeExtractorResult(result: Extractor.ExtractorResult) {
  * This is the main entrypoint for the SSH-State-Learner module when running in CLI mode.
  */
 fun main(vararg args: String) {
-    // TODO: This should be part of the SSH attacker library
     prepareJCE()
     handleArgs(args)
     setEquivalenceOracleDefaults()

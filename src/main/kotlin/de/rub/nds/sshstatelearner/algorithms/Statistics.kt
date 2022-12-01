@@ -24,13 +24,12 @@ data class Statistics(
     val cacheInconsistencyRestarts: Int,
     val duration: Long
 ) {
-    override fun toString(): String {
-        return StringWriter().apply {
+    override fun toString(): String =
+        StringWriter().apply {
             export(this)
         }.toString()
-    }
 
-    fun export(writer: Writer) {
+    fun export(writer: Writer) =
         PrintWriter(writer).run {
             println("=== STATISTICS ===")
             println("Number of states: $states")
@@ -45,5 +44,4 @@ data class Statistics(
             println("Time it took to learn state machine: $duration milliseconds")
             close()
         }
-    }
 }

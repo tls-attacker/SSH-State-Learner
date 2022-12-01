@@ -9,34 +9,21 @@
 package de.rub.nds.sshstatelearner.sul
 
 import de.learnlib.api.SUL
-import de.learnlib.api.exception.SULException
 import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
-import de.rub.nds.sshattacker.core.constants.PacketLayerType
-import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.State
-import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
-import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
-import de.rub.nds.sshattacker.core.workflow.action.SendAction
 import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
-import de.rub.nds.sshstatelearner.algorithms.symbols.HappyFlowFactory
+import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import de.rub.nds.tlsattacker.transport.socket.SocketState
-import de.rub.nds.tlsattacker.transport.tcp.ClientTcpTransportHandler
 import net.automatalib.words.Word
 import net.automatalib.words.WordBuilder
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import java.io.IOException
-import java.lang.IllegalArgumentException
-import java.lang.RuntimeException
 
-class SshSul(
+abstract class SshSul(
     val name: String,
-    val hostname: String,
-    val port: Int,
-    val timeout: Long = DEFAULT_TRANSPORT_HANDLER_TIMEOUT,
+    val timeout: Long = DEFAULT_SUL_TIMEOUT,
     val resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
@@ -45,28 +32,22 @@ class SshSul(
     /**
      * The config of the SSH-Attacker.
      */
-    private lateinit var config: Config
+    protected lateinit var config: Config
 
     /**
      * The state of the SSH-Attacker.
      */
-    private lateinit var state: State
-
-    /**
-     * Indicates whether the underlying network connection is available or closed.
-     */
-    var connectionClosed = false
-        private set
+    protected lateinit var state: State
 
     /**
      * A list of SshSymbols that need to be executed within pre() to reach the defined protocol stage.
      */
-    private val preamble: Word<SshSymbol> = constructPreamble()
+    protected val preamble: Word<SshSymbol> = constructPreamble()
 
     /**
      * A list of all executed steps on the current SSH connection.
      */
-    private val executedSteps = mutableListOf<SshSymbol>()
+    protected val executedSteps = mutableListOf<SshSymbol>()
 
     companion object {
         /**
@@ -75,9 +56,9 @@ class SshSul(
         private val LOGGER: Logger = LogManager.getLogger()
 
         /**
-         * A non-negative integer value indicating the default transport handler timeout.
+         * A non-negative integer value indicating the timeout for symbol execution.
          */
-        const val DEFAULT_TRANSPORT_HANDLER_TIMEOUT: Long = 1000
+        const val DEFAULT_SUL_TIMEOUT: Long = 1000
 
         /**
          * A non-negative integer value indicating the delay when resetting the SUL.
@@ -101,17 +82,18 @@ class SshSul(
      * @return List of SshSymbols whose execution lead to the provided SSH protocol stage.
      */
     private fun constructPreamble(): Word<SshSymbol> {
-        return when (stage) {
-            ProtocolStage.TRANSPORT -> Word.epsilon()
-            ProtocolStage.AUTHENTICATION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex)
-            ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex).concat(
-                HappyFlowFactory.constructHappyFlow(ProtocolStage.AUTHENTICATION, kex)
-            )
+        var preamble: Word<SshSymbol> = Word.epsilon()
+        if (stage == ProtocolStage.AUTHENTICATION || stage == ProtocolStage.CONNECTION) {
+            preamble = preamble.concat(HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex))
         }
+        if (stage == ProtocolStage.CONNECTION) {
+            preamble = preamble.concat(HappyFlowFactory.constructHappyFlow(ProtocolStage.AUTHENTICATION, kex))
+        }
+        return preamble
     }
 
     /**
-     * Set up the SSH SUL by instantiating a new SSH-Attacker state and connection to the peer.
+     * Set up the SSH SUL by instantiating a new SSH-Attacker config and state.
      */
     override fun pre() {
         config = Config.createConfig().apply {
@@ -122,90 +104,14 @@ class SshSul(
             clientSupportedKeyExchangeAlgorithms = listOf(kex)
             serviceName = "ssh-userauth"
         }
-        state = State(config).apply {
-            sshContext.transportHandler = ClientTcpTransportHandler(timeout, timeout, hostname, port)
-            sshContext.initTransportHandler()
-        }
-        connectionClosed = false
-
-        preExecuteVersionExchange()
-        // TODO: Exception handling for preamble
-        preamble.forEach {
-            it.symbolImpl.execute(state)
-        }
+        state = State(config)
     }
 
     /**
-     * Executes a version exchange on the state and changes the packet layer to binary packets afterwards. This function
-     * will be called during the pre() lifecycle hook after initializing a new state and opening the connection.
-     */
-    private fun preExecuteVersionExchange() {
-        SendAction("client", VersionExchangeMessage()).execute(state)
-        ReceiveAction("client", VersionExchangeMessage()).execute(state)
-        ChangePacketLayerAction("client", PacketLayerType.BINARY_PACKET).execute(state)
-    }
-
-    /**
-     * Tear down all stateful components of this SUL, like the internal sulState and transport handler connection.
+     * Tear down all stateful components of this SUL.
      */
     override fun post() {
-        try {
-            state.sshContext.transportHandler.closeConnection()
-            connectionClosed = true
-            Thread.sleep(resetDelay)
-        } catch (e: IOException) {
-            LOGGER.error("Unable to close transport handler connection during post() call", e)
-        } catch (e: InterruptedException) {
-            LOGGER.error("Unable to sleep thread after closing connection", e)
-        }
         executedSteps.clear()
-    }
-
-    /**
-     * Step the SUL by executing a single symbol.
-     */
-    override fun step(p0: SshSymbol?): ResponseFingerprint {
-        try {
-            /*
-             * Assuming the SUL is used according to its lifecycle and only non-null words are used, the following two
-             * branches should never be executed
-             */
-            if (!this::state.isInitialized) {
-                throw SULException(RuntimeException("SSH-Attacker states are not initialized"))
-            } else if (p0 === null) {
-                throw SULException(IllegalArgumentException("The provided input SshWord is null"))
-            }
-
-            // If the connection is closed, we do not expect any response from the server and therefore can respond without execution
-            if (connectionClosed) {
-                return ResponseFingerprint(emptyList(), SocketState.CLOSED)
-            }
-
-            val response = p0.symbolImpl.execute(state)
-            executedSteps.add(p0)
-            if (response.socketState == SocketState.SOCKET_EXCEPTION || response.socketState == SocketState.CLOSED) {
-                /*
-                 * Optimization for handling closed connection: If the response indicates a closed connection (either
-                 * by an RST or FIN), we close the transport handler and respond all further steps with a SocketState.CLOSED
-                 */
-                state.sshContext.transportHandler.closeConnection()
-                connectionClosed = true
-            } else if (response.socketState == SocketState.DATA_AVAILABLE) {
-                /*
-                 * If the socketState is SocketState.DATA_AVAILABLE, more data is available to read. As a consequence,
-                 * the response fingerprint does not contain all response messages from the server.
-                 * This can lead to the algorithm not terminating due to different behaviours on the same words. It must
-                 * be avoided at all costs (i.e. increase delay between send and receive actions)
-                 */
-                LOGGER.warn("The responses' socket state indicates more data is available, increase delay between send and receive to avoid incomplete responses")
-            }
-            return response
-        } catch (e: IOException) {
-            state.sshContext.transportHandler.closeConnection()
-            connectionClosed = true
-            LOGGER.error("Caught an IOException while stepping the SUL with the following SshWord: $p0", e)
-            throw SULException(e)
-        }
     }
 
     fun majorityVote(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, count: Int): Word<ResponseFingerprint> {
@@ -239,23 +145,5 @@ class SshSul(
             }
         }
         return majorityWord
-    }
-
-    /**
-     * Indicates whether this SUL can be forked for parallel queries.
-     */
-    override fun canFork(): Boolean {
-        return true
-    }
-
-    /**
-     * Returns a new SUL instance that must behave exactly as the original SUL.
-     */
-    override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        return SshSul(name, hostname, port, timeout, resetDelay)
-    }
-
-    override fun toString(): String {
-        return "SshSul[hostname=$hostname,port=$port,timeout=$timeout,resetDelay=$resetDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"
     }
 }
