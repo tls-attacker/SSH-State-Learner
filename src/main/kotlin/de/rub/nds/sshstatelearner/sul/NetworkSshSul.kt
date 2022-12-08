@@ -15,6 +15,7 @@ import de.rub.nds.sshattacker.core.constants.PacketLayerType
 import de.rub.nds.sshattacker.core.exceptions.AdjustmentException
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
+import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.SendAction
@@ -57,7 +58,7 @@ class NetworkSshSul(
     override fun pre() {
         super.pre()
         // Initialize transport handler
-        state.apply {
+        state = State(config).apply {
             sshContext.transportHandler = ClientTcpTransportHandler(timeout, timeout, hostname, port)
             sshContext.initTransportHandler()
         }

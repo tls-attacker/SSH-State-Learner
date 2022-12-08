@@ -10,6 +10,7 @@ package de.rub.nds.sshstatelearner.sul.response
 
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ReceivingAction
+import de.rub.nds.sshstatelearner.sul.NyxTransportHandler
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import de.rub.nds.tlsattacker.transport.tcp.TcpTransportHandler
 
@@ -48,6 +49,8 @@ object ResponseExtractor {
     private fun extractSocketState(state: State): SocketState {
         return when (val transportHandler = state.sshContext.transportHandler) {
             is TcpTransportHandler -> transportHandler.socketState
+            // TODO: Check if we can detect closed sockets via Nyx
+            is NyxTransportHandler -> SocketState.UP
             else -> {
                 TODO("Unsupported transport handler, unable to extract socket state")
             }

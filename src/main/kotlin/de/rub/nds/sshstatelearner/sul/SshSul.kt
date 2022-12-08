@@ -10,7 +10,9 @@ package de.rub.nds.sshstatelearner.sul
 
 import de.learnlib.api.SUL
 import de.rub.nds.sshattacker.core.config.Config
+import de.rub.nds.sshattacker.core.constants.EncryptionAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshattacker.core.constants.MacAlgorithm
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
@@ -103,8 +105,13 @@ abstract class SshSul(
             stopActionsAfterIOException = false
             clientSupportedKeyExchangeAlgorithms = listOf(kex)
             serviceName = "ssh-userauth"
+            // TODO: Fix chacha20-poly1305 / CTR
+            clientSupportedEncryptionAlgorithmsClientToServer = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
+            clientSupportedEncryptionAlgorithmsServerToClient = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
+            // TODO: Fix UMAC
+            clientSupportedMacAlgorithmsClientToServer = listOf(MacAlgorithm.HMAC_SHA2_256_ETM_OPENSSH_COM)
+            clientSupportedMacAlgorithmsServerToClient = listOf(MacAlgorithm.HMAC_SHA2_256_ETM_OPENSSH_COM)
         }
-        state = State(config)
     }
 
     /**
