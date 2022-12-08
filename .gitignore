@@ -24,3 +24,6 @@ release.properties
 
 # VS Code
 .factorypath
+
+# Default output path
+out/
