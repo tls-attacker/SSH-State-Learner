@@ -29,7 +29,7 @@ abstract class SshSul(
     val resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
-) : SUL<SshSymbol, ResponseFingerprint> {
+) : SUL<SshSymbol, ResponseFingerprint>, AutoCloseable {
 
     /**
      * The config of the SSH-Attacker.
@@ -120,6 +120,8 @@ abstract class SshSul(
     override fun post() {
         executedSteps.clear()
     }
+
+    override fun close() { }
 
     fun majorityVote(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, count: Int): Word<ResponseFingerprint> {
         val voteList = mutableListOf<Word<ResponseFingerprint>>()

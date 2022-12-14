@@ -9,13 +9,20 @@
 package de.rub.nds.sshstatelearner.cli
 
 import com.beust.jcommander.JCommander
+import com.googlecode.lanterna.gui2.AsynchronousTextGUIThread
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI
+import com.googlecode.lanterna.gui2.SeparateTextGUIThread
+import com.googlecode.lanterna.screen.TerminalScreen
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
+import de.rub.nds.sshstatelearner.constants.ExecutorType
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
+import de.rub.nds.sshstatelearner.sul.NetworkSshSul
 import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import net.automatalib.words.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -88,7 +95,11 @@ private fun setEquivalenceOracleDefaults() {
  */
 private fun conductProtocolLearning(): Extractor.ExtractorResult {
     val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
-    NyxSshSul(ArgsSul.name, "/home/fabian/Workspace/targets/packed_targets/nyx_openssh", "/tmp/nyx", 0, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm).use {
+    MainWindow.infoAlphabetSize.text = alphabet.size.toString()
+    when (ArgsGeneral.executor) {
+        ExecutorType.NYX -> NyxSshSul(ArgsSul.name, "/home/fabian/Workspace/targets/packed_targets/nyx_openssh", "/tmp/nyx", 0, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
+        ExecutorType.NETWORK -> NetworkSshSul(ArgsSul.name, ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
+    }.use {
         val learner = Extractor(alphabet, it, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes, ArgsLearner.outputIntermediateHypothesis, ArgsGeneral.output)
         return learner.extractStateMachine()
     }
@@ -110,14 +121,53 @@ private fun serializeExtractorResult(result: Extractor.ExtractorResult) {
     }
 }
 
+private fun createTextGUI(): MultiWindowTextGUI? {
+    return try {
+        val term = DefaultTerminalFactory().createTerminalEmulator()
+        term.addResizeListener { _, terminalSize -> MainWindow.computeComponentsSize(terminalSize) }
+        val screen = TerminalScreen(term).also {
+            it.startScreen()
+        }
+        MultiWindowTextGUI(SeparateTextGUIThread.Factory(), screen).apply {
+            addWindow(MainWindow)
+            (guiThread as AsynchronousTextGUIThread).start()
+        }
+    } catch (e: Exception) { null }
+}
+
+private fun updateMainWindowInfoPanel() {
+    MainWindow.infoServerName.text = ArgsSul.name
+    // TODO: CLI parameters
+    MainWindow.infoExecutor.text = ArgsGeneral.executor.toString()
+    MainWindow.infoTarget.text = when (ArgsGeneral.executor) {
+        ExecutorType.NYX -> "/home/fabian/Workspace/targets/packed_targets/nyx_openssh"
+        ExecutorType.NETWORK -> "ssh://${ArgsSul.hostname}:${ArgsSul.port}"
+    }
+    MainWindow.infoStage.text = ArgsSul.protocolStage.toString()
+    MainWindow.infoKex.text = ArgsSul.kexAlgorithm.toString()
+    // Alphabet size is updated just in time (required if the alphabet has not been specified)
+}
+
+private fun destroyTextGUI(gui: MultiWindowTextGUI?) = gui?.run {
+    (guiThread as AsynchronousTextGUIThread).stop()
+    screen.stopScreen()
+}
+
 /**
  * This is the main entrypoint for the SSH-State-Learner module when running in CLI mode.
  */
 fun main(vararg args: String) {
     prepareJCE()
     handleArgs(args)
+
+    val gui = createTextGUI()
+    updateMainWindowInfoPanel()
+
     setEquivalenceOracleDefaults()
     val extractorResult = conductProtocolLearning()
     analyzeExtractorResult(extractorResult)
     serializeExtractorResult(extractorResult)
+
+    MainWindow.waitUntilClosed()
+    destroyTextGUI(gui)
 }

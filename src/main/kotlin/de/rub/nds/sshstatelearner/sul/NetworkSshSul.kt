@@ -136,6 +136,12 @@ class NetworkSshSul(
         }
     }
 
+    override fun close() {
+        try {
+            state.sshContext.transportHandler.closeConnection()
+        } catch (_: Exception) { /* Ignore */ }
+    }
+
     /**
      * Executes a single symbol. Assumes that the config and state have been initialized properly.
      *
@@ -146,7 +152,7 @@ class NetworkSshSul(
         symbol.message.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         sendMessage(symbol.message)
-        val retrieveDelay = if (symbol == SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID) 3000L else 150L
+        val retrieveDelay = if (symbol == SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID) 2500L else 50L
         Thread.sleep(retrieveDelay)
         return retrieveMessages()
     }

@@ -9,6 +9,7 @@
 package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
+import de.rub.nds.sshstatelearner.constants.ExecutorType
 
 /**
  * This object contains all arguments for the JCommander CLI parser that do not fall in a specific category.
@@ -18,7 +19,11 @@ object ArgsGeneral {
     var help: Boolean = false
         private set
 
-    @Parameter(names = ["-o", "--output"], description = "Folder to output the extracted state machine to")
+    @Parameter(names = ["-o", "--output"], description = "Folder to output the extracted state machine to", order = 1)
     var output: String = "out/"
+        private set
+
+    @Parameter(names = ["--executor"], description = "Executor to use", order = 2)
+    var executor: ExecutorType = ExecutorType.NYX
         private set
 }

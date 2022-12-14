@@ -42,7 +42,7 @@ class NyxSshSul(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
-) : SshSul(name, timeout, resetDelay, stage, kex), AutoCloseable {
+) : SshSul(name, timeout, resetDelay, stage, kex) {
 
     private lateinit var nyxOutputStream: RefillableByteArrayInputStream
 
@@ -50,9 +50,9 @@ class NyxSshSul(
 
     private val nyxProcess = NyxProcess.newInstance(sharedir, workdir, cpuId, 32 * 1024, false)
 
-    private var decryptorIvCtr: Long = 0;
+    private var decryptorIvCtr: Long = 0
 
-    private var encryptorIvCtr: Long = 0;
+    private var encryptorIvCtr: Long = 0
 
     /**
      * Indicates whether the underlying network connection is available or closed.
@@ -85,7 +85,7 @@ class NyxSshSul(
         nyxInputStream = ByteArrayOutputStream()
         if (!nyxProcess.isAuxiliarySnapshotPresent) {
             state = State(config).apply {
-                sshContext.transportHandler = NyxTransportHandler(timeout, ConnectionEndType.CLIENT,  nyxOutputStream, nyxInputStream)
+                sshContext.transportHandler = NyxTransportHandler(timeout, ConnectionEndType.CLIENT, nyxOutputStream, nyxInputStream)
                 sshContext.initTransportHandler()
             }
 
@@ -107,7 +107,7 @@ class NyxSshSul(
                 (sshContext.packetLayer.decryptor.getPacketCipher(1) as PacketGCMCipher).ivCtrDecryption = decryptorIvCtr
                 (sshContext.packetLayer.encryptor.getPacketCipher(1) as PacketGCMCipher).ivCtrEncryption = encryptorIvCtr
             }
-                    }
+        }
         connectionClosed = false
     }
 

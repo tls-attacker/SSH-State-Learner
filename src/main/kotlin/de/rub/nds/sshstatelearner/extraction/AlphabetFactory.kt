@@ -40,6 +40,7 @@ object AlphabetFactory {
             )
             KeyExchangeFlowType.ECMQV -> TODO("ECMQV kex algorithm is not yet implemented in SSH-Attacker")
             KeyExchangeFlowType.RSA -> TODO("RSA kex algorithm is not yet implemented in SSH-Attacker")
+            KeyExchangeFlowType.HYBRID -> TODO("Hybrid kex algorithm is not yet implemented in SSH-Attacker")
             null -> throw IllegalKeyExchangeException("Unable to get kex symbols for extension info - ext-info-s and ext-info-c are no valid kex algorithms")
         }
     }

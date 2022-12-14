@@ -1,3 +1,11 @@
+/*
+ * SSH State Learner - A tool for extracting state machines from SSH server implementations
+ *
+ * Copyright 2021 Ruhr University Bochum, Paderborn University, Hackmanit GmbH
+ *
+ * Licensed under Apache License, Version 2.0
+ * http://www.apache.org/licenses/LICENSE-2.0.txt
+ */
 package de.rub.nds.sshstatelearner.sul
 
 import java.io.ByteArrayInputStream
@@ -24,7 +32,7 @@ class RefillableByteArrayInputStream(buf: ByteArray, offset: Int, length: Int) :
      */
     fun refill(refillBuf: ByteArray, offset: Int, length: Int) {
         buf = buf.slice(pos until count).toByteArray() +
-                    refillBuf.slice(offset until offset + length).toByteArray()
+            refillBuf.slice(offset until offset + length).toByteArray()
         pos = 0
         count = buf.size
     }

@@ -16,6 +16,7 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCache
 import de.rub.nds.sshstatelearner.algorithms.Statistics
+import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
@@ -29,6 +30,8 @@ import net.automatalib.words.Word
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.File
+import java.util.Timer
+import java.util.TimerTask
 
 /**
  * A wrapper for learning an SSH SUL oracle. It exposes a single method, learn(), which constructs all necessary
@@ -74,6 +77,16 @@ class Extractor(
      */
     private var extractionStartTime: Long = 0
 
+    /**
+     * Number of learning rounds
+     */
+    private var rounds: Int = 0
+
+    /**
+     * Timer used to schedule updates on the GUI at a fixed rate
+     */
+    private var guiUpdateTimer: Timer = Timer("GUIUpdateTimer")
+
     init {
         this.sul = AdvancedStatisticSul(sul)
     }
@@ -115,17 +128,31 @@ class Extractor(
         return extractorResult
     }
 
+    private fun createGUIUpdateTimer() {
+        val task = object : TimerTask() {
+            override fun run() {
+                MainWindow.statLearningRound.text = rounds.toString()
+                MainWindow.statLearningExecTime.text = "${(System.currentTimeMillis() - extractionStartTime) / 1000} s"
+                MainWindow.statLearningSteps.text = "${sul.totalSymbolCount} (${sul.learnSymbolCount} / ${sul.equivSymbolCount})"
+                MainWindow.statLearningResets.text = "${sul.totalResetCount} (${sul.learnResetCount} / ${sul.equivResetCount})"
+                MainWindow.statLearningCacheInconsistencies.text = cacheInconsistencyRestarts.toString()
+            }
+        }
+        guiUpdateTimer.scheduleAtFixedRate(task, 0, 250)
+    }
+
     private fun provideResult(): ExtractorResult {
         clearOutput()
+        createGUIUpdateTimer()
 
         val extractorResult = ExtractorResult()
         val learningAlgorithm = LearningAlgorithmFactory.create(algorithm, alphabet, membershipOracle)
 
         var hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>
         var counterExample: DefaultQuery<SshSymbol, Word<ResponseFingerprint>>?
-        var rounds = 0
 
         sul.switchToLearningCounters()
+        MainWindow.statLearningPhase.text = "LEARNING"
         learningAlgorithm.startLearning()
         do {
             hypothesis = learningAlgorithm.hypothesisModel
@@ -140,11 +167,14 @@ class Extractor(
             LOGGER.info("Finished learning round ${rounds++}, searching for counter examples (executed SUL steps: ${sul.totalSymbolCount})")
 
             sul.switchToEquivalenceCounters()
+            MainWindow.statLearningPhase.text = "EQUIVALENCE CHECK"
+
             counterExample = equivalenceOracle.findCounterExample(hypothesis, alphabet)
             if (counterExample != null) {
                 LOGGER.info("The equivalence oracle found a counter example: $counterExample")
                 LOGGER.info("Passing counter example to learning algorithm for hypothesis refinement")
                 sul.switchToLearningCounters()
+                MainWindow.statLearningPhase.text = "LEARNING"
                 learningAlgorithm.refineHypothesis(counterExample)
             }
         } while (counterExample != null)
@@ -152,6 +182,8 @@ class Extractor(
         LOGGER.info("Finished learning the target SUL after $rounds rounds")
         LOGGER.info("Total steps: ${sul.totalSymbolCount} (Learning: ${sul.learnSymbolCount} | Equivalence: ${sul.equivSymbolCount})")
         LOGGER.info("Total resets: ${sul.totalResetCount} (Learning: ${sul.learnResetCount} | Equivalence: ${sul.equivResetCount})")
+
+        guiUpdateTimer.cancel()
 
         val stateMachine = SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
         val statistics = Statistics(
