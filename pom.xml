@@ -43,6 +43,11 @@
                 <artifactId>ssh-core</artifactId>
                 <version>1.1.1-SNAPSHOT</version>
             </dependency>
+            <dependency>
+                <groupId>de.rub.nds.ssh.attacker</groupId>
+                <artifactId>ssh-core-pqc</artifactId>
+                <version>1.1.1-SNAPSHOT</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -71,6 +76,10 @@
         <dependency>
             <groupId>de.rub.nds.ssh.attacker</groupId>
             <artifactId>ssh-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>de.rub.nds.ssh.attacker</groupId>
+            <artifactId>ssh-core-pqc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>

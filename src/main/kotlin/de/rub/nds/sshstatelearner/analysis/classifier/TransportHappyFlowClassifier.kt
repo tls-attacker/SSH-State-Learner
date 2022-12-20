@@ -81,6 +81,11 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
                 val kexDoneState = machine.getSuccessor(kexTransition)
                 return listOf(gexDoneState, kexDoneState) to listOf(gexTransition, kexTransition)
             }
+            KeyExchangeFlowType.HYBRID -> {
+                val kexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEX_HBR_INIT) ?: throw ClassificationException()
+                val kexDoneState = machine.getSuccessor(kexTransition)
+                return listOf(kexDoneState) to listOf(kexTransition)
+            }
             else -> return null
         }
     }

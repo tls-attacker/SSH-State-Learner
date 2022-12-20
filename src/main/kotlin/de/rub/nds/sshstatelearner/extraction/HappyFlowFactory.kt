@@ -38,6 +38,9 @@ object HappyFlowFactory {
             KeyExchangeFlowType.ECDH -> arrayOf(
                 SshSymbol.MSG_KEX_ECDH_INIT
             )
+            KeyExchangeFlowType.HYBRID -> arrayOf(
+                SshSymbol.MSG_KEX_HBR_INIT
+            )
             else -> TODO("Key exchange algorithm flow type ${kex.flowType} is not yet supported by SSH-Attacker")
         }
     }
