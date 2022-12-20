@@ -105,12 +105,9 @@ abstract class SshSul(
             stopActionsAfterIOException = false
             clientSupportedKeyExchangeAlgorithms = listOf(kex)
             serviceName = "ssh-userauth"
-            // TODO: Fix chacha20-poly1305 / CTR
+            // TODO: Fix CTR
             clientSupportedEncryptionAlgorithmsClientToServer = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
             clientSupportedEncryptionAlgorithmsServerToClient = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
-            // TODO: Fix UMAC
-            clientSupportedMacAlgorithmsClientToServer = listOf(MacAlgorithm.HMAC_SHA2_256_ETM_OPENSSH_COM)
-            clientSupportedMacAlgorithmsServerToClient = listOf(MacAlgorithm.HMAC_SHA2_256_ETM_OPENSSH_COM)
         }
     }
 

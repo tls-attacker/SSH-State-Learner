@@ -50,9 +50,13 @@ class NyxSshSul(
 
     private val nyxProcess = NyxProcess.newInstance(sharedir, workdir, cpuId, 32 * 1024, false)
 
-    private var decryptorIvCtr: Long = 0
+    private var snapshotDecryptorIvCtr: Long = 0
 
-    private var encryptorIvCtr: Long = 0
+    private var snapshotEncryptorIvCtr: Long = 0
+
+    private var snapshotReadSequenceNumber: Int = 0
+
+    private var snapshotWriteSequenceNumber: Int = 0
 
     /**
      * Indicates whether the underlying network connection is available or closed.
@@ -93,19 +97,23 @@ class NyxSshSul(
             preamble.forEach {
                 executeSymbol(it)
             }
-            nyxProcess.input = byteArrayOf(0x01)
-            nyxProcess.exec()
-            decryptorIvCtr = (state.sshContext.packetLayer.decryptor.getPacketCipher(1) as PacketGCMCipher).ivCtrDecryption
-            encryptorIvCtr = (state.sshContext.packetLayer.encryptor.getPacketCipher(1) as PacketGCMCipher).ivCtrEncryption
+            // TODO: Fix snapshotting in TRANSPORT phase (after version exchange)
+            if (stage != ProtocolStage.TRANSPORT) {
+                nyxProcess.input = byteArrayOf(0x01)
+                nyxProcess.exec()
+                snapshotReadSequenceNumber = state.sshContext.readSequenceNumber
+                snapshotWriteSequenceNumber = state.sshContext.writeSequenceNumber
+                snapshotDecryptorIvCtr = (state.sshContext.packetLayer.decryptorCipher as PacketGCMCipher).ivCtr
+                snapshotEncryptorIvCtr = (state.sshContext.packetLayer.encryptorCipher as PacketGCMCipher).ivCtr
+            }
         } else {
-            // TODO: Make this work for every phase, not just AUTHENTICATION
-            state.apply {
-                sshContext.transportHandler = NyxTransportHandler(timeout, ConnectionEndType.CLIENT, nyxOutputStream, nyxInputStream)
-                sshContext.initTransportHandler()
-                sshContext.readSequenceNumber = 4
-                sshContext.writeSequenceNumber = 4
-                (sshContext.packetLayer.decryptor.getPacketCipher(1) as PacketGCMCipher).ivCtrDecryption = decryptorIvCtr
-                (sshContext.packetLayer.encryptor.getPacketCipher(1) as PacketGCMCipher).ivCtrEncryption = encryptorIvCtr
+            state.sshContext.apply {
+                transportHandler = NyxTransportHandler(timeout, ConnectionEndType.CLIENT, nyxOutputStream, nyxInputStream)
+                initTransportHandler()
+                readSequenceNumber = snapshotReadSequenceNumber
+                writeSequenceNumber = snapshotWriteSequenceNumber
+                (packetLayer.decryptor.getPacketCipher(1) as PacketGCMCipher).ivCtr = snapshotDecryptorIvCtr
+                (packetLayer.encryptor.getPacketCipher(1) as PacketGCMCipher).ivCtr = snapshotEncryptorIvCtr
             }
         }
         connectionClosed = false
@@ -166,7 +174,6 @@ class NyxSshSul(
      * Tear down all stateful components of this SUL, like the internal sulState and transport handler connection.
      */
     override fun post() {
-        LOGGER.info("--------------- POST ---------------")
         super.post()
         try {
             // Reset the nyx vm by sending the opcode 0x02 to the agent (will trigger HYPERCALL_KAFL_RELEASE)
