@@ -22,7 +22,7 @@ class AuthenticationHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, Resp
         val graphDetails = stateMachine.graphDetails as SshAuthenticationGraphDetails
         val initialState = machine.initialState ?: throw ClassificationException()
 
-        val authSuccessfulTransition = machine.getTransition(initialState, SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID) ?: throw ClassificationException()
+        val authSuccessfulTransition = machine.getTransition(initialState, SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID) ?: throw ClassificationException()
         val authSuccessfulState = machine.getSuccessor(authSuccessfulTransition)
 
         graphDetails.happyFlows = mutableListOf(listOf(initialState, authSuccessfulState))

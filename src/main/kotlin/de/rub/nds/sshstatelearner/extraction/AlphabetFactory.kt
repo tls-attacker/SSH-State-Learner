@@ -64,13 +64,14 @@ object AlphabetFactory {
                     SshSymbol.MSG_KEXINIT,
                     *getKexSymbols(kex).toTypedArray(),
                     SshSymbol.MSG_NEWKEYS,
-                    SshSymbol.MSG_SERVICE_REQUEST
+                    SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
                 )
             )
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
                     SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID,
                     SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER

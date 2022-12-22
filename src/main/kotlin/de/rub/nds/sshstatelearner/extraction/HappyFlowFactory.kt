@@ -58,10 +58,10 @@ object HappyFlowFactory {
                 SshSymbol.MSG_KEXINIT,
                 *constructKexFlow(kex),
                 SshSymbol.MSG_NEWKEYS,
-                SshSymbol.MSG_SERVICE_REQUEST
+                SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
             )
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
-                SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID
+                SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID
             )
             ProtocolStage.CONNECTION -> Word.fromSymbols(
                 SshSymbol.MSG_CHANNEL_OPEN,

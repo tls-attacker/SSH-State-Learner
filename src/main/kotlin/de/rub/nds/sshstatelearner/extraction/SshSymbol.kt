@@ -12,6 +12,7 @@ import de.rub.nds.modifiablevariable.util.Modifiable
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthBannerMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthFailureMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
+import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPubkeyMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthSuccessMessage
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelCloseMessage
@@ -56,7 +57,10 @@ enum class SshSymbol(val message: ProtocolMessage<*>) {
     MSG_IGNORE(IgnoreMessage()),
     MSG_UNIMPLEMENTED(UnimplementedMessage()),
     MSG_DEBUG(DebugMessage()),
-    MSG_SERVICE_REQUEST(ServiceRequestMessage()),
+    MSG_SERVICE_REQUEST_USERAUTH(ServiceRequestMessage().apply {
+        serviceNameLength = Modifiable.explicit(12)
+        serviceName = Modifiable.explicit("ssh-userauth")
+    }),
     MSG_SERVICE_ACCEPT(ServiceAcceptMessage()),
     MSG_KEXINIT(KeyExchangeInitMessage()),
     MSG_NEWKEYS(NewKeysMessage()),
@@ -84,10 +88,14 @@ enum class SshSymbol(val message: ProtocolMessage<*>) {
             password = Modifiable.explicit("Wrong password")
         }
     ),
+    MSG_USERAUTH_REQUEST_PUBKEY_VALID(UserAuthPubkeyMessage()),
     MSG_USERAUTH_SUCCESS(UserAuthSuccessMessage()),
     MSG_USERAUTH_FAILURE(UserAuthFailureMessage()),
     MSG_USERAUTH_BANNER(UserAuthBannerMessage()),
-
+    MSG_SERVICE_REQUEST_CONNECTION(ServiceRequestMessage().apply {
+        serviceNameLength = Modifiable.explicit(14)
+        serviceName = Modifiable.explicit("ssh-connection")
+    }),
     /*
      * SSH connection protocol symbols
      */

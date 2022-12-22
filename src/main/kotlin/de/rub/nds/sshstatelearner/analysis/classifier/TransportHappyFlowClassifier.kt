@@ -45,7 +45,7 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
         happyFlowTransitions.add(encryptionTransition)
         happyFlow.add(encryptionState)
 
-        val serviceTransition = machine.getTransition(encryptionState, SshSymbol.MSG_SERVICE_REQUEST) ?: throw ClassificationException()
+        val serviceTransition = machine.getTransition(encryptionState, SshSymbol.MSG_SERVICE_REQUEST_USERAUTH) ?: throw ClassificationException()
         val serviceState = machine.getSuccessor(serviceTransition)
         happyFlowTransitions.add(serviceTransition)
         happyFlow.add(serviceState)
