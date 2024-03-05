@@ -24,6 +24,6 @@ object ArgsGeneral {
         private set
 
     @Parameter(names = ["--executor"], description = "Executor to use", order = 2)
-    var executor: ExecutorType = ExecutorType.NYX
+    var executor: ExecutorType = ExecutorType.NETWORK
         private set
 }

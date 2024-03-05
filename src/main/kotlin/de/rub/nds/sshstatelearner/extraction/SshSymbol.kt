@@ -20,7 +20,7 @@ import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelEofMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelFailureMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenConfirmationMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenFailureMessage
-import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenMessage
+import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelOpenSessionMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelRequestExecMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelSuccessMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelWindowAdjustMessage
@@ -101,7 +101,7 @@ enum class SshSymbol(val message: ProtocolMessage<*>) {
      */
     MSG_REQUEST_SUCCESS(GlobalRequestSuccessMessage()),
     MSG_REQUEST_FAILURE(GlobalRequestFailureMessage()),
-    MSG_CHANNEL_OPEN(ChannelOpenMessage()),
+    MSG_CHANNEL_OPEN_SESSION(ChannelOpenSessionMessage()),
     MSG_CHANNEL_OPEN_CONFIRMATION(ChannelOpenConfirmationMessage()),
     MSG_CHANNEL_OPEN_FAILURE(ChannelOpenFailureMessage()),
     MSG_CHANNEL_WINDOW_ADJUST(ChannelWindowAdjustMessage()),

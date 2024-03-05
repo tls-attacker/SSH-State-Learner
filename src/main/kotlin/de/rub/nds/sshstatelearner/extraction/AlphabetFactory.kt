@@ -82,7 +82,7 @@ object AlphabetFactory {
                     SshSymbol.MSG_CHANNEL_EOF,
                     SshSymbol.MSG_CHANNEL_SUCCESS,
                     SshSymbol.MSG_CHANNEL_FAILURE,
-                    SshSymbol.MSG_CHANNEL_OPEN,
+                    SshSymbol.MSG_CHANNEL_OPEN_SESSION,
                     SshSymbol.MSG_CHANNEL_REQUEST_EXEC,
                     SshSymbol.MSG_CHANNEL_WINDOW_ADJUST
                 )

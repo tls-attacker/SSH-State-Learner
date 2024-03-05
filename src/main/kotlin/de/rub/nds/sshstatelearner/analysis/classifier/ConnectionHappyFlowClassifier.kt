@@ -22,7 +22,8 @@ class ConnectionHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, Response
         val graphDetails = stateMachine.graphDetails as SshConnectionGraphDetails
         val initialState = machine.initialState ?: throw ClassificationException()
 
-        val channelOpenTransition = machine.getTransition(initialState, SshSymbol.MSG_CHANNEL_OPEN) ?: throw ClassificationException()
+        val channelOpenTransition =
+            machine.getTransition(initialState, SshSymbol.MSG_CHANNEL_OPEN_SESSION) ?: throw ClassificationException()
         val channelOpenedState = machine.getSuccessor(channelOpenTransition)
         val execRequestTransition = machine.getTransition(channelOpenedState, SshSymbol.MSG_CHANNEL_REQUEST_EXEC) ?: throw ClassificationException()
         val execRequestState = machine.getSuccessor(execRequestTransition)

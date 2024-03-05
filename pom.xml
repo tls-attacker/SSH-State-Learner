@@ -4,7 +4,7 @@
     <parent>
         <groupId>de.rub.nds</groupId>
         <artifactId>protocol-toolkit-bom</artifactId>
-        <version>2.2.0</version>
+        <version>4.0.2</version>
     </parent>
 
     <groupId>de.rub.nds.ssh.statelearner</groupId>
@@ -34,6 +34,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <kotlin.version>1.7.22</kotlin.version>
+        <ssh.core.version>1.3.1-SNAPSHOT</ssh.core.version>
     </properties>
 
     <dependencyManagement>
@@ -41,12 +42,12 @@
             <dependency>
                 <groupId>de.rub.nds.ssh.attacker</groupId>
                 <artifactId>ssh-core</artifactId>
-                <version>1.1.1-SNAPSHOT</version>
+                <version>${ssh.core.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.rub.nds.ssh.attacker</groupId>
-                <artifactId>ssh-core-pqc</artifactId>
-                <version>1.1.1-SNAPSHOT</version>
+                <artifactId>ssh-core-oqs</artifactId>
+                <version>${ssh.core.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -68,18 +69,19 @@
             <version>0.16.0</version>
             <type>pom</type>
         </dependency>
-        <dependency>
-            <groupId>de.rub.nds</groupId>
-            <artifactId>jnyx</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
-        </dependency>
+        <!--        <dependency>-->
+        <!--            <groupId>de.rub.nds</groupId>-->
+        <!--            <artifactId>jnyx</artifactId>-->
+        <!--            <version>1.0.0-SNAPSHOT</version>-->
+        <!--        </dependency>-->
         <dependency>
             <groupId>de.rub.nds.ssh.attacker</groupId>
             <artifactId>ssh-core</artifactId>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>de.rub.nds.ssh.attacker</groupId>
-            <artifactId>ssh-core-pqc</artifactId>
+            <artifactId>ssh-core-oqs</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.logging.log4j</groupId>
@@ -148,21 +150,22 @@
             </plugin>
             <!--################# default lifecycle plugins #################-->
             <!-- Formatting -->
-            <plugin>
-                <groupId>com.diffplug.spotless</groupId>
-                <artifactId>spotless-maven-plugin</artifactId>
-                <configuration>
-                    <kotlin>
-                        <lineEndings>GIT_ATTRIBUTES</lineEndings>
-                        <trimTrailingWhitespace />
-                        <endWithNewline />
-                        <ktlint />
-                        <licenseHeader>
-                            <file>${project.basedir}/license_header_plain.txt</file>
-                        </licenseHeader>
-                    </kotlin>
-                </configuration>
-            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>com.diffplug.spotless</groupId>-->
+            <!--                <artifactId>spotless-maven-plugin</artifactId>-->
+            <!--                <version>2.43.0</version>-->
+            <!--                <configuration>-->
+            <!--                    <kotlin>-->
+            <!--                        <lineEndings>GIT_ATTRIBUTES</lineEndings>-->
+            <!--                        <trimTrailingWhitespace />-->
+            <!--                        <endWithNewline />-->
+            <!--                        <ktlint />-->
+            <!--                        <licenseHeader>-->
+            <!--                            <file>${project.basedir}/license_header_plain.txt</file>-->
+            <!--                        </licenseHeader>-->
+            <!--                    </kotlin>-->
+            <!--                </configuration>-->
+            <!--            </plugin>-->
             <!-- Flatten pom.xml before install / deploy phases -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

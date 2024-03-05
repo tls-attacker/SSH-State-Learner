@@ -148,7 +148,7 @@ class NetworkSshSul(
      * @param symbol The symbol to execute
      */
     private fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
-        LOGGER.trace("Executing symbol: $symbol")
+        LOGGER.trace("Executing symbol: {}", symbol)
         symbol.message.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         sendMessage(symbol.message)
@@ -164,7 +164,7 @@ class NetworkSshSul(
      */
     private fun sendMessage(message: ProtocolMessage<*>) {
         try {
-            SendMessageHelper().sendMessage(state.sshContext, message)
+            SendMessageHelper.sendMessage(state.sshContext, message)
         } catch (e: IOException) {
             throw SULException(e)
         }

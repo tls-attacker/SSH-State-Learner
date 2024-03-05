@@ -20,7 +20,7 @@ class NyxTransportHandler(
     type: ConnectionEndType,
     private val inputStream: InputStream,
     private val outputStream: OutputStream
-) : TransportHandler(timeout, timeout, type) {
+) : TransportHandler(timeout, type) {
 
     private var closed = false
 

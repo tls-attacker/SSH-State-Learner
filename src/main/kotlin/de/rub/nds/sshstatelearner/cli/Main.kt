@@ -23,7 +23,7 @@ import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.NetworkSshSul
-import de.rub.nds.sshstatelearner.sul.NyxSshSul
+//import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import net.automatalib.words.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.io.File
@@ -97,10 +97,35 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
     val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
     MainWindow.infoAlphabetSize.text = alphabet.size.toString()
     when (ArgsGeneral.executor) {
-        ExecutorType.NYX -> NyxSshSul(ArgsSul.name, "/home/fabian/Workspace/targets/packed_targets/nyx_openssh", "/tmp/nyx", 0, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
-        ExecutorType.NETWORK -> NetworkSshSul(ArgsSul.name, ArgsSul.hostname, ArgsSul.port, ArgsSul.timeout, ArgsSul.resetDelay, ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
+//        ExecutorType.NYX -> NyxSshSul(
+//            ArgsSul.name,
+//            "/home/fabian/Workspace/targets/packed_targets/nyx_openssh",
+//            "/tmp/nyx",
+//            0,
+//            ArgsSul.timeout,
+//            ArgsSul.resetDelay,
+//            ArgsSul.protocolStage,
+//            ArgsSul.kexAlgorithm
+//        )
+
+        ExecutorType.NYX, ExecutorType.NETWORK -> NetworkSshSul(
+            ArgsSul.name,
+            ArgsSul.hostname,
+            ArgsSul.port,
+            ArgsSul.timeout,
+            ArgsSul.resetDelay,
+            ArgsSul.protocolStage,
+            ArgsSul.kexAlgorithm
+        )
     }.use {
-        val learner = Extractor(alphabet, it, ArgsLearner.learningAlgorithmType, ArgsLearner.equivOracleChainTypes, ArgsLearner.outputIntermediateHypothesis, ArgsGeneral.output)
+        val learner = Extractor(
+            alphabet,
+            it,
+            ArgsLearner.learningAlgorithmType,
+            ArgsLearner.equivOracleChainTypes,
+            ArgsLearner.outputIntermediateHypothesis,
+            ArgsGeneral.output
+        )
         return learner.extractStateMachine()
     }
 }
