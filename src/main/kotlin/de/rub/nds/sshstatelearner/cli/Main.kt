@@ -22,6 +22,7 @@ import de.rub.nds.sshstatelearner.constants.ExecutorType
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
 import de.rub.nds.sshstatelearner.sul.NetworkSshSul
 //import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import net.automatalib.words.impl.ListAlphabet
@@ -108,9 +109,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
 //            ArgsSul.kexAlgorithm
 //        )
 
-        ExecutorType.NYX, ExecutorType.NETWORK -> NetworkSshSul(
+        ExecutorType.NYX, ExecutorType.NETWORK -> NetworkSshClientSul(
             ArgsSul.name,
-            ArgsSul.hostname,
             ArgsSul.port,
             ArgsSul.timeout,
             ArgsSul.resetDelay,

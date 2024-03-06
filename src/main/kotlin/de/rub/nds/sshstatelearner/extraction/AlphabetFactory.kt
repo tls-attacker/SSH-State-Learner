@@ -35,9 +35,14 @@ object AlphabetFactory {
             KeyExchangeFlowType.DIFFIE_HELLMAN -> listOf(
                 SshSymbol.MSG_KEXDH_INIT
             )
-            KeyExchangeFlowType.ECDH -> listOf(
-                SshSymbol.MSG_KEX_ECDH_INIT
-            )
+            KeyExchangeFlowType.ECDH -> {
+//                listOf(
+//                    SshSymbol.MSG_KEX_ECDH_INIT
+//                )
+                listOf(
+                    SshSymbol.MSG_KEX_ECDH_REPLY
+                )
+            }
             KeyExchangeFlowType.RSA -> listOf(
                 SshSymbol.MSG_KEX_RSA_SECRET
             )
@@ -60,11 +65,17 @@ object AlphabetFactory {
     fun construct(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Alphabet<SshSymbol> {
         return when (stage) {
             ProtocolStage.TRANSPORT -> ListAlphabet(
+//                listOf(
+//                    SshSymbol.MSG_KEXINIT,
+//                    *getKexSymbols(kex).toTypedArray(),
+//                    SshSymbol.MSG_NEWKEYS,
+//                    SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
+//                )
                 listOf(
                     SshSymbol.MSG_KEXINIT,
                     *getKexSymbols(kex).toTypedArray(),
                     SshSymbol.MSG_NEWKEYS,
-                    SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
+                    SshSymbol.MSG_SERVICE_ACCEPT,
                 )
             )
             ProtocolStage.AUTHENTICATION -> ListAlphabet(

@@ -82,7 +82,7 @@ abstract class SshSul(
         /**
          * The default key exchange algorithm
          */
-        val DEFAULT_KEX_ALGORITHM: KeyExchangeAlgorithm = KeyExchangeAlgorithm.ECDH_SHA2_NISTP256
+        val DEFAULT_KEX_ALGORITHM: KeyExchangeAlgorithm = KeyExchangeAlgorithm.ECDH_SHA2_NISTP521
     }
 
     /**

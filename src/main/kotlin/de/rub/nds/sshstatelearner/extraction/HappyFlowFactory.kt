@@ -35,9 +35,14 @@ object HappyFlowFactory {
             KeyExchangeFlowType.DIFFIE_HELLMAN -> arrayOf(
                 SshSymbol.MSG_KEXDH_INIT
             )
-            KeyExchangeFlowType.ECDH -> arrayOf(
-                SshSymbol.MSG_KEX_ECDH_INIT
-            )
+            KeyExchangeFlowType.ECDH -> {
+//                arrayOf(
+//                    SshSymbol.MSG_KEX_ECDH_INIT
+//                )
+                arrayOf(
+                    SshSymbol.MSG_KEX_ECDH_REPLY
+                )
+            }
             KeyExchangeFlowType.HYBRID -> arrayOf(
                 SshSymbol.MSG_KEX_HBR_INIT
             )
@@ -54,12 +59,20 @@ object HappyFlowFactory {
      */
     fun constructHappyFlow(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
         return when (stage) {
-            ProtocolStage.TRANSPORT -> Word.fromSymbols(
-                SshSymbol.MSG_KEXINIT,
-                *constructKexFlow(kex),
-                SshSymbol.MSG_NEWKEYS,
-                SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
-            )
+            ProtocolStage.TRANSPORT -> {
+//                Word.fromSymbols(
+//                    SshSymbol.MSG_KEXINIT,
+//                    *constructKexFlow(kex),
+//                    SshSymbol.MSG_NEWKEYS,
+//                    SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
+//                )
+                Word.fromSymbols(
+                    SshSymbol.MSG_KEXINIT,
+                    *constructKexFlow(kex),
+                    SshSymbol.MSG_NEWKEYS,
+                    SshSymbol.MSG_SERVICE_ACCEPT
+                )
+            }
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
                 SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID
             )

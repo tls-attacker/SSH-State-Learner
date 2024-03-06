@@ -45,7 +45,9 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
         happyFlowTransitions.add(encryptionTransition)
         happyFlow.add(encryptionState)
 
-        val serviceTransition = machine.getTransition(encryptionState, SshSymbol.MSG_SERVICE_REQUEST_USERAUTH) ?: throw ClassificationException()
+//        val serviceTransition = machine.getTransition(encryptionState, SshSymbol.MSG_SERVICE_REQUEST_USERAUTH) ?: throw ClassificationException()
+        val serviceTransition =
+            machine.getTransition(encryptionState, SshSymbol.MSG_SERVICE_ACCEPT) ?: throw ClassificationException()
         val serviceState = machine.getSuccessor(serviceTransition)
         happyFlowTransitions.add(serviceTransition)
         happyFlow.add(serviceState)
@@ -65,7 +67,9 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
         val machine = stateMachine.mealyMachine
         when (stateMachine.kexAlgorithm.flowType) {
             KeyExchangeFlowType.ECDH -> {
-                val kexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEX_ECDH_INIT) ?: throw ClassificationException()
+//                val kexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEX_ECDH_INIT) ?: throw ClassificationException()
+                val kexTransition =
+                    machine.getTransition(kexInitState, SshSymbol.MSG_KEX_ECDH_REPLY) ?: throw ClassificationException()
                 val kexDoneState = machine.getSuccessor(kexTransition)
                 return listOf(kexDoneState) to listOf(kexTransition)
             }
