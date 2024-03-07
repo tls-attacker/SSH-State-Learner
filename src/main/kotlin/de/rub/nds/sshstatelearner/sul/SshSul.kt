@@ -9,18 +9,10 @@
 package de.rub.nds.sshstatelearner.sul
 
 import de.learnlib.api.SUL
-import de.rub.nds.modifiablevariable.util.ArrayConverter
 import de.rub.nds.sshattacker.core.config.Config
-import de.rub.nds.sshattacker.core.constants.EncryptionAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
-import de.rub.nds.sshattacker.core.constants.NamedEcGroup
-import de.rub.nds.sshattacker.core.constants.PublicKeyFormat
-import de.rub.nds.sshattacker.core.crypto.ec.PointFormatter
-import de.rub.nds.sshattacker.core.crypto.keys.CustomEcPrivateKey
-import de.rub.nds.sshattacker.core.crypto.keys.CustomEcPublicKey
-import de.rub.nds.sshattacker.core.crypto.keys.SshPublicKey
 import de.rub.nds.sshattacker.core.state.State
-import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
+import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -28,7 +20,6 @@ import net.automatalib.words.Word
 import net.automatalib.words.WordBuilder
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
-import java.math.BigInteger
 
 abstract class SshSul(
     val name: String,
@@ -93,10 +84,22 @@ abstract class SshSul(
     private fun constructPreamble(): Word<SshSymbol> {
         var preamble: Word<SshSymbol> = Word.epsilon()
         if (stage == ProtocolStage.AUTHENTICATION || stage == ProtocolStage.CONNECTION) {
-            preamble = preamble.concat(HappyFlowFactory.constructHappyFlow(ProtocolStage.TRANSPORT, kex))
+            preamble = preamble.concat(
+                HappyFlowFactory.constructHappyFlow(
+                    ProtocolStage.TRANSPORT,
+                    kex,
+                    ArgsSul.sulTyp.isClientAlphabet
+                )
+            )
         }
         if (stage == ProtocolStage.CONNECTION) {
-            preamble = preamble.concat(HappyFlowFactory.constructHappyFlow(ProtocolStage.AUTHENTICATION, kex))
+            preamble = preamble.concat(
+                HappyFlowFactory.constructHappyFlow(
+                    ProtocolStage.AUTHENTICATION,
+                    kex,
+                    ArgsSul.sulTyp.isClientAlphabet
+                )
+            )
         }
         return preamble
     }
@@ -104,52 +107,6 @@ abstract class SshSul(
     /**
      * Set up the SSH SUL by instantiating a new SSH-Attacker config and state.
      */
-    override fun pre() {
-        config = Config.createConfig().apply {
-            // TODO: Allow state initialization without specifying trace type
-            workflowTraceType = WorkflowTraceType.KEX_INIT_ONLY
-            stopActionsAfterDisconnect = false
-            stopActionsAfterIOException = false
-            clientSupportedKeyExchangeAlgorithms = listOf(kex)
-            serviceName = "ssh-userauth"
-            // TODO: Fix CTR
-            clientSupportedEncryptionAlgorithmsClientToServer = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
-            clientSupportedEncryptionAlgorithmsServerToClient = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
-            userKeys = listOf(
-                SshPublicKey(
-                    PublicKeyFormat.ECDSA_SHA2_NISTP521,
-                    CustomEcPublicKey(
-                        PointFormatter.formatFromByteArray(
-                            NamedEcGroup.SECP521R1,
-                            ArrayConverter.hexStringToByteArray(
-                                "04007a9a61317b93ec991102aea304" +
-                                    "7641b3b91254d5267ac1bade8972db" +
-                                    "7ee61dd0189d5663ff1988815e2632" +
-                                    "7634465f38f12112db2caa87020528" +
-                                    "e40091140810da01c643704d3bad15" +
-                                    "88572e1eeb36080c25e307e99f5263" +
-                                    "6c926c5c15eccaf5526ff2c79e3e5f" +
-                                    "683be0bfa5bd806217b690fd6bbfcc" +
-                                    "ca27cd82fd79bb194fccae7858"
-                            )
-                        ),
-                        NamedEcGroup.SECP521R1
-                    ),
-                    CustomEcPrivateKey(
-                        BigInteger(
-                            "01cac52efb225c5321f43e80bd28ee" +
-                                "e0c9f21297684305586bcc68dded8d" +
-                                "dc2acb2554b015810c8913211a8238" +
-                                "a0cb56aa9c2295143e62afa476b4a4" +
-                                "4fad5fee4717",
-                            16
-                        ),
-                        NamedEcGroup.SECP521R1
-                    )
-                )
-            )
-        }
-    }
 
     /**
      * Tear down all stateful components of this SUL.

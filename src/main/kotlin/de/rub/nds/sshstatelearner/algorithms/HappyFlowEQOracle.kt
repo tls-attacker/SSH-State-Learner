@@ -12,6 +12,7 @@ import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
@@ -47,7 +48,8 @@ class HappyFlowEQOracle(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
-        val happyFlowPrefixes = HappyFlowFactory.constructHappyFlow(stage, kex).prefixes(true)
+        val happyFlowPrefixes =
+            HappyFlowFactory.constructHappyFlow(stage, kex, ArgsSul.sulTyp.isClientAlphabet).prefixes(true)
         for (prefix in happyFlowPrefixes) {
             val suffixes = alphabet.combinations(suffixLength).map { Word.fromList(it) }
             for (suffix in suffixes) {

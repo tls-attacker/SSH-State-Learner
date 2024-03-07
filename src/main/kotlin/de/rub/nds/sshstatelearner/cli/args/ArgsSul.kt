@@ -10,6 +10,7 @@ package de.rub.nds.sshstatelearner.cli.args
 
 import com.beust.jcommander.Parameter
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.constants.SULTyp
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
@@ -49,5 +50,14 @@ object ArgsSul {
 
     @Parameter(names = ["--alphabet"], description = "A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm", listConverter = SshSymbolSplitter::class, order = 17)
     var alphabet: List<SshSymbol>? = null
+        private set
+
+    //TODO: Mach es den Parameter schöner...
+    @Parameter(
+        names = ["--sul-typ"],
+        description = "Type under test",
+        order = 18
+    )
+    var sulTyp: SULTyp = SULTyp.CLIENT_IS_UNDER_TEST
         private set
 }

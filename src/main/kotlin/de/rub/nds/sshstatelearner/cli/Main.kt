@@ -19,11 +19,12 @@ import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.constants.ExecutorType
+import de.rub.nds.sshstatelearner.constants.SULTyp
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
-import de.rub.nds.sshstatelearner.sul.NetworkSshSul
+import de.rub.nds.sshstatelearner.sul.NetworkSshServerSul
 //import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import net.automatalib.words.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -95,7 +96,11 @@ private fun setEquivalenceOracleDefaults() {
  * @return A pair of the alphabet used and the hypothesis returned by the SshSulLearner
  */
 private fun conductProtocolLearning(): Extractor.ExtractorResult {
-    val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(ArgsSul.protocolStage, ArgsSul.kexAlgorithm)
+    val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(
+        ArgsSul.protocolStage,
+        ArgsSul.kexAlgorithm,
+        ArgsSul.sulTyp.isClientAlphabet
+    )
     MainWindow.infoAlphabetSize.text = alphabet.size.toString()
     when (ArgsGeneral.executor) {
 //        ExecutorType.NYX -> NyxSshSul(
@@ -109,14 +114,28 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
 //            ArgsSul.kexAlgorithm
 //        )
 
-        ExecutorType.NYX, ExecutorType.NETWORK -> NetworkSshClientSul(
-            ArgsSul.name,
-            ArgsSul.port,
-            ArgsSul.timeout,
-            ArgsSul.resetDelay,
-            ArgsSul.protocolStage,
-            ArgsSul.kexAlgorithm
-        )
+        ExecutorType.NYX, ExecutorType.NETWORK ->
+            when (ArgsSul.sulTyp) {
+                SULTyp.CLIENT_IS_UNDER_TEST -> NetworkSshClientSul(
+                    ArgsSul.name,
+                    ArgsSul.port,
+                    ArgsSul.timeout,
+                    ArgsSul.resetDelay,
+                    ArgsSul.protocolStage,
+                    ArgsSul.kexAlgorithm
+                )
+
+                SULTyp.SERVER_IS_UNDER_TEST -> NetworkSshServerSul(
+                    ArgsSul.name,
+                    ArgsSul.hostname,
+                    ArgsSul.port,
+                    ArgsSul.timeout,
+                    ArgsSul.resetDelay,
+                    ArgsSul.protocolStage,
+                    ArgsSul.kexAlgorithm
+                )
+            }
+
     }.use {
         val learner = Extractor(
             alphabet,

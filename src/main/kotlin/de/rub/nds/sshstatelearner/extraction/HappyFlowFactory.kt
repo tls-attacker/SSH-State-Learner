@@ -26,7 +26,7 @@ object HappyFlowFactory {
      * @param kex The selected key exchange algorithm.
      * @return An array of key exchange specific symbols in valid order.
      */
-    private fun constructKexFlow(kex: KeyExchangeAlgorithm): Array<SshSymbol> {
+    private fun constructKexFlowForClient(kex: KeyExchangeAlgorithm): Array<SshSymbol> {
         return when (kex.flowType) {
             KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
                 SshSymbol.MSG_KEX_DH_GEX_REQUEST,
@@ -35,18 +35,80 @@ object HappyFlowFactory {
             KeyExchangeFlowType.DIFFIE_HELLMAN -> arrayOf(
                 SshSymbol.MSG_KEXDH_INIT
             )
-            KeyExchangeFlowType.ECDH -> {
-//                arrayOf(
-//                    SshSymbol.MSG_KEX_ECDH_INIT
-//                )
-                arrayOf(
-                    SshSymbol.MSG_KEX_ECDH_REPLY
+            KeyExchangeFlowType.ECDH -> arrayOf(
+                SshSymbol.MSG_KEX_ECDH_INIT
                 )
-            }
+
             KeyExchangeFlowType.HYBRID -> arrayOf(
                 SshSymbol.MSG_KEX_HBR_INIT
             )
             else -> TODO("Key exchange algorithm flow type ${kex.flowType} is not yet supported by SSH-Attacker")
+        }
+    }
+
+    //TODO: Es müssen hier noch java docs erstellt werden...
+    private fun constructKexFlowForServer(kex: KeyExchangeAlgorithm): Array<SshSymbol> {
+        return when (kex.flowType) {
+            KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
+                SshSymbol.MSG_KEX_DH_GEX_GROUP,
+                SshSymbol.MSG_KEX_DH_GEX_REPLY
+            )
+
+            KeyExchangeFlowType.DIFFIE_HELLMAN -> arrayOf(
+                SshSymbol.MSG_KEXDH_REPLY
+            )
+
+            KeyExchangeFlowType.ECDH -> arrayOf(
+                SshSymbol.MSG_KEX_ECDH_REPLY
+            )
+
+
+            KeyExchangeFlowType.HYBRID -> arrayOf(
+                SshSymbol.MSG_KEX_HBR_REPLY
+            )
+
+            else -> TODO("Key exchange algorithm flow type ${kex.flowType} is not yet supported by SSH-Attacker")
+        }
+    }
+
+    private fun constructHappyFlowForClient(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
+        return when (stage) {
+            ProtocolStage.TRANSPORT -> Word.fromSymbols(
+                SshSymbol.MSG_KEXINIT,
+                *constructKexFlowForClient(kex),
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
+            )
+
+
+            ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
+                SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID
+            )
+
+            ProtocolStage.CONNECTION -> Word.fromSymbols(
+                SshSymbol.MSG_CHANNEL_OPEN_SESSION,
+                SshSymbol.MSG_CHANNEL_REQUEST_EXEC
+            )
+        }
+    }
+
+    private fun constructHappyFlowForServer(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
+        return when (stage) {
+            ProtocolStage.TRANSPORT -> Word.fromSymbols(
+                SshSymbol.MSG_KEXINIT,
+                *constructKexFlowForServer(kex),
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT
+            )
+
+            ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            ProtocolStage.CONNECTION -> Word.fromSymbols(
+                SshSymbol.MSG_CHANNEL_OPEN_CONFIRMATION,
+                SshSymbol.MSG_CHANNEL_SUCCESS
+            )
         }
     }
 
@@ -57,29 +119,15 @@ object HappyFlowFactory {
      * @param kex The selected key exchange method to construct a happy flow for.
      * @return The word representing a happy flow within the provided protocol stage and key exchange algorithm.
      */
-    fun constructHappyFlow(stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
-        return when (stage) {
-            ProtocolStage.TRANSPORT -> {
-//                Word.fromSymbols(
-//                    SshSymbol.MSG_KEXINIT,
-//                    *constructKexFlow(kex),
-//                    SshSymbol.MSG_NEWKEYS,
-//                    SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
-//                )
-                Word.fromSymbols(
-                    SshSymbol.MSG_KEXINIT,
-                    *constructKexFlow(kex),
-                    SshSymbol.MSG_NEWKEYS,
-                    SshSymbol.MSG_SERVICE_ACCEPT
-                )
-            }
-            ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
-                SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID
-            )
-            ProtocolStage.CONNECTION -> Word.fromSymbols(
-                SshSymbol.MSG_CHANNEL_OPEN_SESSION,
-                SshSymbol.MSG_CHANNEL_REQUEST_EXEC
-            )
+    fun constructHappyFlow(
+        stage: ProtocolStage,
+        kex: KeyExchangeAlgorithm,
+        isClientAlphabet: Boolean
+    ): Word<SshSymbol> {
+        return if (isClientAlphabet) {
+            constructHappyFlowForClient(stage, kex)
+        } else {
+            constructHappyFlowForServer(stage, kex)
         }
     }
 }
