@@ -22,6 +22,7 @@ import de.rub.nds.sshattacker.core.crypto.ec.PointFormatter
 import de.rub.nds.sshattacker.core.crypto.keys.CustomEcPrivateKey
 import de.rub.nds.sshattacker.core.crypto.keys.CustomEcPublicKey
 import de.rub.nds.sshattacker.core.crypto.keys.SshPublicKey
+import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
@@ -134,6 +135,7 @@ class NetworkSshClientSul(
         ReceiveAction(connectionAlias, VersionExchangeMessage()).execute(state)
         SendAction(connectionAlias, VersionExchangeMessage()).execute(state)
         ChangePacketLayerAction(connectionAlias, PacketLayerType.BINARY_PACKET).execute(state)
+        ReceiveAction(connectionAlias, KeyExchangeInitMessage()).execute(state)
     }
 
     /**
