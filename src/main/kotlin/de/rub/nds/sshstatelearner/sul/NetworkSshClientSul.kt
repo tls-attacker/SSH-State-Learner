@@ -29,12 +29,14 @@ import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.SendAction
 import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
+import de.rub.nds.sshstatelearner.SshClientController
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.tcp.ServerTcpTransportHandler
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.math.BigInteger
+import kotlin.concurrent.thread
 
 class NetworkSshClientSul(
     name: String,
@@ -46,6 +48,12 @@ class NetworkSshClientSul(
 ) : NetworkSshSul(name, timeout, resetDelay, stage, kex) {
 
     override var connectionAlias = "server"
+    private var clientControllerJob: Thread = thread(start = false) {
+        sshClientController.run()
+    }
+    private val sshClientController =
+        SshClientController("ssh", arrayOf("-o StrictHostKeyChecking=accept-new", "sshattacker@127.0.0.1", "-p $port"))
+
 
     companion object {
         /**
@@ -66,6 +74,7 @@ class NetworkSshClientSul(
             serverSupportedKeyExchangeAlgorithms = listOf(kex)
             serviceName = "ssh-userauth"
             defaultRunningMode = RunningModeType.SERVER
+            port
             // TODO: Fix CTR
             clientSupportedEncryptionAlgorithmsClientToServer = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
             clientSupportedEncryptionAlgorithmsServerToClient = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
@@ -113,6 +122,11 @@ class NetworkSshClientSul(
      */
     override fun pre() {
         createConfig()
+
+        clientControllerJob = thread(start = true) {
+            sshClientController.run()
+        }
+
         // Initialize transport handler
         state = State(config).apply {
             sshContext.transportHandler = ServerTcpTransportHandler(timeout, timeout, port)
@@ -120,11 +134,19 @@ class NetworkSshClientSul(
         }
         connectionClosed = false
 
+
         preVersionExchange()
         // TODO: Exception handling for preamble
         preamble.forEach {
             executeSymbol(it)
         }
+    }
+
+    override fun post() {
+        super.post()
+        sshClientController.stop()
+        clientControllerJob.join(1000)
+        sshClientController.makeRunnable()
     }
 
     /**
@@ -148,7 +170,7 @@ class NetworkSshClientSul(
         symbol.message.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         sendMessage(symbol.message)
-        val retrieveDelay = if (symbol == SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID) 2500L else 50L
+        val retrieveDelay = 50L
         Thread.sleep(retrieveDelay)
         return retrieveMessages()
     }

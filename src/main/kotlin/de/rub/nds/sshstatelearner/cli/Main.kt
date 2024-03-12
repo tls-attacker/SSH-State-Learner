@@ -24,6 +24,7 @@ import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSulManager
 import de.rub.nds.sshstatelearner.sul.NetworkSshServerSul
 //import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import net.automatalib.words.impl.ListAlphabet
@@ -124,6 +125,17 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                     ArgsSul.protocolStage,
                     ArgsSul.kexAlgorithm
                 )
+
+                SULTyp.CLIENT_IS_UNDER_TEST2 ->
+                    NetworkSshClientSulManager(
+                        10,
+                        ArgsSul.port,
+                        ArgsSul.name,
+                        ArgsSul.timeout,
+                        ArgsSul.resetDelay,
+                        ArgsSul.protocolStage,
+                        ArgsSul.kexAlgorithm
+                    )
 
                 SULTyp.SERVER_IS_UNDER_TEST -> NetworkSshServerSul(
                     ArgsSul.name,
