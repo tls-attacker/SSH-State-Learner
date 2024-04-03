@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="CLI Usage" type="JetRunConfigurationType">
+  <configuration default="false" name="CLI Usage" type="JetRunConfigurationType" folderName="core">
     <option name="MAIN_CLASS_NAME" value="de.rub.nds.sshstatelearner.cli.MainKt" />
     <module name="core" />
     <option name="PROGRAM_PARAMETERS" value="--help" />
