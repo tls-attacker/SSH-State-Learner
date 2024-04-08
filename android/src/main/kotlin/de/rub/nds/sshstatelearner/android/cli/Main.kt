@@ -17,7 +17,7 @@ private fun handleArgs(args: Array<out String>) {
             .addObject(ArgsAndroidGeneral)
             .args(args)
             .build()
-        if (ArgsAndroidGeneral.help) {
+        if (args.isEmpty() || ArgsAndroidGeneral.help) {
             cliArgs.usage()
             exitProcess(0)
         }

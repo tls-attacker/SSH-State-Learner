@@ -24,8 +24,9 @@
         </license>
     </licenses>
     <modules>
-        <module>core</module>
         <module>android</module>
+        <module>core</module>
+        <module>environment</module>
     </modules>
 
     <scm>

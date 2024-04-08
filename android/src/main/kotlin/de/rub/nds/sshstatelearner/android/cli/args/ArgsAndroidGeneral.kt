@@ -21,6 +21,7 @@ object ArgsAndroidGeneral {
         names = ["--path-to-apks"],
         required = true,
         description = "Path to an APK or multiple APKs if an app has more than one",
+        variableArity = true,
         order = 2
     )
     var pathToApks: List<String>? = listOf()
