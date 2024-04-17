@@ -58,7 +58,7 @@ abstract class SshSul(
         /**
          * A non-negative integer value indicating the timeout for symbol execution.
          */
-        const val DEFAULT_SUL_TIMEOUT: Long = 1000
+        const val DEFAULT_SUL_TIMEOUT: Long = 50
 
         /**
          * A non-negative integer value indicating the delay when resetting the SUL.

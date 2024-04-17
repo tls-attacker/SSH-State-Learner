@@ -28,7 +28,7 @@ import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
-import java.util.Random
+import java.util.*
 
 /**
  * This object is capable of creating equivalence oracle instances to use within an active automaton learning
@@ -246,12 +246,19 @@ object EquivalenceOracleFactory {
         type: EquivalenceOracleType,
         membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
         sul: SUL<SshSymbol, ResponseFingerprint>,
-        learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>
+        learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>,
+        useClientAlphabet: Boolean
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
         return when (type) {
             EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache.createCacheConsistencyTest() ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
-            EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(membershipOracle, happyFlowProtocolStage, happyFlowKex, happyFlowSuffixLength)
+            EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(
+                membershipOracle,
+                happyFlowProtocolStage,
+                happyFlowKex,
+                happyFlowSuffixLength,
+                useClientAlphabet
+            )
             EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(membershipOracle, completeExplorationMinDepth, completeExplorationMaxDepth)
             EquivalenceOracleType.RANDOM_WORDS -> RandomWordsEQOracle(membershipOracle, randomWordsMinLength, randomWordsMaxLength, randomWordsMaxTests)
             EquivalenceOracleType.RANDOM_WALK -> RandomWalkEQOracle(sul, randomWalkRestartProbability, randomWalkMaxSteps, Random())
@@ -276,8 +283,9 @@ object EquivalenceOracleFactory {
         types: Iterable<EquivalenceOracleType>,
         membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
         sul: SUL<SshSymbol, ResponseFingerprint>,
-        learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>
+        learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>,
+        useClientAlphabet: Boolean
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
-        return EQOracleChain(types.map { create(it, membershipOracle, sul, learningCache) })
+        return EQOracleChain(types.map { create(it, membershipOracle, sul, learningCache, useClientAlphabet) })
     }
 }

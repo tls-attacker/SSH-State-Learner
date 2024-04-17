@@ -10,11 +10,11 @@ import de.rub.nds.sshstatelearner.util.SshConfigManager
 class SshServerForFingerprint(port: Int) {
     private val config: Config =
         SshConfigManager.getServerConfig().apply {
-            workflowTraceType = WorkflowTraceType.AUTH_NONE
+            workflowTraceType = WorkflowTraceType.FULL
             defaultServerConnection = InboundConnection(port)
         }
 
-    private val state: State = State(config).apply { sshContext }
+    private val state: State = State(config)
 
     private val workflowExecuter = DefaultWorkflowExecutor(state)
 
@@ -23,7 +23,9 @@ class SshServerForFingerprint(port: Int) {
     }
 
     fun close() {
-        state.sshContext.transportHandler.closeConnection()
+        if (!state.sshContext.transportHandler.isInitialized) {
+            state.sshContext.transportHandler.closeConnection()
+        }
     }
 
 }

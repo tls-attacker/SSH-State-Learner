@@ -24,7 +24,7 @@ object ArgsAndroidGeneral {
         variableArity = true,
         order = 2
     )
-    var pathToApks: List<String>? = listOf()
+    var pathToApks: List<String> = listOf()
         private set
 
     @Parameter(

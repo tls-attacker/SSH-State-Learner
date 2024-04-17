@@ -12,7 +12,6 @@ import de.learnlib.api.oracle.EquivalenceOracle
 import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
-import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
@@ -34,7 +33,8 @@ class HappyFlowEQOracle(
     private val membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
     private val stage: ProtocolStage,
     private val kex: KeyExchangeAlgorithm,
-    private val suffixLength: Int
+    private val suffixLength: Int,
+    private val useClientAlphabet: Boolean
 ) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
     /**
      * Searches for a counter example to disprove the hypothesis by iterating all prefixes of the happy flow
@@ -49,7 +49,7 @@ class HappyFlowEQOracle(
         alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
         val happyFlowPrefixes =
-            HappyFlowFactory.constructHappyFlow(stage, kex, ArgsSul.sulTyp.isClientAlphabet).prefixes(true)
+            HappyFlowFactory.constructHappyFlow(stage, kex, useClientAlphabet).prefixes(true)
         for (prefix in happyFlowPrefixes) {
             val suffixes = alphabet.combinations(suffixLength).map { Word.fromList(it) }
             for (suffix in suffixes) {

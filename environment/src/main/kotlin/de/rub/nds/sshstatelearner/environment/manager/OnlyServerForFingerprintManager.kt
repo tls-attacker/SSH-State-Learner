@@ -9,7 +9,6 @@ class OnlyServerForFingerprintManager(val port: Int) : EnvironmentManager() {
     }
 
     override fun performLearning() {
-
         val sshServerForFingerprint = SshServerForFingerprint(port)
         sshServerForFingerprint.execute()
         sshServerForFingerprint.close()

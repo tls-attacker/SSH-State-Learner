@@ -30,8 +30,7 @@ import net.automatalib.words.Word
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.File
-import java.util.Timer
-import java.util.TimerTask
+import java.util.*
 
 /**
  * A wrapper for learning an SSH SUL oracle. It exposes a single method, learn(), which constructs all necessary
@@ -49,7 +48,8 @@ class Extractor(
     private val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT,
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
     private val storeIntermediateHypotheses: Boolean,
-    private val outputDirectory: String
+    private val outputDirectory: String,
+    private val useClientAlphabet: Boolean
 ) {
 
     /**
@@ -104,7 +104,8 @@ class Extractor(
             equivalenceOracleChainTypes,
             membershipOracle.asOracle(),
             sul,
-            membershipOracle
+            membershipOracle,
+            useClientAlphabet
         )
     }
 

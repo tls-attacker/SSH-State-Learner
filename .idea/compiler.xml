@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="ssh-state-learner-android" />
         <module name="core" />
         <module name="environment" />
+        <module name="ssh-state-learner-core" />
+        <module name="ssh-state-learner-environment" />
         <module name="android" />
       </profile>
     </annotationProcessing>

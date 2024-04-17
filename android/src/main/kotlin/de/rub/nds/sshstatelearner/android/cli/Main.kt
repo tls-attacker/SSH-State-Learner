@@ -3,9 +3,7 @@ package de.rub.nds.sshstatelearner.android.cli
 import com.beust.jcommander.JCommander
 import com.beust.jcommander.ParameterException
 import de.rub.nds.sshstatelearner.android.cli.args.ArgsAndroidGeneral
-import de.rub.nds.sshstatelearner.android.controller.AndroidSSHClientController
-import de.rub.nds.sshstatelearner.android.controller.JuiceSSHController
-import de.rub.nds.sshstatelearner.android.controller.constants.AndroidSshClientTyp
+import de.rub.nds.sshstatelearner.android.controller.util.AndroidSSHClientControllerFactory
 import kotlin.system.exitProcess
 
 /**
@@ -27,23 +25,9 @@ private fun handleArgs(args: Array<out String>) {
     }
 }
 
-private fun getClientController(): AndroidSSHClientController = when (ArgsAndroidGeneral.androidSshClientTyp) {
-    AndroidSshClientTyp.INVALID -> throw UnsupportedOperationException("This State is unsupported")
-    AndroidSshClientTyp.TERMIUS -> TODO()
-    AndroidSshClientTyp.CONNECT_BOT -> TODO()
-    AndroidSshClientTyp.JUICE_SSH -> JuiceSSHController(
-        ArgsAndroidGeneral.ipToAppium,
-        ArgsAndroidGeneral.portToAppium,
-        ArgsAndroidGeneral.ipToSshServer,
-        ArgsAndroidGeneral.portToSshServer,
-        ArgsAndroidGeneral.pathToApks ?: listOf(),
-        ArgsAndroidGeneral.udid
-    )
-}
-
 fun main(vararg args: String) {
     handleArgs(args)
-    val androidSSHController = getClientController()
+    val androidSSHController = AndroidSSHClientControllerFactory.getClientController(ArgsAndroidGeneral)
     with(androidSSHController) {
         installApp()
         connectToGetFingerprint()

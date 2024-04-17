@@ -81,7 +81,8 @@ open class StandardSshManager() : EnvironmentManager() {
                 ArgsLearner.learningAlgorithmType,
                 ArgsLearner.equivOracleChainTypes,
                 ArgsLearner.outputIntermediateHypothesis,
-                ArgsGeneral.output
+                ArgsGeneral.output,
+                ArgsSul.sulTyp.isClientAlphabet
             )
             return learner.extractStateMachine()
         }
