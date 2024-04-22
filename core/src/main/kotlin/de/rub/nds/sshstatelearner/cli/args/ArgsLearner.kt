@@ -23,9 +23,9 @@ object ArgsLearner {
         private set
 
     @Parameter(names = ["--output-intermediate-hypothesis"], description = "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis", order = 52)
-    var outputIntermediateHypothesis: Boolean = false
+    var outputIntermediateHypothesis: Boolean = true
         private set
-
+ 
     @Parameter(names = ["--equiv-oracle-chain"], description = "The equivalence oracle chain to use (comma-separated combination of CACHE_CONSISTENCY, HAPPY_FLOW, COMPLETE_EXPLORATION, RANDOM_WORDS, RANDOM_WALK, RANDOM_W, RANDOM_WP, W, WP)", listConverter = EQOracleChainSplitter::class, order = 100)
     var equivOracleChainTypes: List<EquivalenceOracleType> = listOf(EquivalenceOracleType.CACHE_CONSISTENCY, EquivalenceOracleType.HAPPY_FLOW, EquivalenceOracleType.RANDOM_WORDS)
         private set

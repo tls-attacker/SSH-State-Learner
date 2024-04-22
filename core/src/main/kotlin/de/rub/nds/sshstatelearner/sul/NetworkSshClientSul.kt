@@ -21,6 +21,9 @@ import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.SshConfigManager
 import de.rub.nds.tlsattacker.transport.tcp.ServerTcpTransportHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
@@ -30,7 +33,8 @@ class NetworkSshClientSul(
     timeout: Long = DEFAULT_SUL_TIMEOUT,
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
-    kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
+    kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
+    private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler()
 ) : NetworkSshSul(name, timeout, resetDelay, stage, kex) {
 
     override var connectionAlias = "server"
@@ -48,13 +52,17 @@ class NetworkSshClientSul(
         config = SshConfigManager.getServerConfig(kex)
 
         // Initialize transport handler
-        state = State(config).apply {
-            sshContext.transportHandler = ServerTcpTransportHandler(timeout, timeout, port)
-            sshContext.initTransportHandler()
+        state = State(config)
+        runBlocking {
+            launch(Dispatchers.IO) {
+                state.sshContext.transportHandler = ServerTcpTransportHandler(timeout, timeout, port)
+                state.sshContext.initTransportHandler()
+                connectionClosed = false
+            }
+            launch(Dispatchers.IO) {
+                clientConnectionHandler.subscribeForConnection()
+            }
         }
-        connectionClosed = false
-
-
         preVersionExchange()
         // TODO: Exception handling for preamble
         preamble.forEach {

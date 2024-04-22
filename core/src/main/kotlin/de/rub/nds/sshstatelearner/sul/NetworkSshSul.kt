@@ -34,6 +34,7 @@ abstract class NetworkSshSul(
      * Indicates whether the underlying network connection is available or closed.
      */
     protected var connectionClosed = false
+        protected set
 
     protected abstract var connectionAlias: String
 

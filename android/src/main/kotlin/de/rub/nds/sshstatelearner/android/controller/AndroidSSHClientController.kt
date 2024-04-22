@@ -15,7 +15,7 @@ abstract class AndroidSSHClientController(
     protected val ipToAppium: String,
     protected val portToAppium: Int,
     protected val ipToServer: String,
-    protected val portToServer: Int,
+    val portToServer: Int,
     protected val pathToApks: List<String>,
     udid: String
 ) {
@@ -54,6 +54,8 @@ abstract class AndroidSSHClientController(
     abstract fun connectToGetFingerprint()
 
     abstract fun connectForStateLearning()
+
+    abstract fun oneConnectForStateLearning()
 
     private fun connectTo(ip: String, port: Int): AndroidDriver {
         return AndroidDriver(URI("http://$ip:$port/").toURL(), caps)

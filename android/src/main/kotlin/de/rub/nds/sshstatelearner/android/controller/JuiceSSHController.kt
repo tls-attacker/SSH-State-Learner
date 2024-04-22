@@ -1,6 +1,7 @@
 package de.rub.nds.sshstatelearner.android.controller
 
 import io.appium.java_client.AppiumBy
+import io.appium.java_client.appmanagement.ApplicationState
 import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.TimeoutException
 
@@ -53,6 +54,37 @@ class JuiceSSHController(
             } catch (_: TimeoutException) {
             }
         } while (isInStateMachineLearningMode)
+    }
+
+    override fun oneConnectForStateLearning() {
+        fun clickReconnectButton() = waitUntilElementIsClickable(
+            AppiumBy.xpath("//android.widget.Button[@resource-id=\"android:id/button1\"]")
+        ).click()
+
+        fun reconnectToServerIfPossibleOrBreak(): Boolean {
+            val message = waitUntilPresenceOfElementLocated(AppiumBy.id("android:id/message"))
+
+            if (!message.text.contains("Do you want to retry?")) {
+                return false
+            } else {
+                clickReconnectButton()
+                return true
+            }
+        }
+
+        try {
+            if (driver.queryAppState(bundleId) != ApplicationState.RUNNING_IN_FOREGROUND) {
+                connectToServer()
+            } else {
+                val result = reconnectToServerIfPossibleOrBreak()
+                if (!result) {
+                    connectToServer()
+                }
+            }
+
+        } catch (_: StaleElementReferenceException) {
+        } catch (_: TimeoutException) {
+        }
     }
 
     private fun connectToServer() {

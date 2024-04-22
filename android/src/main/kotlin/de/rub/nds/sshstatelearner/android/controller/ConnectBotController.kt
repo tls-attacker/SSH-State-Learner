@@ -2,6 +2,7 @@ package de.rub.nds.sshstatelearner.android.controller
 
 import io.appium.java_client.AppiumBy
 import io.appium.java_client.appmanagement.ApplicationState
+import org.apache.logging.log4j.LogManager
 import org.openqa.selenium.Point
 import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.TimeoutException
@@ -17,6 +18,10 @@ class ConnectBotController(
     udid: String
 ) : AndroidSSHClientController(ipToAppium, portToAppium, ipToServer, portToServer, pathToApks, udid) {
     override val bundleId = "org.connectbot"
+
+    private companion object {
+        val logger = LogManager.getLogger()
+    }
 
     override fun connectToGetFingerprint() {
         fun acceptSSHFingerPrint() = waitUntilElementIsClickable(
@@ -62,6 +67,44 @@ class ConnectBotController(
             } catch (_: TimeoutException) {
             }
         } while (isInStateMachineLearningMode)
+    }
+
+    override fun oneConnectForStateLearning() {
+        fun whatShouldYouDo(): Action? {
+            logger.warn(driver.queryAppState(bundleId))
+            val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
+            val alertIsShown = ExpectedConditions.elementToBeClickable(
+                AppiumBy.id("android:id/aerr_close")
+            ).apply(driver) != null
+            val isNormalConnectPossible = ExpectedConditions.elementToBeClickable(
+                AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")
+            ).apply(driver) != null
+            logger.warn("$isNormalConnectPossible,$applicationIsRunning,${alertIsShown}")
+            if (!applicationIsRunning || alertIsShown) {
+                return Action.RESTART
+            } else if (isNormalConnectPossible) {
+                return Action.NORMAL_CONNECT
+            } else {
+                return null
+            }
+
+        }
+
+        try {
+            val action = wait.until({ _ -> whatShouldYouDo() })
+            if (Action.RESTART == action) {
+                restartApp()
+                waitUntilElementIsClickable(AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")).click()
+            } else if (Action.NORMAL_CONNECT == action) {
+                waitUntilElementIsClickable(AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")).click()
+            } else {
+                throw IllegalStateException()
+            }
+
+        } catch (_: StaleElementReferenceException) {
+        } catch (_: TimeoutException) {
+        }
+
     }
 
     private fun addHost() {
@@ -123,6 +166,10 @@ class ConnectBotController(
         selectRotationMode()
         chooseForcePortrait()
         returnToHome()
+    }
+
+    enum class Action {
+        RESTART, NORMAL_CONNECT
     }
 
 }

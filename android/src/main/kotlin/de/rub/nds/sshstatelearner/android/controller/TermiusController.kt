@@ -2,6 +2,7 @@ package de.rub.nds.sshstatelearner.android.controller
 
 import io.appium.java_client.AppiumBy
 import io.appium.java_client.appmanagement.ApplicationState
+import org.apache.logging.log4j.LogManager
 import org.openqa.selenium.Point
 import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.TimeoutException
@@ -16,6 +17,10 @@ class TermiusController(
     udid: String
 ) : AndroidSSHClientController(ipToAppium, portToAppium, ipToServer, portToServer, pathToApks, udid) {
     override val bundleId = "com.server.auditor.ssh.client"
+
+    private companion object {
+        val logger = LogManager.getLogger()
+    }
 
     override fun connectToGetFingerprint() {
         fun connectFirstTime() {
@@ -148,5 +153,45 @@ class TermiusController(
             } catch (_: TimeoutException) {
             }
         } while (isInStateMachineLearningMode)
+    }
+
+    override fun oneConnectForStateLearning() {
+        fun connectToServer() {
+            waitUntilElementIsClickable(
+                AppiumBy.xpath("(//android.view.ViewGroup[@resource-id=\"com.server.auditor.ssh.client:id/clickable_layout\"])[2]")
+            ).click()
+        }
+
+        try {
+            if (driver.queryAppState(bundleId) != ApplicationState.RUNNING_IN_FOREGROUND) {
+                //logger.warn("The state of the App is ${driver.queryAppState(bundleId)}")
+                restartApp()
+                connectToServer()
+            } else {
+                wait.until(
+                    { _ ->
+                        val value0 =
+                            ExpectedConditions.elementToBeClickable(AppiumBy.id("com.server.auditor.ssh.client:id/start_over_button"))
+                                .apply(driver)
+                        val value1 =
+                            ExpectedConditions.elementToBeClickable(AppiumBy.xpath("//android.widget.TextView[@resource-id=\"com.server.auditor.ssh.client:id/footer_text\"]"))
+                                .apply(driver)
+                        if (value0 != null) {
+                            //logger.warn("reconnect Click")
+                            value0
+                        } else if (value1 != null && "SSH, attacker".equals(value1.text)) {
+                            //logger.warn("Text ${value1.text}")
+                            value1
+                        } else {
+                            null
+                        }
+                    }
+                )!!.click()
+            }
+
+
+        } catch (_: StaleElementReferenceException) {
+        } catch (_: TimeoutException) {
+        }
     }
 }

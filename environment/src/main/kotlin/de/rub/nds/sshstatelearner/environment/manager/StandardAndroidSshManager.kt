@@ -2,7 +2,6 @@ package de.rub.nds.sshstatelearner.environment.manager
 
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.android.cli.args.ArgsAndroidGeneral
-import de.rub.nds.sshstatelearner.android.controller.util.AndroidSSHClientControllerFactory
 import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
@@ -11,10 +10,8 @@ import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
-import de.rub.nds.sshstatelearner.sul.SshServerForFingerprint
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSulManager
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.automatalib.words.Alphabet
@@ -25,37 +22,32 @@ import java.io.FileWriter
 
 class StandardAndroidSshManager(val argsAndroidGeneral: ArgsAndroidGeneral) : EnvironmentManager() {
 
-    companion object {
+    private val androidClientConnectionHandler: MutableList<AndroidClientConnectionHandler> = mutableListOf()
+
+    private companion object {
         val logger = LogManager.getLogger()
     }
 
 
     override fun setUp() {
         logger.info("SetUp")
-        try {
-            runBlocking() {
-                val sshServerForFingerprint = SshServerForFingerprint(argsAndroidGeneral.portToSshServer)
-                val fingerprint = launch(Dispatchers.Default) {
-                    // 1.SETUP SERVER for fingerprint
-                    sshServerForFingerprint.execute()
-                    sshServerForFingerprint.close()
+        runBlocking {
+
+            var tmp = AndroidClientConnectionHandler("emulator-5554", 48223)
+            androidClientConnectionHandler.add(tmp)
+            tmp = AndroidClientConnectionHandler("emulator-5556", 48224)
+            androidClientConnectionHandler.add(tmp)
+            tmp = AndroidClientConnectionHandler("emulator-5558", 48225)
+            androidClientConnectionHandler.add(tmp)
+            tmp = AndroidClientConnectionHandler("emulator-5560", 48226)
+            androidClientConnectionHandler.add(tmp)
+            androidClientConnectionHandler.forEach(
+                { it ->
+                    launch(Dispatchers.IO) {
+                        it.init()
+                    }
                 }
-                val androidSSHClientController =
-                    AndroidSSHClientControllerFactory.getClientController(argsAndroidGeneral)
-                val fingerprintAndroid = launch(Dispatchers.Default) {
-                    androidSSHClientController.installApp()
-                    androidSSHClientController.connectToGetFingerprint()
-                    androidSSHClientController.quit()
-                }
-                try {
-                    joinAll(fingerprint, fingerprintAndroid)
-                } finally {
-                    if (!fingerprint.isCompleted) sshServerForFingerprint.close()
-                    if (!fingerprintAndroid.isCompleted) androidSSHClientController.quit()
-                }
-            }
-        } catch (e: Exception) {
-            throw IllegalStateException(e.cause)
+            )
         }
     }
 
@@ -63,14 +55,13 @@ class StandardAndroidSshManager(val argsAndroidGeneral: ArgsAndroidGeneral) : En
     fun conductProtocolLearning(): Extractor.ExtractorResult {
         val alphabet = getInputAlphabet(false)
         MainWindow.infoAlphabetSize.text = alphabet.size.toString()
-        val sul = NetworkSshClientSul(
+        val sul = NetworkSshClientSulManager(
             ArgsSul.name,
-            argsAndroidGeneral.portToSshServer,
             ArgsSul.timeout,
             ArgsSul.resetDelay,
             ArgsSul.protocolStage,
-            ArgsSul.kexAlgorithm
-
+            ArgsSul.kexAlgorithm,
+            androidClientConnectionHandler
         )
         sul.use {
             val learner = Extractor(
@@ -88,26 +79,10 @@ class StandardAndroidSshManager(val argsAndroidGeneral: ArgsAndroidGeneral) : En
 
     override fun performLearning() {
         setEquivalenceOracleDefaults()
-        runBlocking {
-            val stateLearningJob = launch(Dispatchers.Default) {
-                val extractorResult = conductProtocolLearning()
-                analyzeExtractorResult(extractorResult)
-                serializeExtractorResult(extractorResult, "Hostname", "ProtocolStage")
-            }
-
-            val androidSSHClientController =
-                AndroidSSHClientControllerFactory.getClientController(argsAndroidGeneral)
-
-            val androidSshClientJob = launch(Dispatchers.Default) {
-                androidSSHClientController.startStateLearningMode()
-                androidSSHClientController.connectForStateLearning()
-                androidSSHClientController.quit()
-            }
-
-            stateLearningJob.join()
-            androidSSHClientController.stopStateLearningMode()
-            androidSshClientJob.join()
-        }
+        val extractorResult = conductProtocolLearning()
+        analyzeExtractorResult(extractorResult)
+        serializeExtractorResult(extractorResult, "Hostname", "ProtocolStage")
+        androidClientConnectionHandler.forEach { it.destroy() }
     }
 
     protected fun getInputAlphabet(isClientAlphabet: Boolean): Alphabet<SshSymbol> {
