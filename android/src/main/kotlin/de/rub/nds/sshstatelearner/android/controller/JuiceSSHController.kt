@@ -2,8 +2,7 @@ package de.rub.nds.sshstatelearner.android.controller
 
 import io.appium.java_client.AppiumBy
 import io.appium.java_client.appmanagement.ApplicationState
-import org.openqa.selenium.StaleElementReferenceException
-import org.openqa.selenium.TimeoutException
+import org.openqa.selenium.support.ui.ExpectedConditions
 
 class JuiceSSHController(
     ipToAppium: String,
@@ -14,82 +13,80 @@ class JuiceSSHController(
     udid: String
 ) : AndroidSSHClientController(ipToAppium, portToAppium, ipToServer, portToServer, pathToApks, udid) {
     override val bundleId = "com.sonelli.juicessh"
+    private val xPathToCickConnectButton =
+        "//android.widget.TextView[@resource-id=\"com.sonelli.juicessh:id/itemTitle\" and @text=\"Quick Connect\"]"
+    private val xPathToReconnectButton = "//android.widget.Button[@resource-id=\"android:id/button1\"]"
 
     override fun connectToGetFingerprint() {
         fun acceptSSHFingerPrint() =
             waitUntilElementIsClickable(AppiumBy.id("android:id/button1")).click()
 
-        connectToServer()
+        restartAndConnectToServer()
         acceptSSHFingerPrint()
     }
 
+    private fun getAction(): Action? {
+        val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
+        val alertIsShown = ExpectedConditions.elementToBeClickable(
+            AppiumBy.id("android:id/aerr_close")
+        ).apply(driver) != null
+        val isNormalConnectPossible = ExpectedConditions.elementToBeClickable(
+            AppiumBy.xpath(xPathToCickConnectButton)
+        ).apply(driver) != null
+        val isReconnectPossible = ExpectedConditions.elementToBeClickable(
+            AppiumBy.xpath(xPathToReconnectButton)
+        ).apply(driver) != null
+
+        if (!applicationIsRunning || alertIsShown) {
+            return Action.RESTART
+        } else if (isNormalConnectPossible) {
+            return Action.NORMAL_CONNECT
+        } else if (isReconnectPossible) {
+            return Action.RECONNECT
+        } else {
+            return null
+        }
+    }
+
+    private fun getActionAndExecuteIt() {
+        val action = wait.until { getAction() }
+        when (action) {
+            Action.RESTART -> {
+                restartAndConnectToServer()
+            }
+
+            Action.RECONNECT -> {
+                clickReconnectButton()
+            }
+
+            Action.NORMAL_CONNECT -> {
+                connectToServer()
+            }
+
+            else -> {}
+        }
+    }
+
+
+    private fun clickReconnectButton() = waitUntilElementIsClickable(
+        AppiumBy.xpath(xPathToReconnectButton)
+    ).click()
 
     override fun connectForStateLearning() {
-        fun clickReconnectButton() = waitUntilElementIsClickable(
-            AppiumBy.xpath("//android.widget.Button[@resource-id=\"android:id/button1\"]")
-        ).click()
-
-        fun reconnectToServerIfPossibleOrBreak(): Boolean {
-            val message = waitUntilPresenceOfElementLocated(AppiumBy.id("android:id/message"))
-
-            if (!message.text.contains("Do you want to retry?")) {
-                return false
-            } else {
-                clickReconnectButton()
-                return true
-            }
-        }
-
         do {
-            try {
-                connectToServer()
-
-                do {
-                    val reconnectWasSuccessful = reconnectToServerIfPossibleOrBreak()
-                    if (!reconnectWasSuccessful) {
-                        break
-                    }
-                } while (isInStateMachineLearningMode)
-            } catch (_: StaleElementReferenceException) {
-            } catch (_: TimeoutException) {
+            catchAppiumException {
+                getActionAndExecuteIt()
             }
         } while (isInStateMachineLearningMode)
     }
 
     override fun oneConnectForStateLearning() {
-        fun clickReconnectButton() = waitUntilElementIsClickable(
-            AppiumBy.xpath("//android.widget.Button[@resource-id=\"android:id/button1\"]")
-        ).click()
-
-        fun reconnectToServerIfPossibleOrBreak(): Boolean {
-            val message = waitUntilPresenceOfElementLocated(AppiumBy.id("android:id/message"))
-
-            if (!message.text.contains("Do you want to retry?")) {
-                return false
-            } else {
-                clickReconnectButton()
-                return true
-            }
-        }
-
-        try {
-            if (driver.queryAppState(bundleId) != ApplicationState.RUNNING_IN_FOREGROUND) {
-                connectToServer()
-            } else {
-                val result = reconnectToServerIfPossibleOrBreak()
-                if (!result) {
-                    connectToServer()
-                }
-            }
-
-        } catch (_: StaleElementReferenceException) {
-        } catch (_: TimeoutException) {
-        }
+        catchAppiumException { getActionAndExecuteIt() }
     }
 
     private fun connectToServer() {
         fun clickQuickConnectButton() = waitUntilElementIsClickable(
-            AppiumBy.xpath("//android.widget.TextView[@resource-id=\"com.sonelli.juicessh:id/itemTitle\" and @text=\"Quick Connect\"]")
+            AppiumBy.xpath(xPathToCickConnectButton)
         ).click()
 
         fun addServerInformation() = waitUntilPresenceOfElementLocated(
@@ -98,9 +95,14 @@ class JuiceSSHController(
 
         fun clickConnectButton() = waitUntilElementIsClickable(AppiumBy.id("android:id/button1")).click()
 
-        restartApp()
         clickQuickConnectButton()
         addServerInformation()
         clickConnectButton()
+
+    }
+
+    private fun restartAndConnectToServer() {
+        restartApp()
+        connectToServer()
     }
 }

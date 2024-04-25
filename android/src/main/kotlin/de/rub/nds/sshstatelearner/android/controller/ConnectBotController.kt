@@ -2,10 +2,7 @@ package de.rub.nds.sshstatelearner.android.controller
 
 import io.appium.java_client.AppiumBy
 import io.appium.java_client.appmanagement.ApplicationState
-import org.apache.logging.log4j.LogManager
 import org.openqa.selenium.Point
-import org.openqa.selenium.StaleElementReferenceException
-import org.openqa.selenium.TimeoutException
 import org.openqa.selenium.support.ui.ExpectedConditions
 
 
@@ -18,10 +15,7 @@ class ConnectBotController(
     udid: String
 ) : AndroidSSHClientController(ipToAppium, portToAppium, ipToServer, portToServer, pathToApks, udid) {
     override val bundleId = "org.connectbot"
-
-    private companion object {
-        val logger = LogManager.getLogger()
-    }
+    private val xpathToConnectButton = "//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]"
 
     override fun connectToGetFingerprint() {
         fun acceptSSHFingerPrint() = waitUntilElementIsClickable(
@@ -30,81 +24,61 @@ class ConnectBotController(
 
         addHost()
         setSettings()
-        connectToServer()
+        restartAndconnectToServer()
         acceptSSHFingerPrint()
     }
 
     override fun connectForStateLearning() {
-        fun connectToServerIfAppIsRunningOrRestartApp(): Boolean? {
-            /**
-             * This approach is necessary because the app is very unstable.
-             */
-            if (driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND) {
-                val element =
-                    ExpectedConditions.elementToBeClickable(
-                        AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")
-                    ).apply(driver)
-                if (element != null) {
-                    element.click()
-                    return true
-                }
-            } else {
-                restartApp()
-            }
-            return null
-        }
-
         do {
-            try {
-                connectToServer()
+            catchAppiumException {
+                restartAndconnectToServer()
 
                 do {
-                    wait.until { _ ->
-                        connectToServerIfAppIsRunningOrRestartApp()
-                    }
+                    getNextActionAndExecuteIt()
                 } while (isInStateMachineLearningMode)
-            } catch (_: StaleElementReferenceException) {
-            } catch (_: TimeoutException) {
             }
         } while (isInStateMachineLearningMode)
     }
 
+    private fun clickConnectToServerButton() {
+        waitUntilElementIsClickable(AppiumBy.xpath(xpathToConnectButton)).click()
+    }
+
+    private fun getNextAction(): Action? {
+        val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
+        val alertIsShown = ExpectedConditions.elementToBeClickable(
+            AppiumBy.id("android:id/aerr_close")
+        ).apply(driver) != null
+        val isNormalConnectPossible = ExpectedConditions.elementToBeClickable(
+            AppiumBy.xpath(xpathToConnectButton)
+        ).apply(driver) != null
+
+        if (!applicationIsRunning || alertIsShown) {
+            return Action.RESTART
+        } else if (isNormalConnectPossible) {
+            return Action.NORMAL_CONNECT
+        } else {
+            return null
+        }
+    }
+
+    private fun getNextActionAndExecuteIt() {
+        val action = wait.until({ _ -> getNextAction() })
+        if (Action.RESTART == action) {
+            restartApp()
+            clickConnectToServerButton()
+        } else if (Action.NORMAL_CONNECT == action) {
+            clickConnectToServerButton()
+        } else {
+            throw IllegalStateException()
+        }
+    }
+
+
     override fun oneConnectForStateLearning() {
-        fun whatShouldYouDo(): Action? {
-            logger.warn(driver.queryAppState(bundleId))
-            val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
-            val alertIsShown = ExpectedConditions.elementToBeClickable(
-                AppiumBy.id("android:id/aerr_close")
-            ).apply(driver) != null
-            val isNormalConnectPossible = ExpectedConditions.elementToBeClickable(
-                AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")
-            ).apply(driver) != null
-            logger.warn("$isNormalConnectPossible,$applicationIsRunning,${alertIsShown}")
-            if (!applicationIsRunning || alertIsShown) {
-                return Action.RESTART
-            } else if (isNormalConnectPossible) {
-                return Action.NORMAL_CONNECT
-            } else {
-                return null
-            }
-
+        catchAppiumException {
+            getNextActionAndExecuteIt()
         }
-
-        try {
-            val action = wait.until({ _ -> whatShouldYouDo() })
-            if (Action.RESTART == action) {
-                restartApp()
-                waitUntilElementIsClickable(AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")).click()
-            } else if (Action.NORMAL_CONNECT == action) {
-                waitUntilElementIsClickable(AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")).click()
-            } else {
-                throw IllegalStateException()
-            }
-
-        } catch (_: StaleElementReferenceException) {
-        } catch (_: TimeoutException) {
-        }
-
     }
 
     private fun addHost() {
@@ -132,13 +106,9 @@ class ConnectBotController(
         finishAddHost()
     }
 
-    private fun connectToServer() {
-        fun clickToConnectToServer() = waitUntilElementIsClickable(
-            AppiumBy.xpath("//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]")
-        ).click()
-
+    private fun restartAndconnectToServer() {
         restartApp()
-        clickToConnectToServer()
+        clickConnectToServerButton()
     }
 
     private fun setSettings() {
@@ -168,8 +138,5 @@ class ConnectBotController(
         returnToHome()
     }
 
-    enum class Action {
-        RESTART, NORMAL_CONNECT
-    }
 
 }

@@ -2,10 +2,7 @@ package de.rub.nds.sshstatelearner.android.controller
 
 import io.appium.java_client.AppiumBy
 import io.appium.java_client.appmanagement.ApplicationState
-import org.apache.logging.log4j.LogManager
 import org.openqa.selenium.Point
-import org.openqa.selenium.StaleElementReferenceException
-import org.openqa.selenium.TimeoutException
 import org.openqa.selenium.support.ui.ExpectedConditions
 
 class TermiusController(
@@ -17,18 +14,23 @@ class TermiusController(
     udid: String
 ) : AndroidSSHClientController(ipToAppium, portToAppium, ipToServer, portToServer, pathToApks, udid) {
     override val bundleId = "com.server.auditor.ssh.client"
+    val reconnectButtonId = "com.server.auditor.ssh.client:id/start_over_button"
+    val connectButtonFooterXpath =
+        "//android.widget.TextView[@resource-id=\"com.server.auditor.ssh.client:id/footer_text\"]"
+    val connectButtonXPath =
+        "(//android.view.ViewGroup[@resource-id=\"com.server.auditor.ssh.client:id/clickable_layout\"])[2]"
 
-    private companion object {
-        val logger = LogManager.getLogger()
+    private fun connectToServer() {
+        waitUntilElementIsClickable(
+            AppiumBy.xpath(connectButtonXPath)
+        ).click()
+    }
+
+    private fun reconnectToServer() {
+        waitUntilElementIsClickable(AppiumBy.id(reconnectButtonId)).click()
     }
 
     override fun connectToGetFingerprint() {
-        fun connectFirstTime() {
-            waitUntilElementIsClickable(
-                AppiumBy.xpath("(//android.view.ViewGroup[@resource-id=\"com.server.auditor.ssh.client:id/clickable_layout\"])[2]")
-            ).click()
-        }
-
         fun clickSaveFingerprint() {
             waitUntilElementIsClickable(
                 AppiumBy.id("com.server.auditor.ssh.client:id/save_and_continue_button")
@@ -39,8 +41,9 @@ class TermiusController(
         finishTutorial()
         addHost()
 
-        connectFirstTime()
+        connectToServer()
         clickSaveFingerprint()
+        reconnectToServer()
     }
 
     private fun finishTutorial() {
@@ -100,98 +103,64 @@ class TermiusController(
         saveHost()
     }
 
-    override fun connectForStateLearning() {
-        fun connectToServer() {
-            waitUntilElementIsClickable(
-                AppiumBy.xpath("(//android.view.ViewGroup[@resource-id=\"com.server.auditor.ssh.client:id/clickable_layout\"])[2]")
-            ).click()
-        }
+    private fun getAction(): Action? {
+        val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
+        val alertIsShown = ExpectedConditions.elementToBeClickable(
+            AppiumBy.id("android:id/aerr_close")
+        ).apply(driver) != null
 
+        val connectButtonFooter = ExpectedConditions.elementToBeClickable(
+            AppiumBy.xpath(connectButtonFooterXpath)
+        ).apply(driver)
+        val isNormalConnectPossible = connectButtonFooter != null && "SSH, attacker" == connectButtonFooter.text
 
-        fun connectToServerIfAppIsRunningOrRestartApp(): Boolean? {
-            /**
-             * This approach is necessary because the app is unstable.
-             */
-            if (driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND) {
-                val element = wait.until {
-                    val element =
-                        ExpectedConditions.elementToBeClickable(AppiumBy.id("com.server.auditor.ssh.client:id/start_over_button"))
-                            .apply(driver)
-                    if (element != null) {
-                        element
-                    } else {
-                        val element2 =
-                            ExpectedConditions.elementToBeClickable(AppiumBy.xpath("//android.widget.TextView[@resource-id=\"com.server.auditor.ssh.client:id/footer_text\"]"))
-                                .apply(driver)
-                        if (element2 == null || "Active".equals(element2.text)) {
-                            null
-                        } else {
-                            element2
-                        }
+        val isReconnectPossible = ExpectedConditions.elementToBeClickable(
+            AppiumBy.id(reconnectButtonId)
+        ).apply(driver) != null
 
-                    }
-                }
-                if (element != null) {
-                    element.click()
-                    return true
-                }
-            } else {
-                restartApp()
-            }
+        if (!applicationIsRunning || alertIsShown) {
+            return Action.RESTART
+        } else if (isNormalConnectPossible) {
+            return Action.NORMAL_CONNECT
+        } else if (isReconnectPossible) {
+            return Action.RECONNECT
+        } else {
             return null
         }
+    }
 
-
-        do {
-            try {
+    fun getActionAndExecuteIt() {
+        val action = wait.until { getAction() }
+        when (action) {
+            Action.RESTART -> {
                 restartApp()
                 connectToServer()
-                do {
-                    connectToServerIfAppIsRunningOrRestartApp()
-                } while (isInStateMachineLearningMode)
-            } catch (_: StaleElementReferenceException) {
-            } catch (_: TimeoutException) {
+            }
+
+            Action.RECONNECT -> {
+                reconnectToServer()
+            }
+
+            Action.NORMAL_CONNECT -> {
+                connectToServer()
+            }
+
+            else -> {}
+        }
+    }
+
+    override fun connectForStateLearning() {
+        restartApp()
+        do {
+            catchAppiumException {
+                getActionAndExecuteIt()
             }
         } while (isInStateMachineLearningMode)
     }
 
     override fun oneConnectForStateLearning() {
-        fun connectToServer() {
-            waitUntilElementIsClickable(
-                AppiumBy.xpath("(//android.view.ViewGroup[@resource-id=\"com.server.auditor.ssh.client:id/clickable_layout\"])[2]")
-            ).click()
-        }
-
-        try {
-            if (driver.queryAppState(bundleId) != ApplicationState.RUNNING_IN_FOREGROUND) {
-                //logger.warn("The state of the App is ${driver.queryAppState(bundleId)}")
-                restartApp()
-                connectToServer()
-            } else {
-                wait.until(
-                    { _ ->
-                        val value0 =
-                            ExpectedConditions.elementToBeClickable(AppiumBy.id("com.server.auditor.ssh.client:id/start_over_button"))
-                                .apply(driver)
-                        val value1 =
-                            ExpectedConditions.elementToBeClickable(AppiumBy.xpath("//android.widget.TextView[@resource-id=\"com.server.auditor.ssh.client:id/footer_text\"]"))
-                                .apply(driver)
-                        if (value0 != null) {
-                            //logger.warn("reconnect Click")
-                            value0
-                        } else if (value1 != null && "SSH, attacker".equals(value1.text)) {
-                            //logger.warn("Text ${value1.text}")
-                            value1
-                        } else {
-                            null
-                        }
-                    }
-                )!!.click()
-            }
-
-
-        } catch (_: StaleElementReferenceException) {
-        } catch (_: TimeoutException) {
+        catchAppiumException {
+            getActionAndExecuteIt()
         }
     }
 }
