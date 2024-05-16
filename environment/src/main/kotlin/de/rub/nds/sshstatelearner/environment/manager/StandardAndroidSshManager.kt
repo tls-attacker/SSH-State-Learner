@@ -9,8 +9,11 @@ import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
+import de.rub.nds.sshstatelearner.extraction.ParallelOracleExtractor
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.NetworkSshClientSulManager
+import de.rub.nds.sshstatelearner.sul.AndroidSshClientWorker
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSulProxy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -41,8 +44,16 @@ class StandardAndroidSshManager(val argsAndroidGeneral: ArgsAndroidGeneral) : En
             androidClientConnectionHandler.add(tmp)
             tmp = AndroidClientConnectionHandler("emulator-5560", 48226)
             androidClientConnectionHandler.add(tmp)
+            tmp = AndroidClientConnectionHandler("emulator-5562", 48227)
+            androidClientConnectionHandler.add(tmp)
+            tmp = AndroidClientConnectionHandler("emulator-5564", 48228)
+            androidClientConnectionHandler.add(tmp)
+            tmp = AndroidClientConnectionHandler("emulator-5566", 48229)
+            androidClientConnectionHandler.add(tmp)
+            tmp = AndroidClientConnectionHandler("emulator-5568", 48230)
+            androidClientConnectionHandler.add(tmp)
             androidClientConnectionHandler.forEach(
-                { it ->
+                {
                     launch(Dispatchers.IO) {
                         it.init()
                     }
@@ -53,18 +64,46 @@ class StandardAndroidSshManager(val argsAndroidGeneral: ArgsAndroidGeneral) : En
 
 
     fun conductProtocolLearning(): Extractor.ExtractorResult {
-        val alphabet = getInputAlphabet(false)
+        //val alphabet = getInputAlphabet(false)
+        val alphabet = ListAlphabet(
+            listOf(
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_FAILURE,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+        )
         MainWindow.infoAlphabetSize.text = alphabet.size.toString()
-        val sul = NetworkSshClientSulManager(
+        val suls = mutableListOf<NetworkSshClientSul>()
+        for (clientConnectionHandler in androidClientConnectionHandler) {
+            suls.add(
+                NetworkSshClientSul(
+                    ArgsSul.name,
+                    clientConnectionHandler.getPort(),
+                    ArgsSul.timeout,
+                    ArgsSul.resetDelay,
+                    ArgsSul.protocolStage,
+                    ArgsSul.kexAlgorithm,
+                    clientConnectionHandler
+                )
+            )
+        }
+        val androidSshClientWorker = AndroidSshClientWorker()
+        androidSshClientWorker.init(suls)
+
+
+        val sul = NetworkSshClientSulProxy(
             ArgsSul.name,
             ArgsSul.timeout,
             ArgsSul.resetDelay,
             ArgsSul.protocolStage,
             ArgsSul.kexAlgorithm,
-            androidClientConnectionHandler
+            androidSshClientWorker
         )
         sul.use {
-            val learner = Extractor(
+            val learner = ParallelOracleExtractor(
                 alphabet,
                 it,
                 ArgsLearner.learningAlgorithmType,

@@ -49,65 +49,69 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceAcceptMessa
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.UnimplementedMessage
 
-enum class SshSymbol(val message: ProtocolMessage<*>) {
+enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
     /*
      * SSH transport protocol symbols
      */
-    MSG_DISCONNECT(DisconnectMessage()),
-    MSG_IGNORE(IgnoreMessage()),
-    MSG_UNIMPLEMENTED(UnimplementedMessage()),
-    MSG_DEBUG(DebugMessage()),
-    MSG_SERVICE_REQUEST_USERAUTH(ServiceRequestMessage().apply {
+    MSG_DISCONNECT({ DisconnectMessage() }),
+    MSG_IGNORE({ IgnoreMessage() }),
+    MSG_UNIMPLEMENTED({ UnimplementedMessage() }),
+    MSG_DEBUG({ DebugMessage() }),
+    MSG_SERVICE_REQUEST_USERAUTH({
+        ServiceRequestMessage().apply {
         serviceNameLength = Modifiable.explicit(12)
         serviceName = Modifiable.explicit("ssh-userauth")
+        }
     }),
-    MSG_SERVICE_ACCEPT(ServiceAcceptMessage()),
-    MSG_KEXINIT(KeyExchangeInitMessage()),
-    MSG_NEWKEYS(NewKeysMessage()),
-    MSG_KEX_DH_GEX_REQUEST(DhGexKeyExchangeRequestMessage()),
-    MSG_KEX_DH_GEX_REQUEST_OLD(DhGexKeyExchangeOldRequestMessage()),
-    MSG_KEX_DH_GEX_GROUP(DhGexKeyExchangeGroupMessage()),
-    MSG_KEX_DH_GEX_INIT(DhGexKeyExchangeInitMessage()),
-    MSG_KEX_DH_GEX_REPLY(DhGexKeyExchangeReplyMessage()),
-    MSG_KEXDH_INIT(DhKeyExchangeInitMessage()),
-    MSG_KEXDH_REPLY(DhKeyExchangeReplyMessage()),
-    MSG_KEX_ECDH_INIT(EcdhKeyExchangeInitMessage()),
-    MSG_KEX_ECDH_REPLY(EcdhKeyExchangeReplyMessage()),
-    MSG_KEX_RSA_PUBKEY(RsaKeyExchangePubkeyMessage()),
-    MSG_KEX_RSA_SECRET(RsaKeyExchangeSecretMessage()),
-    MSG_KEX_RSA_DONE(RsaKeyExchangeDoneMessage()),
-    MSG_KEX_HBR_INIT(HybridKeyExchangeInitMessage()),
-    MSG_KEX_HBR_REPLY(HybridKeyExchangeReplyMessage()),
+    MSG_SERVICE_ACCEPT({ ServiceAcceptMessage() }),
+    MSG_KEXINIT({ KeyExchangeInitMessage() }),
+    MSG_NEWKEYS({ NewKeysMessage() }),
+    MSG_KEX_DH_GEX_REQUEST({ DhGexKeyExchangeRequestMessage() }),
+    MSG_KEX_DH_GEX_REQUEST_OLD({ DhGexKeyExchangeOldRequestMessage() }),
+    MSG_KEX_DH_GEX_GROUP({ DhGexKeyExchangeGroupMessage() }),
+    MSG_KEX_DH_GEX_INIT({ DhGexKeyExchangeInitMessage() }),
+    MSG_KEX_DH_GEX_REPLY({ DhGexKeyExchangeReplyMessage() }),
+    MSG_KEXDH_INIT({ DhKeyExchangeInitMessage() }),
+    MSG_KEXDH_REPLY({ DhKeyExchangeReplyMessage() }),
+    MSG_KEX_ECDH_INIT({ EcdhKeyExchangeInitMessage() }),
+    MSG_KEX_ECDH_REPLY({ EcdhKeyExchangeReplyMessage() }),
+    MSG_KEX_RSA_PUBKEY({ RsaKeyExchangePubkeyMessage() }),
+    MSG_KEX_RSA_SECRET({ RsaKeyExchangeSecretMessage() }),
+    MSG_KEX_RSA_DONE({ RsaKeyExchangeDoneMessage() }),
+    MSG_KEX_HBR_INIT({ HybridKeyExchangeInitMessage() }),
+    MSG_KEX_HBR_REPLY({ HybridKeyExchangeReplyMessage() }),
     /*
      * SSH authentication protocol symbols
      */
-    MSG_USERAUTH_REQUEST_PASSWD_VALID(UserAuthPasswordMessage()),
-    MSG_USERAUTH_REQUEST_PASSWD_INVALID(
+    MSG_USERAUTH_REQUEST_PASSWD_VALID({ UserAuthPasswordMessage() }),
+    MSG_USERAUTH_REQUEST_PASSWD_INVALID({
         UserAuthPasswordMessage().apply {
             passwordLength = Modifiable.explicit(14)
             password = Modifiable.explicit("Wrong password")
         }
-    ),
-    MSG_USERAUTH_REQUEST_PUBKEY_VALID(UserAuthPubkeyMessage()),
-    MSG_USERAUTH_SUCCESS(UserAuthSuccessMessage()),
-    MSG_USERAUTH_FAILURE(UserAuthFailureMessage()),
-    MSG_USERAUTH_BANNER(UserAuthBannerMessage()),
-    MSG_SERVICE_REQUEST_CONNECTION(ServiceRequestMessage().apply {
+    }),
+    MSG_USERAUTH_REQUEST_PUBKEY_VALID({ UserAuthPubkeyMessage() }),
+    MSG_USERAUTH_SUCCESS({ UserAuthSuccessMessage() }),
+    MSG_USERAUTH_FAILURE({ UserAuthFailureMessage() }),
+    MSG_USERAUTH_BANNER({ UserAuthBannerMessage() }),
+    MSG_SERVICE_REQUEST_CONNECTION({
+        ServiceRequestMessage().apply {
         serviceNameLength = Modifiable.explicit(14)
         serviceName = Modifiable.explicit("ssh-connection")
+        }
     }),
     /*
      * SSH connection protocol symbols
      */
-    MSG_REQUEST_SUCCESS(GlobalRequestSuccessMessage()),
-    MSG_REQUEST_FAILURE(GlobalRequestFailureMessage()),
-    MSG_CHANNEL_OPEN_SESSION(ChannelOpenSessionMessage()),
-    MSG_CHANNEL_OPEN_CONFIRMATION(ChannelOpenConfirmationMessage()),
-    MSG_CHANNEL_OPEN_FAILURE(ChannelOpenFailureMessage()),
-    MSG_CHANNEL_WINDOW_ADJUST(ChannelWindowAdjustMessage()),
-    MSG_CHANNEL_EOF(ChannelEofMessage()),
-    MSG_CHANNEL_CLOSE(ChannelCloseMessage()),
-    MSG_CHANNEL_REQUEST_EXEC(ChannelRequestExecMessage()),
-    MSG_CHANNEL_SUCCESS(ChannelSuccessMessage()),
-    MSG_CHANNEL_FAILURE(ChannelFailureMessage())
+    MSG_REQUEST_SUCCESS({ GlobalRequestSuccessMessage() }),
+    MSG_REQUEST_FAILURE({ GlobalRequestFailureMessage() }),
+    MSG_CHANNEL_OPEN_SESSION({ ChannelOpenSessionMessage() }),
+    MSG_CHANNEL_OPEN_CONFIRMATION({ ChannelOpenConfirmationMessage() }),
+    MSG_CHANNEL_OPEN_FAILURE({ ChannelOpenFailureMessage() }),
+    MSG_CHANNEL_WINDOW_ADJUST({ ChannelWindowAdjustMessage() }),
+    MSG_CHANNEL_EOF({ ChannelEofMessage() }),
+    MSG_CHANNEL_CLOSE({ ChannelCloseMessage() }),
+    MSG_CHANNEL_REQUEST_EXEC({ ChannelRequestExecMessage() }),
+    MSG_CHANNEL_SUCCESS({ ChannelSuccessMessage() }),
+    MSG_CHANNEL_FAILURE({ ChannelFailureMessage() })
 }

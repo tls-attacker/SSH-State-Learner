@@ -38,8 +38,12 @@ abstract class AndroidSSHClientController(
     protected var isInStateMachineLearningMode = false
 
     fun installApp() {
+        driver.terminateApp(bundleId)
         if (driver.isAppInstalled(bundleId)) {
-            driver.removeApp(bundleId)
+            driver.terminateApp(bundleId)
+            driver.executeScript("mobile:clearApp", mapOf("appId" to bundleId))
+            Thread.sleep(Duration.ofSeconds(1))
+            return
         }
 
         if (pathToApks.size == 1) {
@@ -50,6 +54,8 @@ abstract class AndroidSSHClientController(
                 "mobile:installMultipleApks",
                 mapOf("apks" to pathToApks, "options" to "r")
             )
+            // Time for the installation.
+            Thread.sleep(Duration.ofSeconds(10))
         }
     }
 

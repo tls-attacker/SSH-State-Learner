@@ -12,14 +12,17 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class AndroidClientConnectionHandler : ClientConnectionHandler {
+class AndroidClientConnectionHandler(
+    udid: String = ArgsAndroidGeneral.udid,
+    portToSshServer: Int = ArgsAndroidGeneral.portToSshServer
+) : ClientConnectionHandler {
     private val scope = CoroutineScope(Dispatchers.IO)
 
     private val androidSSHClientController: AndroidSSHClientController
 
     override fun getPort(): Int = androidSSHClientController.portToServer
 
-    constructor(udid: String = ArgsAndroidGeneral.udid, portToSshServer: Int = ArgsAndroidGeneral.portToSshServer) {
+    init {
         androidSSHClientController = AndroidSSHClientControllerFactory.getClientController(
             ArgsAndroidGeneral.androidSshClientTyp,
             ArgsAndroidGeneral.ipToAppium,
@@ -53,7 +56,7 @@ class AndroidClientConnectionHandler : ClientConnectionHandler {
                 }
             }
         } catch (e: Exception) {
-            throw IllegalStateException(e.cause)
+            throw IllegalStateException(e)
         }
     }
 

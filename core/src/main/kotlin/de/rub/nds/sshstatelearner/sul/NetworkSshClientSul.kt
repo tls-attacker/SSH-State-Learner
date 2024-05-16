@@ -34,7 +34,7 @@ class NetworkSshClientSul(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
-    private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler()
+    private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler(),
 ) : NetworkSshSul(name, timeout, resetDelay, stage, kex) {
 
     override var connectionAlias = "server"
@@ -88,12 +88,12 @@ class NetworkSshClientSul(
      */
     override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
         LOGGER.trace("Executing symbol: {}", symbol)
-        symbol.message.getHandler(state.sshContext).preparator.prepare()
+        val protocolMessage = symbol.messageCreator()
+        protocolMessage.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
-        sendMessage(symbol.message)
+        sendMessage(protocolMessage)
         val retrieveDelay = 50L
-        Thread.sleep(retrieveDelay)
-        return retrieveMessages()
+        return retrieveMessages(retrieveDelay)
     }
 
     /**

@@ -10,6 +10,7 @@ package de.rub.nds.sshstatelearner.sul.response
 
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.tlsattacker.transport.socket.SocketState
+import java.io.Serializable
 
 /**
  * A data class representing a single response of an SSH peer. It contains the returned messages as well as
@@ -18,7 +19,7 @@ import de.rub.nds.tlsattacker.transport.socket.SocketState
  * @param messages Messages retrieved from the SSH peer.
  * @param socketState State of the underlying network socket after retrieving the messages.
  */
-data class ResponseFingerprint(val messages: List<ProtocolMessage<*>>, var socketState: SocketState) {
+data class ResponseFingerprint(val messages: List<ProtocolMessage<*>>, var socketState: SocketState) : Serializable {
 
     /**
      * Serializes the response fingerprint into a human-readable string.
@@ -26,13 +27,14 @@ data class ResponseFingerprint(val messages: List<ProtocolMessage<*>>, var socke
      * @return A string representing this response fingerprint.
      */
     override fun toString(): String {
-        val messagesString = messages.joinToString(",") { it.toCompactString() }
+        var messagesString = messages.joinToString(",") { it.toCompactString() }
+        if (messages.isEmpty()) messagesString = "NO_RESPONSE"
         return "$messagesString | SocketState: $socketState"
     }
 
     /**
      * Checks whether the provided object is equal to this fingerprint. Two response fingerprints are considered
-     * equal if both response fingerprints contain the same message types (in any order) and their socket
+     * equal if both response fingerprints contain the same message types in same order and their socket
      * states are equal.
      *
      * @param other The object which is being checked for equality with this.
@@ -55,5 +57,6 @@ data class ResponseFingerprint(val messages: List<ProtocolMessage<*>>, var socke
      *
      * @return The hash code of this response fingerprint.
      */
-    override fun hashCode(): Int = messages.fold(socketState.hashCode()) { hash, it -> hash + it.javaClass.hashCode() }
+    override fun hashCode(): Int =
+        messages.fold(socketState.hashCode()) { hash, it -> 31 * hash + it.javaClass.hashCode() }
 }

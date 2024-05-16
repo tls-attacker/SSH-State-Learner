@@ -59,6 +59,7 @@ abstract class NetworkSshSul(
             }
             val response = executeSymbol(p0)
             executedSteps.add(p0)
+
             if (response.socketState == SocketState.SOCKET_EXCEPTION || response.socketState == SocketState.CLOSED) {
                 /*
                  * Optimization for handling closed connection: If the response indicates a closed connection (either
@@ -73,7 +74,7 @@ abstract class NetworkSshSul(
                  * This can lead to the algorithm not terminating due to different behaviours on the same words. It must
                  * be avoided at all costs (i.e. increase delay between send and receive actions)
                  */
-                LOGGER.warn("The responses' socket state indicates more data is available, increase delay between send and receive to avoid incomplete responses")
+                LOGGER.error("The responses' socket state indicates more data is available, increase delay between send and receive to avoid incomplete responses")
             }
             return response
         } catch (e: IOException) {
@@ -131,7 +132,7 @@ abstract class NetworkSshSul(
      *
      * @return The response fingerprint returned by the SSH peer.
      */
-    protected fun retrieveMessages(): ResponseFingerprint {
+    protected fun retrieveMessages(retrieveDelay: Long = 0): ResponseFingerprint {
         try {
             if (state.sshContext.transportHandler.isClosed) {
                 return ResponseFingerprint(listOf(), SocketState.CLOSED)
@@ -140,6 +141,7 @@ abstract class NetworkSshSul(
             throw SULException(e)
         }
         try {
+            Thread.sleep(retrieveDelay)
             val action = ReceiveAction(connectionAlias)
             try {
                 action.execute(state)

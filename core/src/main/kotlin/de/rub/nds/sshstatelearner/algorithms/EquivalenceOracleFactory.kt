@@ -250,22 +250,52 @@ object EquivalenceOracleFactory {
         useClientAlphabet: Boolean
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
+        val batchSize = 100
         return when (type) {
+
             EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache.createCacheConsistencyTest() ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
             EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(
                 membershipOracle,
                 happyFlowProtocolStage,
                 happyFlowKex,
                 happyFlowSuffixLength,
-                useClientAlphabet
+                useClientAlphabet,
+                batchSize
             )
-            EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(membershipOracle, completeExplorationMinDepth, completeExplorationMaxDepth)
-            EquivalenceOracleType.RANDOM_WORDS -> RandomWordsEQOracle(membershipOracle, randomWordsMinLength, randomWordsMaxLength, randomWordsMaxTests)
+
+            EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(
+                membershipOracle,
+                completeExplorationMinDepth,
+                completeExplorationMaxDepth,
+                batchSize
+            )
+
+            EquivalenceOracleType.RANDOM_WORDS -> RandomWordsEQOracle(
+                membershipOracle,
+                randomWordsMinLength,
+                randomWordsMaxLength,
+                randomWordsMaxTests,
+                Random(),
+                batchSize
+            )
             EquivalenceOracleType.RANDOM_WALK -> RandomWalkEQOracle(sul, randomWalkRestartProbability, randomWalkMaxSteps, Random())
-            EquivalenceOracleType.W -> WMethodEQOracle(membershipOracle, wMaxDepth)
-            EquivalenceOracleType.RANDOM_W -> RandomWMethodEQOracle(membershipOracle, randomWMinimalSize, randomWRndLength, randomWBound)
-            EquivalenceOracleType.WP -> WpMethodEQOracle(membershipOracle, wMaxDepth)
-            EquivalenceOracleType.RANDOM_WP -> RandomWpMethodEQOracle(membershipOracle, randomWMinimalSize, randomWRndLength, randomWBound)
+            EquivalenceOracleType.W -> WMethodEQOracle(membershipOracle, wMaxDepth, batchSize)
+            EquivalenceOracleType.RANDOM_W -> RandomWMethodEQOracle(
+                membershipOracle,
+                randomWMinimalSize,
+                randomWRndLength,
+                randomWBound,
+                batchSize
+            )
+
+            EquivalenceOracleType.WP -> WpMethodEQOracle(membershipOracle, wMaxDepth, batchSize)
+            EquivalenceOracleType.RANDOM_WP -> RandomWpMethodEQOracle(
+                membershipOracle,
+                randomWMinimalSize,
+                randomWRndLength,
+                randomWBound,
+                batchSize
+            )
         }
     }
 

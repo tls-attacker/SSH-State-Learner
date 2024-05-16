@@ -78,9 +78,10 @@ class NetworkSshServerSul(
      */
     override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
         LOGGER.trace("Executing symbol: {}", symbol)
-        symbol.message.getHandler(state.sshContext).preparator.prepare()
+        val protocolMessage = symbol.messageCreator()
+        protocolMessage.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
-        sendMessage(symbol.message)
+        sendMessage(protocolMessage)
         val retrieveDelay = if (symbol == SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID) 2500L else 50L
         Thread.sleep(retrieveDelay)
         return retrieveMessages()

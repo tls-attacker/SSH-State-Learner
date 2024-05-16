@@ -13,28 +13,48 @@ import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.learnlib.api.query.Query
 import de.learnlib.filter.cache.LearningCacheOracle
+import de.rub.nds.sshstatelearner.analysis.automata.AnalysisDFARun
+import de.rub.nds.sshstatelearner.analysis.limiter.DFASMLLimiter
+import de.rub.nds.sshstatelearner.analysis.limiter.message.NotInStateMachineLearningFocusMessage
 import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 import net.automatalib.words.WordBuilder
+import org.apache.logging.log4j.LogManager
+
 
 /**
  * A simple tree cache to reduce the number of queries executed on the underlying SUL. Applies further optimization
  * by handling input symbols after a connection was closed.
  *
- * @param delegate An underlying membership oracle that is queried when the cached information are insufficient to answer the query.
+ * @param delegates An underlying membership oracle that is queried when the cached information are insufficient to answer the query.
  */
 class ResponseTreeCache(
-    private val delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
+    private val delegates: List<MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>>
 ) : LearningCacheOracle.MealyLearningCacheOracle<SshSymbol, ResponseFingerprint> {
+
+    constructor(delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>) : this(listOf(delegate)) {
+
+    }
+
+    companion object {
+        val logger = LogManager.getLogger()
+    }
 
     /**
      * The root node of the cache tree
      */
     private val root: Node = Node(null, null)
+
+    private val dFASMLLimiter: DFASMLLimiter = DFASMLLimiter().apply { init() }
 
     /**
      * The fingerprint of a closed connection. The cache repeats this fingerprint as output when encountered once.
@@ -43,14 +63,62 @@ class ResponseTreeCache(
     private val emptyResponseClosedConnectionFingerprint: ResponseFingerprint = ResponseFingerprint(emptyList(), SocketState.CLOSED)
 
     /**
+     * The fingerprint is used if the DFA limits the input alphabet.
+     */
+    private val notInStateMachineLearningFocusWithSocketClosed =
+        ResponseFingerprint(listOf(NotInStateMachineLearningFocusMessage()), SocketState.CLOSED)
+
+    /**
      * Processes a collection of queries by iterating through the collection and calling answerQuery for each query.
      *
      * @param queries The collection of queries to answer.
      */
     override fun processQueries(queries: MutableCollection<out Query<SshSymbol, Word<ResponseFingerprint>>>) {
-        for (query in queries) {
-            val output = answerQuery(query.prefix, query.suffix)
-            query.answer(output)
+        runBlocking {
+            val jobs = mutableListOf<Job>()
+            val iterator = queries.iterator()
+            val pairOfQueriesAndResponsesToUpdateToCache: Array<Pair<Query<SshSymbol, Word<ResponseFingerprint>>, Word<ResponseFingerprint>>?> =
+                arrayOfNulls(delegates.size)
+
+            while (iterator.hasNext()) {
+                var i = 0
+
+                while (i < delegates.size && iterator.hasNext()) {
+                    val value = iterator.next()
+                    val currentValue = i
+                    jobs.add(
+                        launch(Dispatchers.IO) {
+                            val cachedResponse = find(value.prefix, value.suffix)
+                            if (cachedResponse != null) {
+                                value.answer(cachedResponse)
+                                return@launch
+                            }
+
+                            val focusedResponse = analysisInputWithDFA(
+                                value.prefix,
+                                value.suffix,
+                                dFASMLLimiter.createAnalysisDFARun(),
+                                delegates[currentValue]
+                            )
+
+                            val response = focusedResponse ?: answerQueryWithSul(
+                                value.prefix,
+                                value.suffix,
+                                delegates[currentValue]
+                            )
+                            value.answer(response)
+                            pairOfQueriesAndResponsesToUpdateToCache[currentValue] = Pair(value, response)
+                        }
+                    )
+                    i += 1
+                }
+
+                joinAll(*jobs.toTypedArray())
+                pairOfQueriesAndResponsesToUpdateToCache.filterNotNull()
+                    .forEach { update(it.first.prefix, it.first.suffix, it.second) }
+                pairOfQueriesAndResponsesToUpdateToCache.fill(null)
+                jobs.clear()
+            }
         }
     }
 
@@ -63,14 +131,89 @@ class ResponseTreeCache(
      * @return The output of the mealy machine when executing prefix and suffix. Only the output of the suffix symbols
      *         is returned.
      */
-    override fun answerQuery(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>): Word<ResponseFingerprint> {
+    override fun answerQuery(
+        prefix: Word<SshSymbol>,
+        suffix: Word<SshSymbol>
+    ): Word<ResponseFingerprint> {
         val cachedResponse = find(prefix, suffix)
         if (cachedResponse != null) {
             return cachedResponse
         }
-        val delegateResponse = delegate.answerQuery(prefix, suffix)
-        update(prefix, suffix, delegateResponse)
-        return delegateResponse
+
+        val focuserResponse =
+            analysisInputWithDFA(prefix, suffix, dFASMLLimiter.createAnalysisDFARun(), delegates[0])
+        val response = focuserResponse ?: answerQueryWithSul(prefix, suffix, delegates[0])
+        update(prefix, suffix, response)
+        return response
+    }
+
+    private fun answerQueryWithSul(
+        prefix: Word<SshSymbol>,
+        suffix: Word<SshSymbol>,
+        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
+    ): Word<ResponseFingerprint> = delegate.answerQuery(prefix, suffix)
+
+    private fun analysisInputWithDFA(
+        prefix: Word<SshSymbol>,
+        suffix: Word<SshSymbol>,
+        analysisDFARun: AnalysisDFARun,
+        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
+    ): Word<ResponseFingerprint>? {
+        fun generateResponseWithOneNotAllowedAndThenSuffixLengthSocketClosed(suffix: Word<SshSymbol>):
+                Word<ResponseFingerprint> =
+            WordBuilder<ResponseFingerprint>().append(notInStateMachineLearningFocusWithSocketClosed)
+                .repeatAppend(suffix.length() - 1, emptyResponseClosedConnectionFingerprint)
+                .toWord()
+
+        fun generateResponseWithSuffixLengthSocketClosed(suffix: Word<SshSymbol>): Word<ResponseFingerprint> =
+            WordBuilder<ResponseFingerprint>().repeatAppend(suffix.length(), emptyResponseClosedConnectionFingerprint)
+                .toWord()
+
+        fun isAnalysisDFAForPrefixValid(prefix: Word<SshSymbol>): Boolean =
+            prefix.none { inputSymbol -> !analysisDFARun.step(inputSymbol) }
+
+        fun isAnalysisDFAForSuffixValid(suffix: Word<SshSymbol>): Boolean =
+            isAnalysisDFAForPrefixValid(suffix)
+
+        fun getValidAndInvalidPartOfSuffix(suffix: Word<SshSymbol>): Pair<Word<SshSymbol>, Word<SshSymbol>> {
+            val validSuffix = WordBuilder<SshSymbol>()
+            val invalidSuffix = WordBuilder<SshSymbol>()
+            for (suffixElement in suffix) {
+                if (analysisDFARun.step(suffixElement)) {
+                    validSuffix.add(suffixElement)
+                } else {
+                    invalidSuffix.add(suffixElement)
+                }
+            }
+            return Pair(validSuffix.toWord(), invalidSuffix.toWord())
+        }
+
+
+        if (!isAnalysisDFAForPrefixValid(prefix)) return generateResponseWithSuffixLengthSocketClosed(suffix)
+
+        analysisDFARun.saveState()
+        return if (isAnalysisDFAForSuffixValid(suffix)) null
+        else {
+            analysisDFARun.restoreState()
+            val validAndInvalidPartOfSuffix = getValidAndInvalidPartOfSuffix(suffix)
+            val validPartOfSuffix = validAndInvalidPartOfSuffix.first
+            val invalidPartOfSuffix = validAndInvalidPartOfSuffix.second
+            val responseFromTreeCache = this.find(prefix, validPartOfSuffix)
+
+            val response = responseFromTreeCache ?: answerQueryWithSul(prefix, validPartOfSuffix, delegate)
+
+            if (response.any { it.socketState == SocketState.CLOSED }
+            ) {
+                // Case socket was closed before
+                response.concat(generateResponseWithSuffixLengthSocketClosed(invalidPartOfSuffix))
+            } else {
+                // Case socket was not closed before
+                response.concat(
+                    generateResponseWithOneNotAllowedAndThenSuffixLengthSocketClosed(invalidPartOfSuffix)
+                )
+            }
+
+        }
     }
 
     /**
@@ -87,7 +230,7 @@ class ResponseTreeCache(
      * @param suffix The suffix of the query.
      * @return The resulting word if the cached information is sufficient, null otherwise.
      */
-    private fun find(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>): Word<ResponseFingerprint>? {
+    fun find(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>): Word<ResponseFingerprint>? {
         var current: Node? = root
         // Descend the tree according to prefix without recording fingerprints
         for (prefixSymbol in prefix) {
@@ -97,7 +240,10 @@ class ResponseTreeCache(
                 return null
             } else if (current.isConnectionClosedLeaf()) {
                 // We encountered a connection closed leaf during prefix descend phase, answer query directly
-                return WordBuilder<ResponseFingerprint>().repeatAppend(suffix.length(), emptyResponseClosedConnectionFingerprint)
+                return WordBuilder<ResponseFingerprint>().repeatAppend(
+                    suffix.length(),
+                    emptyResponseClosedConnectionFingerprint
+                )
                     .toWord()
             }
         }
@@ -106,7 +252,10 @@ class ResponseTreeCache(
         for (suffixSymbolIndex in 0 until suffix.length()) {
             val suffixSymbol = suffix.getSymbol(suffixSymbolIndex)
             if (current?.isConnectionClosedLeaf() == true) {
-                return outputBuilder.repeatAppend(suffix.length() - suffixSymbolIndex, emptyResponseClosedConnectionFingerprint)
+                return outputBuilder.repeatAppend(
+                    suffix.length() - suffixSymbolIndex,
+                    emptyResponseClosedConnectionFingerprint
+                )
                     .toWord()
             } else {
                 current = current?.findChild(suffixSymbol)
@@ -118,6 +267,7 @@ class ResponseTreeCache(
             }
         }
         return outputBuilder.toWord()
+
     }
 
     /**

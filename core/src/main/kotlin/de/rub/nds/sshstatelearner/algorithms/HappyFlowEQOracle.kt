@@ -34,7 +34,8 @@ class HappyFlowEQOracle(
     private val stage: ProtocolStage,
     private val kex: KeyExchangeAlgorithm,
     private val suffixLength: Int,
-    private val useClientAlphabet: Boolean
+    private val useClientAlphabet: Boolean,
+    private val batchSize: Int = 1
 ) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
     /**
      * Searches for a counter example to disprove the hypothesis by iterating all prefixes of the happy flow
@@ -45,6 +46,14 @@ class HappyFlowEQOracle(
      * @return A counter example to the hypothesis or null, if no counter example was found.
      */
     override fun findCounterExample(
+        hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
+        alphabet: MutableCollection<out SshSymbol>
+    ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? =
+        if (batchSize == 1) findCounterExampleSequentially(hypothesis, alphabet)
+        else findCounterExampleParallel(hypothesis, alphabet)
+
+
+    private fun findCounterExampleSequentially(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
@@ -59,6 +68,37 @@ class HappyFlowEQOracle(
                 sulOutput.zip(hypothesisOutput).forEach {
                     if (it.first != it.second) {
                         return DefaultQuery(input, sulOutput)
+                    }
+                }
+            }
+        }
+        return null
+    }
+
+    private fun findCounterExampleParallel(
+        hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
+        alphabet: MutableCollection<out SshSymbol>
+    ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
+        val happyFlowPrefixes =
+            HappyFlowFactory.constructHappyFlow(stage, kex, useClientAlphabet).prefixes(true)
+        for (prefix in happyFlowPrefixes) {
+            val inputs = alphabet.combinations(suffixLength)
+                .map {
+                    DefaultQuery<SshSymbol, Word<ResponseFingerprint>>(
+                        prefix.concat(Word.fromList(it))
+                    )
+                }
+            val inputsChunks = inputs.chunked(batchSize)
+            for (inputsChunk in inputsChunks) {
+                membershipOracle.processBatch(inputsChunk)
+                inputsChunk.forEach { itOuter ->
+                    val input = itOuter.input
+                    val sulOutput = itOuter.output
+                    val hypothesisOutput = hypothesis.computeOutput(input)
+                    if (!sulOutput.zip(hypothesisOutput).none { itInner ->
+                            itInner.first != itInner.second
+                        }) {
+                        return DefaultQuery(input, hypothesisOutput)
                     }
                 }
             }
