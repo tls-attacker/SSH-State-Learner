@@ -1,8 +1,9 @@
 package de.rub.nds.sshstatelearner.analysis.automata
 
+import de.rub.nds.sshstatelearner.analysis.limiter.SMLRun
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
-class AnalysisDFARun(analysisDFACreationHelper: AnalysisDFACreationHelper) {
+class AnalysisDFARun(analysisDFACreationHelper: AnalysisDFACreationHelper) : SMLRun() {
     val alphabet = analysisDFACreationHelper.alphabet
     private val extendedAlphabet = analysisDFACreationHelper.extendedAlphabet
     private var currentState = analysisDFACreationHelper.getInitialState()
@@ -11,7 +12,7 @@ class AnalysisDFARun(analysisDFACreationHelper: AnalysisDFACreationHelper) {
     private var savedState: AnalysisDFAState? = null
     private var savedFalseStateWasReached: Boolean? = null
 
-    fun step(inputSymbol: SshSymbol?): Boolean {
+    override fun step(inputSymbol: SshSymbol?): Boolean {
         if (inputSymbol == null) throw IllegalArgumentException("Unknown inputSymbol '$inputSymbol'")
         if (falseStateWasReached) return false
         return when (inputSymbol) {
@@ -36,12 +37,12 @@ class AnalysisDFARun(analysisDFACreationHelper: AnalysisDFACreationHelper) {
         }
     }
 
-    fun saveState() {
+    override fun saveState() {
         savedState = currentState
         savedFalseStateWasReached = falseStateWasReached
     }
 
-    fun restoreState() {
+    override fun restoreState() {
         currentState = savedState ?: currentState
         falseStateWasReached = savedFalseStateWasReached ?: falseStateWasReached
 

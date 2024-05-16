@@ -13,8 +13,8 @@ import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.learnlib.api.query.Query
 import de.learnlib.filter.cache.LearningCacheOracle
-import de.rub.nds.sshstatelearner.analysis.automata.AnalysisDFARun
 import de.rub.nds.sshstatelearner.analysis.limiter.DFASMLLimiter
+import de.rub.nds.sshstatelearner.analysis.limiter.SMLRun
 import de.rub.nds.sshstatelearner.analysis.limiter.message.NotInStateMachineLearningFocusMessage
 import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
@@ -29,6 +29,7 @@ import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 import net.automatalib.words.WordBuilder
 import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 
 
 /**
@@ -41,12 +42,10 @@ class ResponseTreeCache(
     private val delegates: List<MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>>
 ) : LearningCacheOracle.MealyLearningCacheOracle<SshSymbol, ResponseFingerprint> {
 
-    constructor(delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>) : this(listOf(delegate)) {
-
-    }
+    constructor(delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>) : this(listOf(delegate))
 
     companion object {
-        val logger = LogManager.getLogger()
+        val logger: Logger = LogManager.getLogger()
     }
 
     /**
@@ -94,14 +93,14 @@ class ResponseTreeCache(
                                 return@launch
                             }
 
-                            val focusedResponse = analysisInputWithDFA(
+                            val smlLimiterResponse = analysisInputWithSmlLimiter(
                                 value.prefix,
                                 value.suffix,
-                                dFASMLLimiter.createAnalysisDFARun(),
+                                dFASMLLimiter.createSMLRun(),
                                 delegates[currentValue]
                             )
 
-                            val response = focusedResponse ?: answerQueryWithSul(
+                            val response = smlLimiterResponse ?: answerQueryWithSul(
                                 value.prefix,
                                 value.suffix,
                                 delegates[currentValue]
@@ -140,9 +139,9 @@ class ResponseTreeCache(
             return cachedResponse
         }
 
-        val focuserResponse =
-            analysisInputWithDFA(prefix, suffix, dFASMLLimiter.createAnalysisDFARun(), delegates[0])
-        val response = focuserResponse ?: answerQueryWithSul(prefix, suffix, delegates[0])
+        val smlLimiterResponse =
+            analysisInputWithSmlLimiter(prefix, suffix, dFASMLLimiter.createSMLRun(), delegates[0])
+        val response = smlLimiterResponse ?: answerQueryWithSul(prefix, suffix, delegates[0])
         update(prefix, suffix, response)
         return response
     }
@@ -153,10 +152,10 @@ class ResponseTreeCache(
         delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
     ): Word<ResponseFingerprint> = delegate.answerQuery(prefix, suffix)
 
-    private fun analysisInputWithDFA(
+    private fun analysisInputWithSmlLimiter(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>,
-        analysisDFARun: AnalysisDFARun,
+        smlRun: SMLRun,
         delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
     ): Word<ResponseFingerprint>? {
         fun generateResponseWithOneNotAllowedAndThenSuffixLengthSocketClosed(suffix: Word<SshSymbol>):
@@ -170,7 +169,7 @@ class ResponseTreeCache(
                 .toWord()
 
         fun isAnalysisDFAForPrefixValid(prefix: Word<SshSymbol>): Boolean =
-            prefix.none { inputSymbol -> !analysisDFARun.step(inputSymbol) }
+            prefix.none { inputSymbol -> !smlRun.step(inputSymbol) }
 
         fun isAnalysisDFAForSuffixValid(suffix: Word<SshSymbol>): Boolean =
             isAnalysisDFAForPrefixValid(suffix)
@@ -179,7 +178,7 @@ class ResponseTreeCache(
             val validSuffix = WordBuilder<SshSymbol>()
             val invalidSuffix = WordBuilder<SshSymbol>()
             for (suffixElement in suffix) {
-                if (analysisDFARun.step(suffixElement)) {
+                if (smlRun.step(suffixElement)) {
                     validSuffix.add(suffixElement)
                 } else {
                     invalidSuffix.add(suffixElement)
@@ -191,10 +190,10 @@ class ResponseTreeCache(
 
         if (!isAnalysisDFAForPrefixValid(prefix)) return generateResponseWithSuffixLengthSocketClosed(suffix)
 
-        analysisDFARun.saveState()
+        smlRun.saveState()
         return if (isAnalysisDFAForSuffixValid(suffix)) null
         else {
-            analysisDFARun.restoreState()
+            smlRun.restoreState()
             val validAndInvalidPartOfSuffix = getValidAndInvalidPartOfSuffix(suffix)
             val validPartOfSuffix = validAndInvalidPartOfSuffix.first
             val invalidPartOfSuffix = validAndInvalidPartOfSuffix.second

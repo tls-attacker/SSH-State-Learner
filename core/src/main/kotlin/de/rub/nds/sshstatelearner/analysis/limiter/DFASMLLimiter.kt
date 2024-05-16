@@ -4,10 +4,10 @@ import de.rub.nds.sshstatelearner.analysis.automata.AnalysisDFACreationHelper
 import de.rub.nds.sshstatelearner.analysis.automata.AnalysisDFARun
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
-class DFASMLLimiter {
-    private val analysisDFACreationHelper: AnalysisDFACreationHelper by lazy { init() }
+class DFASMLLimiter : SMLLimiter() {
+    private lateinit var analysisDFACreationHelper: AnalysisDFACreationHelper
 
-    fun init(): AnalysisDFACreationHelper {
+    override fun init() {
         val analysisDFACreationHelper = AnalysisDFACreationHelper(
             setOf(
                 SshSymbol.MSG_KEXINIT,
@@ -75,9 +75,9 @@ class DFASMLLimiter {
         analysisDFACreationHelper.createTransitionBetween(secondState, thirdState, SshSymbol.MSG_KEX_ECDH_REPLY)
         //analysisDFA.changeStateToAcceptAllInputSymbols(thirdState)
 
-        return analysisDFACreationHelper
+        this.analysisDFACreationHelper = analysisDFACreationHelper
     }
 
-    fun createAnalysisDFARun(): AnalysisDFARun = AnalysisDFARun(analysisDFACreationHelper)
+    override fun createSMLRun(): SMLRun = AnalysisDFARun(analysisDFACreationHelper)
 
 }
