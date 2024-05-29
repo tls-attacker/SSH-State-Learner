@@ -7,4 +7,8 @@ object ArgsEnvironmentGeneral {
     var help: Boolean = false
         private set
 
+    @Parameter(names = ["--path-to-config-json"], description = "Path to config file", order = 1)
+    var pathToConfigJson: String = ""
+        private set
+
 }

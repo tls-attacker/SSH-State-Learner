@@ -9,9 +9,10 @@
         <module name="ssh-state-learner-android" />
         <module name="core" />
         <module name="environment" />
-        <module name="ssh-state-learner-core" />
+        <module name="ssh-state-learner-config" />
         <module name="ssh-state-learner-environment" />
         <module name="android" />
+        <module name="ssh-state-learner-core" />
       </profile>
     </annotationProcessing>
   </component>

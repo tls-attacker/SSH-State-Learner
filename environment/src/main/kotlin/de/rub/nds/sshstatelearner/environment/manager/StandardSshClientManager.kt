@@ -1,0 +1,74 @@
+package de.rub.nds.sshstatelearner.environment.manager
+
+import de.rub.nds.sshstatelearner.config.ConfigClientSul
+import de.rub.nds.sshstatelearner.config.ConfigGeneral
+import de.rub.nds.sshstatelearner.sul.ClientConnectionHandler
+import de.rub.nds.sshstatelearner.sul.LocalSSHClientConnectionHandler
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSulProxy
+import de.rub.nds.sshstatelearner.sul.SshClientWorker
+import de.rub.nds.sshstatelearner.sul.SshSul
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+
+class StandardSshClientManager(configGeneral: ConfigGeneral, private val configClientSul: ConfigClientSul) :
+    StandardSshManager(configGeneral) {
+
+    private val clientConnectionHandlers: MutableList<ClientConnectionHandler> = mutableListOf()
+    private val sshClientWorker = SshClientWorker()
+
+    override fun setUp() {
+        fun createConnectionHandlersForClients() {
+            runBlocking {
+                for (connectionInfo in configClientSul.connectionInfos) {
+                    val connectionHandler = LocalSSHClientConnectionHandler(
+                        connectionInfo.ipToServer,
+                        connectionInfo.portToServer
+                    )
+                    clientConnectionHandlers.add(
+                        connectionHandler
+                    )
+                    launch(Dispatchers.IO) { connectionHandler.init() }
+                }
+            }
+        }
+
+        fun createNetworkSshClientSulsAndAddItToClientWorker() {
+            val suls = mutableListOf<NetworkSshClientSul>()
+            for (clientConnectionHandler in clientConnectionHandlers) {
+                suls.add(
+                    NetworkSshClientSul(
+                        configClientSul.name,
+                        clientConnectionHandler.getPort(),
+                        configClientSul.timeout,
+                        configClientSul.resetDelay,
+                        configClientSul.protocolStage,
+                        configClientSul.kexAlgorithm,
+                        clientConnectionHandler
+                    )
+                )
+            }
+            sshClientWorker.init(suls)
+        }
+
+        createConnectionHandlersForClients()
+        createNetworkSshClientSulsAndAddItToClientWorker()
+    }
+
+    override fun getCountOfParallelSuls(): Int = configClientSul.connectionInfos.size
+
+    override fun getSul(): SshSul = NetworkSshClientSulProxy(
+        configClientSul.name,
+        configClientSul.timeout,
+        configClientSul.resetDelay,
+        configClientSul.protocolStage,
+        configClientSul.kexAlgorithm,
+        sshClientWorker
+    )
+
+    override fun setDown() {
+        /* Do Nothing */
+    }
+
+}

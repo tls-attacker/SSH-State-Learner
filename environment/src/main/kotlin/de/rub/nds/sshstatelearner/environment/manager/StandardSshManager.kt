@@ -1,35 +1,28 @@
 package de.rub.nds.sshstatelearner.environment.manager
 
+import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
-import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
-import de.rub.nds.sshstatelearner.constants.ExecutorType
-import de.rub.nds.sshstatelearner.constants.SULTyp
+import de.rub.nds.sshstatelearner.config.ConfigGeneral
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
+import de.rub.nds.sshstatelearner.extraction.ParallelOracleExtractor
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
-import de.rub.nds.sshstatelearner.sul.NetworkSshServerSul
+import de.rub.nds.sshstatelearner.sul.SshSul
 import net.automatalib.words.Alphabet
 import net.automatalib.words.impl.ListAlphabet
 import java.io.File
 import java.io.FileWriter
 
-open class StandardSshManager() : EnvironmentManager() {
-    override fun setUp() {
-        /* Do Nothing */
-    }
+abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : EnvironmentManager() {
 
     override fun performLearning() {
+        setEquivalenceOracleDefaults()
         val extractorResult = conductProtocolLearning()
         analyzeExtractorResult(extractorResult)
         serializeExtractorResult(extractorResult)
-    }
-
-    override fun setDown() {
-        /* Do Nothing */
     }
 
     /**
@@ -40,59 +33,30 @@ open class StandardSshManager() : EnvironmentManager() {
     protected open fun conductProtocolLearning(): Extractor.ExtractorResult {
         val alphabet = getInputAlphabet()
         MainWindow.infoAlphabetSize.text = alphabet.size.toString()
-        when (ArgsGeneral.executor) {
-//        ExecutorType.NYX -> NyxSshSul(
-//            ArgsSul.name,
-//            "/home/fabian/Workspace/targets/packed_targets/nyx_openssh",
-//            "/tmp/nyx",
-//            0,
-//            ArgsSul.timeout,
-//            ArgsSul.resetDelay,
-//            ArgsSul.protocolStage,
-//            ArgsSul.kexAlgorithm
-//        )
+        val sul = getSul()
 
-            ExecutorType.NYX, ExecutorType.NETWORK ->
-                when (ArgsSul.sulTyp) {
-                    SULTyp.CLIENT_IS_UNDER_TEST -> NetworkSshClientSul(
-                        ArgsSul.name,
-                        ArgsSul.port,
-                        ArgsSul.timeout,
-                        ArgsSul.resetDelay,
-                        ArgsSul.protocolStage,
-                        ArgsSul.kexAlgorithm
-                    )
+        val learner = ParallelOracleExtractor(
+            alphabet,
+            sul,
+            getCountOfParallelSuls(),
+            configGeneral.learnerConfig.learningAlgorithmType,
+            configGeneral.learnerConfig.equivOracleChainTypes,
+            configGeneral.learnerConfig.outputIntermediateHypothesis,
+            configGeneral.outputDirectory,
+            configGeneral.sulConfig.sulTyp.isClientAlphabet
+        )
+        return learner.extractStateMachine()
 
-                    SULTyp.SERVER_IS_UNDER_TEST -> NetworkSshServerSul(
-                        ArgsSul.name,
-                        ArgsSul.hostname,
-                        ArgsSul.port,
-                        ArgsSul.timeout,
-                        ArgsSul.resetDelay,
-                        ArgsSul.protocolStage,
-                        ArgsSul.kexAlgorithm
-                    )
-                }
-
-        }.use {
-            val learner = Extractor(
-                alphabet,
-                it,
-                ArgsLearner.learningAlgorithmType,
-                ArgsLearner.equivOracleChainTypes,
-                ArgsLearner.outputIntermediateHypothesis,
-                ArgsGeneral.output,
-                ArgsSul.sulTyp.isClientAlphabet
-            )
-            return learner.extractStateMachine()
-        }
     }
+
+    abstract fun getSul(): SshSul
+    abstract fun getCountOfParallelSuls(): Int
 
     protected fun getInputAlphabet(): Alphabet<SshSymbol> {
         val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(
-            ArgsSul.protocolStage,
-            ArgsSul.kexAlgorithm,
-            ArgsSul.sulTyp.isClientAlphabet
+            configGeneral.sulConfig.protocolStage,
+            configGeneral.sulConfig.kexAlgorithm,
+            configGeneral.sulConfig.sulTyp.isClientAlphabet
         )
         return alphabet
     }
@@ -121,4 +85,33 @@ open class StandardSshManager() : EnvironmentManager() {
     }
 
     protected fun analyzeExtractorResult(result: Extractor.ExtractorResult) = result.learnedModel.analyzeMealyMachine()
+
+    private fun setEquivalenceOracleDefaults() {
+        EquivalenceOracleFactory.setHappyFlowDefaults(
+            configGeneral.sulConfig.protocolStage,
+            configGeneral.sulConfig.kexAlgorithm,
+            configGeneral.learnerConfig.equivHappyFlowSuffixLength
+        )
+        EquivalenceOracleFactory.setCompleteExplorationDefaults(
+            configGeneral.learnerConfig.equivCompleteExplorationMinDepth,
+            configGeneral.learnerConfig.equivCompleteExplorationMaxDepth
+        )
+        EquivalenceOracleFactory.setRandomWordsDefaults(
+            configGeneral.learnerConfig.equivRandomWordsMinLength,
+            configGeneral.learnerConfig.equivRandomWordsMaxLength,
+            configGeneral.learnerConfig.equivRandomWordsMaxTests
+        )
+        EquivalenceOracleFactory.setRandomWalkDefaults(
+            configGeneral.learnerConfig.equivRandomWalkResetProbability,
+            configGeneral.learnerConfig.equivRandomWalkMaxSteps
+        )
+        EquivalenceOracleFactory.setWDefaults(
+            configGeneral.learnerConfig.equivWMaxDepth
+        )
+        EquivalenceOracleFactory.setRandomWDefaults(
+            configGeneral.learnerConfig.equivRandomWMinimalSize,
+            configGeneral.learnerConfig.equivRandomWRndLength,
+            configGeneral.learnerConfig.equivRandomWBound
+        )
+    }
 }

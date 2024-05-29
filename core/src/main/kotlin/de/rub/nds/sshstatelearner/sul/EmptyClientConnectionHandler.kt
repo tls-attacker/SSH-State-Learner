@@ -1,7 +1,11 @@
 package de.rub.nds.sshstatelearner.sul
 
 class EmptyClientConnectionHandler : ClientConnectionHandler {
-    override fun subscribeForConnection() {
+    override fun init() {
+
+    }
+
+    override suspend fun subscribeForConnection() {
 
     }
 

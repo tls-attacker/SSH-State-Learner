@@ -11,17 +11,17 @@ class NetworkSshClientSulProxy(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
-    private val androidSshClientWorker: AndroidSshClientWorker
+    private val sshClientWorker: SshClientWorker
 ) : SshSul(name, timeout, resetDelay, stage, kex) {
     private lateinit var currentUsedNetworkSshClientSul: NetworkSshClientSul
 
     override fun pre() {
-        currentUsedNetworkSshClientSul = androidSshClientWorker.getReadySulToUse()
+        currentUsedNetworkSshClientSul = sshClientWorker.getReadySulToUse()
     }
 
 
     override fun post() {
-        androidSshClientWorker.getSulWasUsed(currentUsedNetworkSshClientSul)
+        sshClientWorker.getSulWasUsed(currentUsedNetworkSshClientSul)
     }
 
     override fun step(`in`: SshSymbol?): ResponseFingerprint {
@@ -32,6 +32,6 @@ class NetworkSshClientSulProxy(
 
 
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> =
-        NetworkSshClientSulProxy(name, timeout, resetDelay, stage, kex, androidSshClientWorker)
+        NetworkSshClientSulProxy(name, timeout, resetDelay, stage, kex, sshClientWorker)
 
 }

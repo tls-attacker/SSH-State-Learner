@@ -2,10 +2,15 @@ package de.rub.nds.sshstatelearner.environment.cli
 
 import com.beust.jcommander.JCommander
 import com.beust.jcommander.ParameterException
+import de.rub.nds.sshstatelearner.config.ConfigAndroidClientSul
+import de.rub.nds.sshstatelearner.config.ConfigClientSul
+import de.rub.nds.sshstatelearner.config.ConfigReader
+import de.rub.nds.sshstatelearner.config.ConfigServerSul
 import de.rub.nds.sshstatelearner.environment.cli.args.ArgsEnvironmentGeneral
-import de.rub.nds.sshstatelearner.environment.cli.args.CommandStartAndroidSshClientLearning
-import de.rub.nds.sshstatelearner.environment.cli.args.CommandStartServerForFingerprint
-import de.rub.nds.sshstatelearner.environment.cli.args.EnvironmentCommand
+import de.rub.nds.sshstatelearner.environment.manager.EnvironmentManager
+import de.rub.nds.sshstatelearner.environment.manager.StandardAndroidSshClientManager
+import de.rub.nds.sshstatelearner.environment.manager.StandardSshClientManager
+import de.rub.nds.sshstatelearner.environment.manager.StandardSshServerManager
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import java.security.Security
 import kotlin.system.exitProcess
@@ -18,54 +23,50 @@ private fun prepareJCE() {
 }
 
 /**
- * Parses the CLI arguments using JCommander. If the help flag is set, it displays the usage and exits the application.
+ * Parses the CLI arguments using JCommander. Determined the EnvironmentCommand to start.
  */
-private fun parseArgs(args: Array<out String>, availableEnvironmentCommands: List<EnvironmentCommand>): JCommander {
+private fun handleArgs(args: Array<out String>) {
     try {
-        val jCommandBuilder = JCommander.newBuilder().apply {
-            addObject(ArgsEnvironmentGeneral)
-            for (environmentCommand in availableEnvironmentCommands) {
-                addCommand(environmentCommand)
-            }
-            args(args)
-        }
-        val cliArgs = jCommandBuilder.build()
+        val cliArgs = JCommander.newBuilder()
+            .addObject(ArgsEnvironmentGeneral)
+            .args(args)
+            .build()
         if (args.isEmpty() || ArgsEnvironmentGeneral.help) {
             cliArgs.usage()
             exitProcess(0)
         }
-        return cliArgs
     } catch (e: ParameterException) {
         println(e.message)
         exitProcess(0)
     }
 }
 
-/**
- * Parses the CLI arguments using JCommander. Determined the EnvironmentCommand to start.
- */
-private fun handleArgs(args: Array<out String>): EnvironmentCommand {
-    val availableEnvironmentCommands: List<EnvironmentCommand> = listOf(
-        CommandStartServerForFingerprint,
-        CommandStartAndroidSshClientLearning
-    )
-    val cliArgs = parseArgs(args, availableEnvironmentCommands)
-    val chosenEnvironmentCommand =
-        availableEnvironmentCommands.find { it.getCommandName().equals(cliArgs.parsedCommand) }
-    if (chosenEnvironmentCommand != null) {
-        return chosenEnvironmentCommand
-    } else {
-        println("Please use a command!")
-        cliArgs.usage()
-        exitProcess(0)
-    }
-}
-
 fun main(args: Array<out String>) {
-    val environmentCommand = handleArgs(args)
+    handleArgs(args)
     prepareJCE()
 
-    val environmentManager = environmentCommand.getEnvironmentManager().apply {
+    val configReader = ConfigReader()
+    val configGeneral = configReader.readConfig(ArgsEnvironmentGeneral.pathToConfigJson)
+    val configSulConfig = configGeneral.sulConfig
+    val environmentManager: EnvironmentManager = when (configSulConfig) {
+        is ConfigServerSul -> {
+            StandardSshServerManager(configGeneral, configSulConfig)
+        }
+
+        is ConfigClientSul -> {
+            StandardSshClientManager(configGeneral, configSulConfig)
+        }
+
+        is ConfigAndroidClientSul -> {
+            StandardAndroidSshClientManager(configGeneral, configSulConfig)
+        }
+
+        else -> {
+            throw IllegalStateException("Unknown config sul type: ${configSulConfig::class.java.canonicalName}")
+        }
+    }
+
+    environmentManager.apply {
         setUp()
         performLearning()
         setDown()

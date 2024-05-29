@@ -46,6 +46,7 @@ import kotlin.system.exitProcess
 class ParallelOracleExtractor(
     private val alphabet: Alphabet<SshSymbol>,
     sul: SshSul,
+    private val parallelSshSulSize: Int,
     private val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT,
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
     private val storeIntermediateHypotheses: Boolean,

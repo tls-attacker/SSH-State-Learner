@@ -1,0 +1,61 @@
+package de.rub.nds.sshstatelearner.config
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonPropertyDescription
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.constants.SULTyp
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
+import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.sul.SshSul
+
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.PROPERTY,
+    property = "type"
+)
+@JsonSubTypes(
+    value =
+    [
+        Type(name = "configServerSul", value = ConfigServerSul::class),
+        Type(name = "configClientSul", value = ConfigClientSul::class),
+        Type(name = "configAndroidClientSul", value = ConfigAndroidClientSul::class)
+    ]
+)
+abstract class ConfigSul(
+    @field:JsonPropertyDescription("Human-readable name of the target SSH server (i. e. SSH server implementation and version)")
+    @field:JsonProperty(defaultValue = "Unspecified SSH Server/Client")
+    var name: String = "Unspecified SSH Server/Client",
+
+
+    @field:JsonPropertyDescription("Timeout in milliseconds when executing a single symbol")
+    @field:JsonProperty(defaultValue = "50")
+    var timeout: Long = SshSul.DEFAULT_SUL_TIMEOUT,
+
+
+    @field:JsonPropertyDescription("Delay in milliseconds during reset of a SUL instance")
+    @field:JsonProperty(defaultValue = "0")
+    var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY,
+
+
+    @field:JsonPropertyDescription("The SSH protocol stage whose state machine is to be extracted")
+    @field:JsonProperty(defaultValue = "TRANSPORT")
+    var protocolStage: ProtocolStage = SshSul.DEFAULT_PROTOCOL_STAGE,
+
+
+    @field:JsonPropertyDescription("The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm")
+    @field:JsonProperty(defaultValue = "ECDH_SHA2_NISTP521")
+    var kexAlgorithm: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM,
+
+
+    @field:JsonPropertyDescription("A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm")
+    @field:JsonProperty(defaultValue = "[]")
+    var alphabet: List<SshSymbol>? = emptyList(),
+
+
+    @field:JsonPropertyDescription("Type under test")
+    @field:JsonProperty(defaultValue = "CLIENT_IS_UNDER_TEST")
+    var sulTyp: SULTyp = SULTyp.CLIENT_IS_UNDER_TEST,
+)

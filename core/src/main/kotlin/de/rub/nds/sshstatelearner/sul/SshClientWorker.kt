@@ -6,9 +6,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class AndroidSshClientWorker {
+class SshClientWorker {
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val sulToUse = Channel<NetworkSshClientSul>(8)
+    private val sulToUse = Channel<NetworkSshClientSul>(32)
 
     fun init(suls: List<NetworkSshClientSul>) {
         runBlocking {
