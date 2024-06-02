@@ -247,13 +247,15 @@ object EquivalenceOracleFactory {
         membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
         sul: SUL<SshSymbol, ResponseFingerprint>,
         learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>,
-        useClientAlphabet: Boolean
+        useClientAlphabet: Boolean,
+        batchSize: Int
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
-        val batchSize = 100
         return when (type) {
 
-            EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache.createCacheConsistencyTest() ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
+            EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache.createCacheConsistencyTest()
+                ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
+
             EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(
                 membershipOracle,
                 happyFlowProtocolStage,
@@ -278,7 +280,14 @@ object EquivalenceOracleFactory {
                 Random(),
                 batchSize
             )
-            EquivalenceOracleType.RANDOM_WALK -> RandomWalkEQOracle(sul, randomWalkRestartProbability, randomWalkMaxSteps, Random())
+
+            EquivalenceOracleType.RANDOM_WALK -> RandomWalkEQOracle(
+                sul,
+                randomWalkRestartProbability,
+                randomWalkMaxSteps,
+                Random()
+            )
+
             EquivalenceOracleType.W -> WMethodEQOracle(membershipOracle, wMaxDepth, batchSize)
             EquivalenceOracleType.RANDOM_W -> RandomWMethodEQOracle(
                 membershipOracle,
@@ -314,8 +323,18 @@ object EquivalenceOracleFactory {
         membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
         sul: SUL<SshSymbol, ResponseFingerprint>,
         learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>,
-        useClientAlphabet: Boolean
+        useClientAlphabet: Boolean,
+        batchSize: Int
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
-        return EQOracleChain(types.map { create(it, membershipOracle, sul, learningCache, useClientAlphabet) })
+        return EQOracleChain(types.map {
+            create(
+                it,
+                membershipOracle,
+                sul,
+                learningCache,
+                useClientAlphabet,
+                batchSize
+            )
+        })
     }
 }

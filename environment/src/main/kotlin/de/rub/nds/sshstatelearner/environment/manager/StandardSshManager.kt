@@ -43,7 +43,10 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.learnerConfig.equivOracleChainTypes,
             configGeneral.learnerConfig.outputIntermediateHypothesis,
             configGeneral.outputDirectory,
-            configGeneral.sulConfig.sulTyp.isClientAlphabet
+            configGeneral.sulConfig.sulTyp.isClientAlphabet,
+            configGeneral.learnerConfig.smlLimiterTyp,
+            configGeneral.learnerConfig.smlLimiterFilePath,
+            configGeneral.learnerConfig.batchSize
         )
         return learner.extractStateMachine()
 

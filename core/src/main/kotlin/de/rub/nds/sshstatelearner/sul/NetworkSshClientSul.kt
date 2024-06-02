@@ -11,6 +11,7 @@ package de.rub.nds.sshstatelearner.sul
 import de.learnlib.api.SUL
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.PacketLayerType
+import de.rub.nds.sshattacker.core.exceptions.TransportHandlerConnectException
 import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.State
@@ -45,6 +46,7 @@ class NetworkSshClientSul(
          */
         private val LOGGER: Logger = LogManager.getLogger()
     }
+
     /**
      * Set up the network-based SSH for Clients under Test by instantiating a new SSH-Attacker state and connection to the peer.
      */
@@ -52,15 +54,25 @@ class NetworkSshClientSul(
         config = SshConfigManager.getServerConfig(kex)
 
         // Initialize transport handler
-        state = State(config)
-        runBlocking {
-            launch(Dispatchers.IO) {
-                state.sshContext.transportHandler = ServerTcpTransportHandler(timeout, timeout, port)
-                state.sshContext.initTransportHandler()
-                connectionClosed = false
-            }
-            launch(Dispatchers.IO) {
-                clientConnectionHandler.subscribeForConnection()
+        var serverIsReady = false
+        var connectionIsReady = false
+        while (!serverIsReady || !connectionIsReady) {
+            state = State(config)
+            try {
+                runBlocking {
+                    launch(Dispatchers.IO) {
+                        state.sshContext.transportHandler = ServerTcpTransportHandler(timeout, timeout, port)
+                        state.sshContext.initTransportHandler()
+                        connectionClosed = false
+                        serverIsReady = true
+                    }
+                    launch(Dispatchers.IO) {
+                        clientConnectionHandler.subscribeForConnection()
+                        connectionIsReady = true
+                    }
+                }
+            } catch (e: TransportHandlerConnectException) {
+                LOGGER.warn(e.message)
             }
         }
         preVersionExchange()

@@ -22,12 +22,12 @@
         </dependency>
         <dependency>
             <groupId>de.rub.nds.ssh.statelearner</groupId>
-            <artifactId>ssh-state-learner-config</artifactId>
+            <artifactId>ssh-state-learner-android</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>de.rub.nds.ssh.statelearner</groupId>
-            <artifactId>ssh-state-learner-android</artifactId>
+            <artifactId>ssh-state-learner-config</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

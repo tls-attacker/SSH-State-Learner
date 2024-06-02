@@ -16,7 +16,9 @@
     "equivWMaxDepth" : 10,
     "equivRandomWMinimalSize" : 3,
     "equivRandomWRndLength" : 7,
-    "equivRandomWBound" : 1000
+    "equivRandomWBound" : 1000,
+    "smlLimiterTyp" : "EMPTY_SML_LIMITER",
+    "smlLimiterFilePath" : ""
   },
   "sulConfig" : {
     "type" : "configClientSul",

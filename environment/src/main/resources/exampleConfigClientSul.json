@@ -20,7 +20,9 @@
     "equivWMaxDepth": 10,
     "equivRandomWMinimalSize": 3,
     "equivRandomWRndLength": 7,
-    "equivRandomWBound": 1000
+    "equivRandomWBound": 1000,
+    "smlLimiterTyp": "EMPTY_SML_LIMITER",
+    "smlLimiterFilePath": ""
   },
   "sulConfig": {
     "type": "configClientSul",
@@ -47,22 +49,6 @@
       {
         "ipToServer": "127.0.0.1",
         "portToServer": 30034
-      },
-      {
-        "ipToServer": "127.0.0.1",
-        "portToServer": 30035
-      },
-      {
-        "ipToServer": "127.0.0.1",
-        "portToServer": 30036
-      },
-      {
-        "ipToServer": "127.0.0.1",
-        "portToServer": 30037
-      },
-      {
-        "ipToServer": "127.0.0.1",
-        "portToServer": 30038
       }
     ]
   }

@@ -109,6 +109,16 @@
           "type" : "boolean",
           "description" : "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis",
           "default" : "true"
+        },
+        "smlLimiterFilePath" : {
+          "type" : "string",
+          "description" : "Path to the sml limiter file"
+        },
+        "smlLimiterTyp" : {
+          "type" : "string",
+          "enum" : [ "EMPTY_SML_LIMITER", "DFA_SML_LIMITER" ],
+          "description" : "Possibility to restrict state machine learning (SML)",
+          "default" : "EMPTY_SML_LIMITER"
         }
       },
       "description" : "Bundling of all Learning options"

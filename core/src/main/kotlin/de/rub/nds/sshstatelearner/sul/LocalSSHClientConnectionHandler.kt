@@ -11,7 +11,7 @@ class LocalSSHClientConnectionHandler(private val ip: String, private val port: 
     }
 
     override suspend fun subscribeForConnection() {
-        delay(1000)
+        delay(10)
         val job = process.start()
     }
 

@@ -98,7 +98,7 @@ class HappyFlowEQOracle(
                     if (!sulOutput.zip(hypothesisOutput).none { itInner ->
                             itInner.first != itInner.second
                         }) {
-                        return DefaultQuery(input, hypothesisOutput)
+                        return DefaultQuery(input, sulOutput)
                     }
                 }
             }

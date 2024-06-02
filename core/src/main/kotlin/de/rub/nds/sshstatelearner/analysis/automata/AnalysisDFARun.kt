@@ -3,6 +3,7 @@ package de.rub.nds.sshstatelearner.analysis.automata
 import de.rub.nds.sshstatelearner.analysis.limiter.SMLRun
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
+
 class AnalysisDFARun(analysisDFACreationHelper: AnalysisDFACreationHelper) : SMLRun() {
     val alphabet = analysisDFACreationHelper.alphabet
     private val extendedAlphabet = analysisDFACreationHelper.extendedAlphabet

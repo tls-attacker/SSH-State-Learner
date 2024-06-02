@@ -33,7 +33,7 @@ fun createConfigSchemaJson(outputDir: String) {
 }
 
 fun createDefaultConfigs(outputDir: String) {
-    val objectMapper: ObjectMapper = ObjectMapper()
+    val objectMapper = ObjectMapper()
     val prettyObjectWriter = objectMapper.writerWithDefaultPrettyPrinter()
     val configGeneral = ConfigGeneral()
     configGeneral.sulConfig = ConfigClientSul()

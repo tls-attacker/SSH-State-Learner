@@ -1,12 +1,39 @@
 package de.rub.nds.sshstatelearner.analysis.automata
 
+import com.fasterxml.jackson.annotation.JsonIgnore
+import com.fasterxml.jackson.core.JsonParser.Feature
+import com.fasterxml.jackson.databind.ObjectMapper
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
+import java.io.File
 
-class AnalysisDFACreationHelper(val alphabet: Set<SshSymbol>, val extendedAlphabet: Set<SshSymbol>) {
-    private val states = mutableListOf<AnalysisDFAState>()
-    private var currentIdCounter = 0
+
+class AnalysisDFACreationHelper(
+    val alphabet: Set<SshSymbol> = emptySet(),
+    val extendedAlphabet: Set<SshSymbol> = emptySet(),
+) {
+    val states: MutableList<AnalysisDFAState> = mutableListOf<AnalysisDFAState>()
+
+    var currentIdCounter = 0
+        private set
+
+    fun readJson(pathToFile: String) {
+        fun addAllRecursive(analysisDFAState: AnalysisDFAState, listToAdd: MutableList<AnalysisDFAState>) {
+            listToAdd.add(analysisDFAState)
+            analysisDFAState.successorTransitions.forEach { it ->
+                if (it.successorState != null) addAllRecursive(
+                    it.successorState,
+                    listToAdd
+                )
+            }
+        }
+
+        val root = ObjectMapper().enable(Feature.INCLUDE_SOURCE_IN_LOCATION)
+            .readValue(File(pathToFile), AnalysisDFAState::class.java)
+        addAllRecursive(root, states)
+    }
+
     fun createState(): AnalysisDFAState {
-        val newState = AnalysisDFAStateImpl(currentIdCounter)
+        val newState = AnalysisDFAState(currentIdCounter++)
         states.add(newState)
         return newState
     }
@@ -16,31 +43,18 @@ class AnalysisDFACreationHelper(val alphabet: Set<SshSymbol>, val extendedAlphab
         stateEnd: AnalysisDFAState,
         inputSymbol: SshSymbol
     ) {
-        stateStart.addSuccessorTransition(AnalysisDFATransitionImpl(inputSymbol, stateEnd))
+        stateStart.addSuccessorTransition(AnalysisDFATransition(inputSymbol, stateEnd))
     }
 
     fun createSelfTransition(state: AnalysisDFAState, inputSymbol: SshSymbol) {
-        state.addSuccessorTransition(AnalysisDFATransitionImpl(inputSymbol, state))
+        state.addSuccessorTransition(AnalysisDFATransition(inputSymbol, state))
     }
 
     fun changeStateToAcceptAllInputSymbols(state: AnalysisDFAState) {
-        if (state is AnalysisDFAStateImpl) {
-            state.setIsAcceptAllState(true)
-        } else {
-            throw IllegalStateException("Cannot change state to \"accept all input symbols\"")
-        }
+        state.setIsAcceptAllState(true)
     }
 
+    @JsonIgnore
     fun getInitialState(): AnalysisDFAState = states.first()
 
-    private class AnalysisDFAStateImpl(id: Int) : AnalysisDFAState(id) {
-        fun setIsAcceptAllState(value: Boolean) {
-            isAcceptAllState = value
-            successorTransitions.clear()
-        }
-    }
-
-
-    private class AnalysisDFATransitionImpl(inputSymbol: SshSymbol, successorState: AnalysisDFAState) :
-        AnalysisDFATransition(inputSymbol, successorState)
 }

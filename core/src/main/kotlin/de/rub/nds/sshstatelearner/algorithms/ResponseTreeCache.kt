@@ -13,7 +13,8 @@ import de.learnlib.api.oracle.MembershipOracle
 import de.learnlib.api.query.DefaultQuery
 import de.learnlib.api.query.Query
 import de.learnlib.filter.cache.LearningCacheOracle
-import de.rub.nds.sshstatelearner.analysis.limiter.DFASMLLimiter
+import de.rub.nds.sshstatelearner.analysis.limiter.EmptySMLLimiter
+import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiter
 import de.rub.nds.sshstatelearner.analysis.limiter.SMLRun
 import de.rub.nds.sshstatelearner.analysis.limiter.message.NotInStateMachineLearningFocusMessage
 import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
@@ -39,10 +40,14 @@ import org.apache.logging.log4j.Logger
  * @param delegates An underlying membership oracle that is queried when the cached information are insufficient to answer the query.
  */
 class ResponseTreeCache(
-    private val delegates: List<MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>>
+    private val delegates: List<MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>>,
+    smlLimiter: SMLLimiter
 ) : LearningCacheOracle.MealyLearningCacheOracle<SshSymbol, ResponseFingerprint> {
 
-    constructor(delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>) : this(listOf(delegate))
+    constructor(delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>) : this(
+        listOf(delegate),
+        EmptySMLLimiter()
+    )
 
     companion object {
         val logger: Logger = LogManager.getLogger()
@@ -53,13 +58,14 @@ class ResponseTreeCache(
      */
     private val root: Node = Node(null, null)
 
-    private val dFASMLLimiter: DFASMLLimiter = DFASMLLimiter().apply { init() }
+    private val smlLimiter: SMLLimiter = smlLimiter.apply { init() }
 
     /**
      * The fingerprint of a closed connection. The cache repeats this fingerprint as output when encountered once.
      * Avoids querying the SUL on known to close connection prefixes.
      */
-    private val emptyResponseClosedConnectionFingerprint: ResponseFingerprint = ResponseFingerprint(emptyList(), SocketState.CLOSED)
+    private val emptyResponseClosedConnectionFingerprint: ResponseFingerprint =
+        ResponseFingerprint(emptyList(), SocketState.CLOSED)
 
     /**
      * The fingerprint is used if the DFA limits the input alphabet.
@@ -96,7 +102,7 @@ class ResponseTreeCache(
                             val smlLimiterResponse = analysisInputWithSmlLimiter(
                                 value.prefix,
                                 value.suffix,
-                                dFASMLLimiter.createSMLRun(),
+                                smlLimiter.createSMLRun(),
                                 delegates[currentValue]
                             )
 
@@ -140,7 +146,7 @@ class ResponseTreeCache(
         }
 
         val smlLimiterResponse =
-            analysisInputWithSmlLimiter(prefix, suffix, dFASMLLimiter.createSMLRun(), delegates[0])
+            analysisInputWithSmlLimiter(prefix, suffix, smlLimiter.createSMLRun(), delegates[0])
         val response = smlLimiterResponse ?: answerQueryWithSul(prefix, suffix, delegates[0])
         update(prefix, suffix, response)
         return response
@@ -280,7 +286,12 @@ class ResponseTreeCache(
      * @throws CacheConflictException Thrown when the provided query and output and the stored information are inconsistent
      *                           with each other.
      */
-    private fun update(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, output: Word<ResponseFingerprint>, force: Boolean = false) {
+    private fun update(
+        prefix: Word<SshSymbol>,
+        suffix: Word<SshSymbol>,
+        output: Word<ResponseFingerprint>,
+        force: Boolean = false
+    ) {
         var current: Node = root
         var next: Node?
         // Descend the tree according to the prefix and create nodes without response fingerprints if necessary
@@ -387,7 +398,11 @@ class ResponseTreeCache(
          * @return Returns a counter example disproving the hypothesis if such a counter example exists in the subtree
          *         induced by this node. Returns null otherwise.
          */
-        fun checkHypothesisConsistency(hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>, inputPrefix: Word<SshSymbol>, outputPrefix: Word<ResponseFingerprint>): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
+        fun checkHypothesisConsistency(
+            hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
+            inputPrefix: Word<SshSymbol>,
+            outputPrefix: Word<ResponseFingerprint>
+        ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
             if ((inputSymbol == null || outputSymbol == null) && inputPrefix.length() > 0) {
                 // Symbol or fingerprint is null and this node is not the root node, unable to check consistency
                 return null

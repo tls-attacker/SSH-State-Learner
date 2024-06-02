@@ -16,6 +16,10 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCache
 import de.rub.nds.sshstatelearner.algorithms.Statistics
+import de.rub.nds.sshstatelearner.analysis.limiter.DFASMLLimiter
+import de.rub.nds.sshstatelearner.analysis.limiter.EmptySMLLimiter
+import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiter
+import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiterTyp
 import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
@@ -51,7 +55,10 @@ class ParallelOracleExtractor(
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
     private val storeIntermediateHypotheses: Boolean,
     private val outputDirectory: String,
-    private val useClientAlphabet: Boolean
+    private val useClientAlphabet: Boolean,
+    private val smlLimiterTyp: SMLLimiterTyp,
+    private val pathToSmlLimiterFile: String,
+    private val batchSize: Int,
 ) {
 
     /**
@@ -97,21 +104,28 @@ class ParallelOracleExtractor(
         private val LOGGER: Logger = LogManager.getLogger()
     }
 
+    private fun createAndInitSMLLimiter(): SMLLimiter = when (smlLimiterTyp) {
+        SMLLimiterTyp.EMPTY_SML_LIMITER -> EmptySMLLimiter()
+        SMLLimiterTyp.DFA_SML_LIMITER -> DFASMLLimiter(pathToSmlLimiterFile)
+    }
+
+
     /**
      * Constructs the membership and equivalence oracle to use within the learning process.
      */
     private fun constructOracles() {
         val suls = mutableListOf<SULOracle<SshSymbol, ResponseFingerprint>>()
-        repeat(8) {
+        repeat(parallelSshSulSize) {
             suls.add(SULOracle(sul.fork()))
         }
-        membershipOracle = ResponseTreeCache(suls)
+        membershipOracle = ResponseTreeCache(suls, createAndInitSMLLimiter())
         equivalenceOracle = EquivalenceOracleFactory.createChain(
             equivalenceOracleChainTypes,
             membershipOracle,
             sul,
             membershipOracle,
-            useClientAlphabet
+            useClientAlphabet,
+            batchSize
         )
     }
 

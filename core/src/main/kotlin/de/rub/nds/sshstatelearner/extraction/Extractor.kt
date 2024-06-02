@@ -105,7 +105,8 @@ class Extractor(
             membershipOracle.asOracle(),
             sul,
             membershipOracle,
-            useClientAlphabet
+            useClientAlphabet,
+            128
         )
     }
 
@@ -134,8 +135,10 @@ class Extractor(
             override fun run() {
                 MainWindow.statLearningRound.text = rounds.toString()
                 MainWindow.statLearningExecTime.text = "${(System.currentTimeMillis() - extractionStartTime) / 1000} s"
-                MainWindow.statLearningSteps.text = "${sul.totalSymbolCount} (${sul.learnSymbolCount} / ${sul.equivSymbolCount})"
-                MainWindow.statLearningResets.text = "${sul.totalResetCount} (${sul.learnResetCount} / ${sul.equivResetCount})"
+                MainWindow.statLearningSteps.text =
+                    "${sul.totalSymbolCount} (${sul.learnSymbolCount} / ${sul.equivSymbolCount})"
+                MainWindow.statLearningResets.text =
+                    "${sul.totalResetCount} (${sul.learnResetCount} / ${sul.equivResetCount})"
                 MainWindow.statLearningCacheInconsistencies.text = cacheInconsistencyRestarts.toString()
             }
         }
@@ -157,7 +160,8 @@ class Extractor(
         learningAlgorithm.startLearning()
         do {
             hypothesis = learningAlgorithm.hypothesisModel
-            val stateMachine = SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
+            val stateMachine =
+                SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
             extractorResult.addHypothesis(stateMachine)
 
             if (storeIntermediateHypotheses) {
@@ -186,7 +190,8 @@ class Extractor(
 
         guiUpdateTimer.cancel()
 
-        val stateMachine = SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
+        val stateMachine =
+            SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
         val statistics = Statistics(
             states = stateMachine.mealyMachine.size(),
             counterExampleCount = rounds - 1,

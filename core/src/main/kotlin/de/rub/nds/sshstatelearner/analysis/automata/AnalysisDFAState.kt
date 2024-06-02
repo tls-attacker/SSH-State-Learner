@@ -1,13 +1,15 @@
 package de.rub.nds.sshstatelearner.analysis.automata
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo
+import com.fasterxml.jackson.annotation.ObjectIdGenerators
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
-abstract class AnalysisDFAState(private val id: Int) {
-    protected val successorTransitions: MutableSet<AnalysisDFATransition> = mutableSetOf()
+@JsonIdentityInfo(generator = ObjectIdGenerators.PropertyGenerator::class, property = "stateId")
+class AnalysisDFAState(stateId: Int = 0) {
+    val successorTransitions: MutableSet<AnalysisDFATransition> = mutableSetOf()
     var isAcceptAllState = false
         protected set
-
-    fun getId() = id
+    val stateId: Int = stateId
 
     fun addSuccessorTransition(successorTransition: AnalysisDFATransition) {
         if (!isAcceptAllState) {
@@ -21,4 +23,9 @@ abstract class AnalysisDFAState(private val id: Int) {
 
     fun getSuccessorState(inputSymbol: SshSymbol): AnalysisDFAState? =
         if (isAcceptAllState) this else successorTransitions.find { it.inputSymbol == inputSymbol }?.successorState
+
+    fun setIsAcceptAllState(value: Boolean) {
+        isAcceptAllState = value
+        successorTransitions.clear()
+    }
 }
