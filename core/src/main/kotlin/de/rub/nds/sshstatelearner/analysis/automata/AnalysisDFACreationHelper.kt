@@ -1,10 +1,7 @@
 package de.rub.nds.sshstatelearner.analysis.automata
 
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.core.JsonParser.Feature
-import com.fasterxml.jackson.databind.ObjectMapper
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import java.io.File
 
 
 class AnalysisDFACreationHelper(
@@ -15,22 +12,6 @@ class AnalysisDFACreationHelper(
 
     var currentIdCounter = 0
         private set
-
-    fun readJson(pathToFile: String) {
-        fun addAllRecursive(analysisDFAState: AnalysisDFAState, listToAdd: MutableList<AnalysisDFAState>) {
-            listToAdd.add(analysisDFAState)
-            analysisDFAState.successorTransitions.forEach { it ->
-                if (it.successorState != null) addAllRecursive(
-                    it.successorState,
-                    listToAdd
-                )
-            }
-        }
-
-        val root = ObjectMapper().enable(Feature.INCLUDE_SOURCE_IN_LOCATION)
-            .readValue(File(pathToFile), AnalysisDFAState::class.java)
-        addAllRecursive(root, states)
-    }
 
     fun createState(): AnalysisDFAState {
         val newState = AnalysisDFAState(currentIdCounter++)
