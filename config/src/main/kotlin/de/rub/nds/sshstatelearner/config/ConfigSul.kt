@@ -52,7 +52,7 @@ abstract class ConfigSul(
 
     @field:JsonPropertyDescription("A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm")
     @field:JsonProperty(defaultValue = "[]")
-    var alphabet: List<SshSymbol>? = emptyList(),
+    var alphabet: List<SshSymbol> = emptyList(),
 
 
     @field:JsonPropertyDescription("Type under test")

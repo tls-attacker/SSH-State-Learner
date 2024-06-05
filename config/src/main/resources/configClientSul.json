@@ -18,7 +18,8 @@
     "equivRandomWRndLength" : 7,
     "equivRandomWBound" : 1000,
     "smlLimiterTyp" : "EMPTY_SML_LIMITER",
-    "smlLimiterFilePath" : ""
+    "smlLimiterFilePath" : "",
+    "batchSize" : 128
   },
   "sulConfig" : {
     "type" : "configClientSul",

@@ -29,6 +29,11 @@
     "learnerConfig" : {
       "type" : "object",
       "properties" : {
+        "batchSize" : {
+          "type" : "integer",
+          "description" : "Batch size of the Oracle equivalence requests",
+          "default" : "128"
+        },
         "equivCompleteExplorationMaxDepth" : {
           "type" : "integer",
           "description" : "[COMPLETE_EXPLORATION only] The maximum depth to explore (i. e. the maximum length of words tested)",

@@ -56,7 +56,8 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
     abstract fun getCountOfParallelSuls(): Int
 
     protected fun getInputAlphabet(): Alphabet<SshSymbol> {
-        val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(
+        val alphabet =
+            if (configGeneral.sulConfig.alphabet.isNotEmpty()) ListAlphabet(configGeneral.sulConfig.alphabet) else AlphabetFactory.construct(
             configGeneral.sulConfig.protocolStage,
             configGeneral.sulConfig.kexAlgorithm,
             configGeneral.sulConfig.sulTyp.isClientAlphabet

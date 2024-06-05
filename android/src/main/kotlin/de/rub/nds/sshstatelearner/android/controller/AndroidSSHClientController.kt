@@ -1,6 +1,8 @@
 package de.rub.nds.sshstatelearner.android.controller
 
 import io.appium.java_client.android.AndroidDriver
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import org.openqa.selenium.By
 import org.openqa.selenium.Point
 import org.openqa.selenium.StaleElementReferenceException
@@ -21,6 +23,9 @@ abstract class AndroidSSHClientController(
     protected val pathToApks: List<String>,
     udid: String
 ) {
+    companion object {
+        val logger: Logger = LogManager.getLogger()
+    }
     protected abstract val bundleId: String
     private val caps: DesiredCapabilities = DesiredCapabilities().apply {
         setCapability("appium:udid", udid)
@@ -32,7 +37,7 @@ abstract class AndroidSSHClientController(
     }
 
     protected val wait: WebDriverWait by lazy {
-        WebDriverWait(driver, Duration.ofMillis(10000))
+        WebDriverWait(driver, Duration.ofSeconds(60))
     }
 
     protected var isInStateMachineLearningMode = false
@@ -117,8 +122,10 @@ abstract class AndroidSSHClientController(
     protected fun catchAppiumException(func: () -> Unit) {
         try {
             func()
-        } catch (_: StaleElementReferenceException) {
-        } catch (_: TimeoutException) {
+        } catch (e: StaleElementReferenceException) {
+            logger.error(e.message)
+        } catch (e: TimeoutException) {
+            logger.error(e.message)
         }
     }
 

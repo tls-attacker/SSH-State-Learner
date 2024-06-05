@@ -18,6 +18,9 @@
         <Logger name="de.rub.nds.sshattacker.core.protocol.common.Preparator" level="error" additivity="false">
             <AppenderRef ref="Console"/>
         </Logger>
+        <Logger name="de.rub.nds.sshattacker" level="error" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
         <Root level="warn">
             <AppenderRef ref="Console"/>
         </Root>
