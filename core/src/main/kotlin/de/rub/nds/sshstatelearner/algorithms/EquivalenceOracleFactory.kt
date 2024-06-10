@@ -57,6 +57,11 @@ object EquivalenceOracleFactory {
         private set
 
     /**
+     * An alternative Alphabet to use.
+     */
+    var alternativeHappyFlowAlphabet: List<SshSymbol> = emptyList()
+
+    /**
      * Minimum exploration depth for complete exploration oracles. The oracle effectively generates all words with
      * length between completeExplorationMinDepth and completeExplorationMaxDepth.
      */
@@ -262,7 +267,8 @@ object EquivalenceOracleFactory {
                 happyFlowKex,
                 happyFlowSuffixLength,
                 useClientAlphabet,
-                batchSize
+                batchSize,
+                alternativeHappyFlowAlphabet
             )
 
             EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(

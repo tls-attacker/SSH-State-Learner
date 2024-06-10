@@ -14,7 +14,6 @@ import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import net.automatalib.serialization.dot.DefaultDOTVisualizationHelper
 import net.automatalib.visualization.VisualizationHelper
 import net.automatalib.words.Alphabet
-import java.lang.Appendable
 
 class SSHDOTVisualizationHelper<N, E>(
     delegate: VisualizationHelper<N, in E>,
@@ -42,7 +41,8 @@ class SSHDOTVisualizationHelper<N, E>(
         }
         a.append("\"${System.lineSeparator()}")
         a.append("    fontsize = 30${System.lineSeparator()}")
+        a.append("    edge[decorate=\"true\"]${System.lineSeparator()}")
     }
 
-    override fun writePostamble(a: Appendable?) { }
+    override fun writePostamble(a: Appendable?) {}
 }

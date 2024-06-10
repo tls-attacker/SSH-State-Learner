@@ -16,6 +16,7 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCache
 import de.rub.nds.sshstatelearner.algorithms.Statistics
+import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTransition
 import de.rub.nds.sshstatelearner.analysis.limiter.DFASMLLimiter
 import de.rub.nds.sshstatelearner.analysis.limiter.EmptySMLLimiter
 import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiter
@@ -59,6 +60,7 @@ class ParallelOracleExtractor(
     private val smlLimiterTyp: SMLLimiterTyp,
     private val pathToSmlLimiterFile: String,
     private val batchSize: Int,
+    private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>
 ) {
 
     /**
@@ -180,7 +182,14 @@ class ParallelOracleExtractor(
         do {
             hypothesis = learningAlgorithm.hypothesisModel
             val stateMachine =
-                SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
+                SshStateMachine(
+                    hypothesis,
+                    alphabet,
+                    sul.nestedSul.name,
+                    sul.nestedSul.stage,
+                    sul.nestedSul.kex,
+                    stateNameAndSuccessorTransitions
+                )
             extractorResult.addHypothesis(stateMachine)
 
             if (storeIntermediateHypotheses) {
@@ -214,7 +223,14 @@ class ParallelOracleExtractor(
         guiUpdateTimer.cancel()
 
         val stateMachine =
-            SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
+            SshStateMachine(
+                hypothesis,
+                alphabet,
+                sul.nestedSul.name,
+                sul.nestedSul.stage,
+                sul.nestedSul.kex,
+                stateNameAndSuccessorTransitions
+            )
         val statistics = Statistics(
             states = stateMachine.mealyMachine.size(),
             counterExampleCount = rounds - 1,

@@ -7,7 +7,7 @@
     },
     "ProtocolStage" : {
       "type" : "string",
-      "enum" : [ "TRANSPORT", "AUTHENTICATION", "CONNECTION" ]
+      "enum" : [ "TRANSPORT", "AUTHENTICATION", "CONNECTION", "UNKNOWN" ]
     },
     "SULTyp" : {
       "type" : "string",
@@ -15,7 +15,18 @@
     },
     "SshSymbol" : {
       "type" : "string",
-      "enum" : [ "MSG_DISCONNECT", "MSG_IGNORE", "MSG_UNIMPLEMENTED", "MSG_DEBUG", "MSG_SERVICE_REQUEST_USERAUTH", "MSG_SERVICE_ACCEPT", "MSG_KEXINIT", "MSG_NEWKEYS", "MSG_KEX_DH_GEX_REQUEST", "MSG_KEX_DH_GEX_REQUEST_OLD", "MSG_KEX_DH_GEX_GROUP", "MSG_KEX_DH_GEX_INIT", "MSG_KEX_DH_GEX_REPLY", "MSG_KEXDH_INIT", "MSG_KEXDH_REPLY", "MSG_KEX_ECDH_INIT", "MSG_KEX_ECDH_REPLY", "MSG_KEX_RSA_PUBKEY", "MSG_KEX_RSA_SECRET", "MSG_KEX_RSA_DONE", "MSG_KEX_HBR_INIT", "MSG_KEX_HBR_REPLY", "MSG_USERAUTH_REQUEST_PASSWD_VALID", "MSG_USERAUTH_REQUEST_PASSWD_INVALID", "MSG_USERAUTH_REQUEST_PUBKEY_VALID", "MSG_USERAUTH_SUCCESS", "MSG_USERAUTH_FAILURE", "MSG_USERAUTH_BANNER", "MSG_SERVICE_REQUEST_CONNECTION", "MSG_REQUEST_SUCCESS", "MSG_REQUEST_FAILURE", "MSG_CHANNEL_OPEN_SESSION", "MSG_CHANNEL_OPEN_CONFIRMATION", "MSG_CHANNEL_OPEN_FAILURE", "MSG_CHANNEL_WINDOW_ADJUST", "MSG_CHANNEL_EOF", "MSG_CHANNEL_CLOSE", "MSG_CHANNEL_REQUEST_EXEC", "MSG_CHANNEL_SUCCESS", "MSG_CHANNEL_FAILURE" ]
+      "enum" : [ "MSG_VERSION_EXCHANGE", "MSG_DISCONNECT", "MSG_IGNORE", "MSG_UNIMPLEMENTED", "MSG_DEBUG", "MSG_SERVICE_REQUEST_USERAUTH", "MSG_SERVICE_ACCEPT", "MSG_KEXINIT", "MSG_NEWKEYS", "MSG_KEX_DH_GEX_REQUEST", "MSG_KEX_DH_GEX_REQUEST_OLD", "MSG_KEX_DH_GEX_GROUP", "MSG_KEX_DH_GEX_INIT", "MSG_KEX_DH_GEX_REPLY", "MSG_KEXDH_INIT", "MSG_KEXDH_REPLY", "MSG_KEX_ECDH_INIT", "MSG_KEX_ECDH_REPLY", "MSG_KEX_RSA_PUBKEY", "MSG_KEX_RSA_SECRET", "MSG_KEX_RSA_DONE", "MSG_KEX_HBR_INIT", "MSG_KEX_HBR_REPLY", "MSG_USERAUTH_REQUEST_PASSWD_VALID", "MSG_USERAUTH_REQUEST_PASSWD_INVALID", "MSG_USERAUTH_REQUEST_PUBKEY_VALID", "MSG_USERAUTH_SUCCESS", "MSG_USERAUTH_FAILURE", "MSG_USERAUTH_BANNER", "MSG_SERVICE_REQUEST_CONNECTION", "MSG_REQUEST_SUCCESS", "MSG_REQUEST_FAILURE", "MSG_CHANNEL_OPEN_SESSION", "MSG_CHANNEL_OPEN_CONFIRMATION", "MSG_CHANNEL_OPEN_FAILURE", "MSG_CHANNEL_WINDOW_ADJUST", "MSG_CHANNEL_EOF", "MSG_CHANNEL_CLOSE", "MSG_CHANNEL_REQUEST_EXEC", "MSG_CHANNEL_SUCCESS", "MSG_CHANNEL_FAILURE" ]
+    },
+    "StateNameAndSuccessorTransition" : {
+      "type" : "object",
+      "properties" : {
+        "stateName" : {
+          "type" : "string"
+        },
+        "successorTransition" : {
+          "$ref" : "#/$defs/SshSymbol"
+        }
+      }
     }
   },
   "type" : "object",
@@ -29,6 +40,15 @@
     "learnerConfig" : {
       "type" : "object",
       "properties" : {
+        "alternativeHappyFlowAlphabet" : {
+          "description" : "[HAPPY_FLOW only] An Alternative Happy Flow to use.",
+          "default" : "[]",
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/SshSymbol",
+            "default" : "[]"
+          }
+        },
         "batchSize" : {
           "type" : "integer",
           "description" : "Batch size of the Oracle equivalence requests",
@@ -176,6 +196,12 @@
             "description" : "Delay in milliseconds during reset of a SUL instance",
             "default" : "0"
           },
+          "stateNameAndSuccessorTransitions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition"
+            }
+          },
           "sulTyp" : {
             "$ref" : "#/$defs/SULTyp",
             "description" : "Type under test",
@@ -243,6 +269,12 @@
             "type" : "integer",
             "description" : "Delay in milliseconds during reset of a SUL instance",
             "default" : "0"
+          },
+          "stateNameAndSuccessorTransitions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition"
+            }
           },
           "sulTyp" : {
             "$ref" : "#/$defs/SULTyp",
@@ -336,6 +368,12 @@
             "type" : "integer",
             "description" : "Delay in milliseconds during reset of a SUL instance",
             "default" : "0"
+          },
+          "stateNameAndSuccessorTransitions" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition"
+            }
           },
           "sulTyp" : {
             "$ref" : "#/$defs/SULTyp",

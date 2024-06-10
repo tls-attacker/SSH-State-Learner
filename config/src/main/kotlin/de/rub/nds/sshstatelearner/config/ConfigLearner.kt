@@ -6,6 +6,7 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiterTyp
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
+import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
 class ConfigLearner {
     @JsonPropertyDescription("The learning algorithm to use")
@@ -30,7 +31,11 @@ class ConfigLearner {
 
     @JsonPropertyDescription("[HAPPY_FLOW only] The length of the suffix to append to each possible happy flow prefix")
     @JsonProperty(defaultValue = "2")
-    var equivHappyFlowSuffixLength = EquivalenceOracleFactory.happyFlowSuffixLength
+    var equivHappyFlowSuffixLength: Int = EquivalenceOracleFactory.happyFlowSuffixLength
+
+    @JsonPropertyDescription("[HAPPY_FLOW only] An Alternative Happy Flow to use.")
+    @JsonProperty(defaultValue = "[]")
+    var alternativeHappyFlowAlphabet: List<SshSymbol> = emptyList()
 
 
     @JsonPropertyDescription("[COMPLETE_EXPLORATION only] The minimum depth to explore (i. e. the minimum length of words tested)")

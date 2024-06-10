@@ -22,23 +22,63 @@
     "equivRandomWRndLength": 7,
     "equivRandomWBound": 1000,
     "smlLimiterTyp": "EMPTY_SML_LIMITER",
-    "smlLimiterFilePath": ""
+    "smlLimiterFilePath": "",
+    "alternativeHappyFlowAlphabet": [
+      "MSG_KEXINIT",
+      "MSG_KEX_ECDH_REPLY",
+      "MSG_NEWKEYS",
+      "MSG_SERVICE_ACCEPT",
+      "MSG_USERAUTH_SUCCESS"
+    ]
   },
   "sulConfig": {
     "type": "configClientSul",
     "name": "OpenSSH_9.6p1 Client",
     "timeout": 50,
     "resetDelay": 0,
-    "protocolStage": "TRANSPORT",
+    "protocolStage": "UNKNOWN",
+    "stateNameAndSuccessorTransitions": [
+      {
+        "stateName": "Protocol Version Exchanged",
+        "successorTransition": "MSG_KEXINIT"
+      },
+      {
+        "stateName": "KEX: Algorithms Negotiated",
+        "successorTransition": "MSG_KEX_ECDH_REPLY"
+      },
+      {
+        "stateName": "KEX: DH Group Negotiated",
+        "successorTransition": "MSG_NEWKEYS"
+      },
+      {
+        "stateName": "KEX: Keys Derived",
+        "successorTransition": "MSG_SERVICE_ACCEPT"
+      },
+      {
+        "stateName": "Protocol Completed / Transport Layer completed",
+        "successorTransition": "MSG_USERAUTH_SUCCESS"
+      },
+      {
+        "stateName": "Authentication Layer Completed",
+        "successorTransition": null
+      }
+    ],
     "kexAlgorithm": "ECDH_SHA2_NISTP521",
-    "alphabet": [],
+    "alphabet": [
+      "MSG_KEXINIT",
+      "MSG_KEX_ECDH_REPLY",
+      "MSG_NEWKEYS",
+      "MSG_SERVICE_ACCEPT",
+      "MSG_USERAUTH_SUCCESS",
+      "MSG_USERAUTH_FAILURE",
+      "MSG_CHANNEL_OPEN_SESSION"
+    ],
     "sulTyp": "CLIENT_IS_UNDER_TEST",
     "connectionInfos": [
       {
         "ipToServer": "127.0.0.1",
         "portToServer": 30031
       },
-
       {
         "ipToServer": "127.0.0.1",
         "portToServer": 30032

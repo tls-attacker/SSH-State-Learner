@@ -34,9 +34,21 @@ class HappyFlowEQOracle(
     private val stage: ProtocolStage,
     private val kex: KeyExchangeAlgorithm,
     private val suffixLength: Int,
-    private val useClientAlphabet: Boolean,
-    private val batchSize: Int = 1
+    useClientAlphabet: Boolean,
+    private val batchSize: Int = 1,
+    alternativeHappyFlowAlphabet: List<SshSymbol>
 ) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
+    private val happyFlowPrefixes: List<Word<SshSymbol>> =
+        when (stage) {
+            ProtocolStage.TRANSPORT, ProtocolStage.AUTHENTICATION, ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(
+                stage,
+                kex,
+                useClientAlphabet
+            ).prefixes(true)
+
+            ProtocolStage.UNKNOWN -> Word.fromList(alternativeHappyFlowAlphabet).prefixes(true)
+        }
+
     /**
      * Searches for a counter example to disprove the hypothesis by iterating all prefixes of the happy flow
      * and combining it with random suffixes.
@@ -52,13 +64,10 @@ class HappyFlowEQOracle(
         if (batchSize == 1) findCounterExampleSequentially(hypothesis, alphabet)
         else findCounterExampleParallel(hypothesis, alphabet)
 
-
     private fun findCounterExampleSequentially(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
-        val happyFlowPrefixes =
-            HappyFlowFactory.constructHappyFlow(stage, kex, useClientAlphabet).prefixes(true)
         for (prefix in happyFlowPrefixes) {
             val suffixes = alphabet.combinations(suffixLength).map { Word.fromList(it) }
             for (suffix in suffixes) {
@@ -79,8 +88,6 @@ class HappyFlowEQOracle(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
-        val happyFlowPrefixes =
-            HappyFlowFactory.constructHappyFlow(stage, kex, useClientAlphabet).prefixes(true)
         for (prefix in happyFlowPrefixes) {
             val inputs = alphabet.combinations(suffixLength)
                 .map {

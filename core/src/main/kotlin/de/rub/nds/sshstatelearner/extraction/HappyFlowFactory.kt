@@ -32,16 +32,19 @@ object HappyFlowFactory {
                 SshSymbol.MSG_KEX_DH_GEX_REQUEST,
                 SshSymbol.MSG_KEX_DH_GEX_INIT
             )
+
             KeyExchangeFlowType.DIFFIE_HELLMAN -> arrayOf(
                 SshSymbol.MSG_KEXDH_INIT
             )
+
             KeyExchangeFlowType.ECDH -> arrayOf(
                 SshSymbol.MSG_KEX_ECDH_INIT
-                )
+            )
 
             KeyExchangeFlowType.HYBRID -> arrayOf(
                 SshSymbol.MSG_KEX_HBR_INIT
             )
+
             else -> TODO("Key exchange algorithm flow type ${kex.flowType} is not yet supported by SSH-Attacker")
         }
     }
@@ -89,6 +92,8 @@ object HappyFlowFactory {
                 SshSymbol.MSG_CHANNEL_OPEN_SESSION,
                 SshSymbol.MSG_CHANNEL_REQUEST_EXEC
             )
+
+            else -> throw IllegalArgumentException("Unsupported protocol stage: $stage")
         }
     }
 
@@ -109,6 +114,8 @@ object HappyFlowFactory {
                 SshSymbol.MSG_CHANNEL_OPEN_CONFIRMATION,
                 SshSymbol.MSG_CHANNEL_SUCCESS
             )
+
+            else -> throw IllegalArgumentException("Unsupported protocol stage: $stage")
         }
     }
 

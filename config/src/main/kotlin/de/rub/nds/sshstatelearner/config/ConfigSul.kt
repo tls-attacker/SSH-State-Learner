@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
+import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTransition
 import de.rub.nds.sshstatelearner.constants.SULTyp
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
@@ -43,6 +44,8 @@ abstract class ConfigSul(
     @field:JsonPropertyDescription("The SSH protocol stage whose state machine is to be extracted")
     @field:JsonProperty(defaultValue = "TRANSPORT")
     var protocolStage: ProtocolStage = SshSul.DEFAULT_PROTOCOL_STAGE,
+
+    var stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition> = emptyList(),
 
 
     @field:JsonPropertyDescription("The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm")

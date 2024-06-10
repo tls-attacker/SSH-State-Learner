@@ -11,10 +11,13 @@ package de.rub.nds.sshstatelearner
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.analysis.analyzer.SshAuthenticationAnalyzer
 import de.rub.nds.sshstatelearner.analysis.analyzer.SshConnectionAnalyzer
+import de.rub.nds.sshstatelearner.analysis.analyzer.SshManuallyAnalyzer
 import de.rub.nds.sshstatelearner.analysis.analyzer.SshTransportAnalyzer
+import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTransition
 import de.rub.nds.sshstatelearner.analysis.data.GraphDetails
 import de.rub.nds.sshstatelearner.analysis.data.SshAuthenticationGraphDetails
 import de.rub.nds.sshstatelearner.analysis.data.SshConnectionGraphDetails
+import de.rub.nds.sshstatelearner.analysis.data.SshManuallyGraphDetails
 import de.rub.nds.sshstatelearner.analysis.data.SshTransportGraphDetails
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
@@ -30,9 +33,10 @@ import net.automatalib.words.Alphabet
 class SshStateMachine<S, T>(
     mealyMachine: MealyMachine<S, SshSymbol, T, ResponseFingerprint>,
     alphabet: Alphabet<SshSymbol>,
-    val title: String,
+    private val title: String,
     val stage: ProtocolStage,
-    val kexAlgorithm: KeyExchangeAlgorithm
+    val kexAlgorithm: KeyExchangeAlgorithm,
+    private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition> = emptyList(),
 ) : StateMachine<S, SshSymbol, T, ResponseFingerprint>(
     mealyMachine,
     alphabet
@@ -54,6 +58,7 @@ class SshStateMachine<S, T>(
             ProtocolStage.TRANSPORT -> SshTransportGraphDetails()
             ProtocolStage.AUTHENTICATION -> SshAuthenticationGraphDetails()
             ProtocolStage.CONNECTION -> SshConnectionGraphDetails()
+            ProtocolStage.UNKNOWN -> SshManuallyGraphDetails()
         }
     }
 
@@ -62,6 +67,7 @@ class SshStateMachine<S, T>(
             ProtocolStage.TRANSPORT -> SshTransportAnalyzer<S, T>().analyze(this)
             ProtocolStage.AUTHENTICATION -> SshAuthenticationAnalyzer<S, T>().analyze(this)
             ProtocolStage.CONNECTION -> SshConnectionAnalyzer<S, T>().analyze(this)
+            ProtocolStage.UNKNOWN -> SshManuallyAnalyzer<S, T>(stateNameAndSuccessorTransitions).analyze(this)
         }
     }
 }

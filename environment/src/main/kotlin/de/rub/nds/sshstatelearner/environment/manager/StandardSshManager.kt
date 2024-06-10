@@ -10,6 +10,7 @@ import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.extraction.ParallelOracleExtractor
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
+import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
 import net.automatalib.words.Alphabet
 import net.automatalib.words.impl.ListAlphabet
@@ -46,7 +47,8 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.sulConfig.sulTyp.isClientAlphabet,
             configGeneral.learnerConfig.smlLimiterTyp,
             configGeneral.learnerConfig.smlLimiterFilePath,
-            configGeneral.learnerConfig.batchSize
+            configGeneral.learnerConfig.batchSize,
+            configGeneral.sulConfig.stateNameAndSuccessorTransitions
         )
         return learner.extractStateMachine()
 
@@ -57,11 +59,15 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
 
     protected fun getInputAlphabet(): Alphabet<SshSymbol> {
         val alphabet =
-            if (configGeneral.sulConfig.alphabet.isNotEmpty()) ListAlphabet(configGeneral.sulConfig.alphabet) else AlphabetFactory.construct(
-            configGeneral.sulConfig.protocolStage,
-            configGeneral.sulConfig.kexAlgorithm,
-            configGeneral.sulConfig.sulTyp.isClientAlphabet
-        )
+            when (configGeneral.sulConfig.protocolStage) {
+                ProtocolStage.CONNECTION, ProtocolStage.TRANSPORT, ProtocolStage.AUTHENTICATION -> AlphabetFactory.construct(
+                    configGeneral.sulConfig.protocolStage,
+                    configGeneral.sulConfig.kexAlgorithm,
+                    configGeneral.sulConfig.sulTyp.isClientAlphabet
+                )
+
+                ProtocolStage.UNKNOWN -> ListAlphabet(configGeneral.sulConfig.alphabet)
+            }
         return alphabet
     }
 

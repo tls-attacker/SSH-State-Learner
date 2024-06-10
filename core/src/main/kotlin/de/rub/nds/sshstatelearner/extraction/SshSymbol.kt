@@ -48,19 +48,21 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.RsaKeyExchangeSecr
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceAcceptMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.UnimplementedMessage
+import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 
 enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
     /*
      * SSH transport protocol symbols
      */
+    MSG_VERSION_EXCHANGE({ VersionExchangeMessage() }),
     MSG_DISCONNECT({ DisconnectMessage() }),
     MSG_IGNORE({ IgnoreMessage() }),
     MSG_UNIMPLEMENTED({ UnimplementedMessage() }),
     MSG_DEBUG({ DebugMessage() }),
     MSG_SERVICE_REQUEST_USERAUTH({
         ServiceRequestMessage().apply {
-        serviceNameLength = Modifiable.explicit(12)
-        serviceName = Modifiable.explicit("ssh-userauth")
+            serviceNameLength = Modifiable.explicit(12)
+            serviceName = Modifiable.explicit("ssh-userauth")
         }
     }),
     MSG_SERVICE_ACCEPT({ ServiceAcceptMessage() }),
@@ -80,6 +82,7 @@ enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
     MSG_KEX_RSA_DONE({ RsaKeyExchangeDoneMessage() }),
     MSG_KEX_HBR_INIT({ HybridKeyExchangeInitMessage() }),
     MSG_KEX_HBR_REPLY({ HybridKeyExchangeReplyMessage() }),
+
     /*
      * SSH authentication protocol symbols
      */
@@ -96,10 +99,11 @@ enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
     MSG_USERAUTH_BANNER({ UserAuthBannerMessage() }),
     MSG_SERVICE_REQUEST_CONNECTION({
         ServiceRequestMessage().apply {
-        serviceNameLength = Modifiable.explicit(14)
-        serviceName = Modifiable.explicit("ssh-connection")
+            serviceNameLength = Modifiable.explicit(14)
+            serviceName = Modifiable.explicit("ssh-connection")
         }
     }),
+
     /*
      * SSH connection protocol symbols
      */

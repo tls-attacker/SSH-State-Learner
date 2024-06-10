@@ -39,7 +39,7 @@ object AlphabetFactory {
 
             KeyExchangeFlowType.ECDH -> listOf(
                 SshSymbol.MSG_KEX_ECDH_INIT
-                )
+            )
 
             KeyExchangeFlowType.RSA -> listOf(
                 SshSymbol.MSG_KEX_RSA_SECRET
@@ -48,6 +48,7 @@ object AlphabetFactory {
             KeyExchangeFlowType.HYBRID -> listOf(
                 SshSymbol.MSG_KEX_HBR_INIT
             )
+
             KeyExchangeFlowType.ECMQV -> TODO("ECMQV kex algorithm is not yet implemented in SSH-Attacker")
             null -> throw IllegalKeyExchangeException("Unable to get kex symbols for extension info - ext-info-s and ext-info-c are no valid kex algorithms")
         }
@@ -124,6 +125,8 @@ object AlphabetFactory {
                     SshSymbol.MSG_CHANNEL_WINDOW_ADJUST
                 )
             )
+
+            else -> throw IllegalArgumentException("Unsupported protocol stage: $stage")
         }
     }
 
@@ -165,6 +168,8 @@ object AlphabetFactory {
                     SshSymbol.MSG_CHANNEL_WINDOW_ADJUST
                 )
             )
+
+            else -> throw IllegalArgumentException("Unsupported protocol stage: $stage")
         }
     }
 

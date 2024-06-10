@@ -12,8 +12,6 @@ import de.learnlib.api.SUL
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.PacketLayerType
 import de.rub.nds.sshattacker.core.exceptions.TransportHandlerConnectException
-import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMessage
-import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
@@ -87,10 +85,10 @@ class NetworkSshClientSul(
      * will be called during the pre() lifecycle hook after initializing a new state and opening the connection.
      */
     private fun preVersionExchange() {
-        ReceiveAction(connectionAlias, VersionExchangeMessage()).execute(state)
-        SendAction(connectionAlias, VersionExchangeMessage()).execute(state)
+        ReceiveAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageCreator()).execute(state)
+        SendAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageCreator()).execute(state)
         ChangePacketLayerAction(connectionAlias, PacketLayerType.BINARY_PACKET).execute(state)
-        ReceiveAction(connectionAlias, KeyExchangeInitMessage()).execute(state)
+        ReceiveAction(connectionAlias, SshSymbol.MSG_KEXINIT.messageCreator()).execute(state)
     }
 
     /**

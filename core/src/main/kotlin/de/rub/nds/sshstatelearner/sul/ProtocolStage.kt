@@ -25,5 +25,7 @@ enum class ProtocolStage {
     /**
      * The SSH connection layer protocol stage (RFC 4254)
      */
-    CONNECTION;
+    CONNECTION,
+    
+    UNKNOWN;
 }
