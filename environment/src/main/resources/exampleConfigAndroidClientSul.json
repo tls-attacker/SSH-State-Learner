@@ -7,7 +7,7 @@
     "equivOracleChainTypes": [
       "CACHE_CONSISTENCY",
       "HAPPY_FLOW",
-      "RANDOM_WORDS"
+      "COMPLETE_EXPLORATION"
     ],
     "equivHappyFlowSuffixLength": 2,
     "equivCompleteExplorationMinDepth": 3,
@@ -21,7 +21,7 @@
     "equivRandomWMinimalSize": 3,
     "equivRandomWRndLength": 7,
     "equivRandomWBound": 1000,
-    "smlLimiterTyp": "DFA_SML_LIMITER",
+    "smlLimiterTyp": "EMPTY_SML_LIMITER",
     "smlLimiterFilePath": "/home/jimba/git/SSH-State-Learner/environment/src/main/resources/test.json",
     "batchSize": 128
   },

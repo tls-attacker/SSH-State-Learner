@@ -135,16 +135,16 @@ abstract class SshSul(
     }
 
     private fun majorityElement(words: List<Word<ResponseFingerprint>>): Word<ResponseFingerprint> {
-        var majorityWord: Word<ResponseFingerprint> = words[0]
-        var counter = 1
-        for (word in words) {
-            if (counter == 0) {
+        val allPossibilities = HashSet(words)
+        val iterator = allPossibilities.iterator()
+        var majorityWord = iterator.next()
+        var majorityWordOccurrence = words.count { word -> word == majorityWord }
+        while (iterator.hasNext()) {
+            val word = iterator.next()
+            val wordOccurrence = words.count { localWord -> localWord == word }
+            if (wordOccurrence > majorityWordOccurrence) {
                 majorityWord = word
-                counter = 1
-            } else if (word == majorityWord) {
-                counter++
-            } else {
-                counter--
+                majorityWordOccurrence = wordOccurrence
             }
         }
         return majorityWord

@@ -9,6 +9,8 @@ import de.rub.nds.sshstatelearner.sul.SshSul
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.io.FileWriter
+import java.io.PrintWriter
 
 class StandardAndroidSshClientManager(
     configGeneral: ConfigGeneral,
@@ -75,6 +77,14 @@ class StandardAndroidSshClientManager(
 
     override fun setDown() {
         /* Do Nothing */
+    }
+
+    override fun addAdditionalStatistics(fileWriter: FileWriter) {
+        PrintWriter(fileWriter).run {
+            println("Time total idle Time: ${sshClientWorker.getTotalIdleTime().inWholeMilliseconds} milliseconds")
+            println("Time total work Time: ${sshClientWorker.getTotalWorkTime().inWholeMilliseconds} milliseconds")
+            println("Time total init Time: ${sshClientWorker.getTotalInitTime().inWholeMilliseconds} milliseconds")
+        }
     }
 
 }

@@ -28,7 +28,7 @@ import org.apache.logging.log4j.Logger
 
 class NetworkSshClientSul(
     name: String,
-    private val port: Int,
+    val port: Int,
     timeout: Long = DEFAULT_SUL_TIMEOUT,
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,

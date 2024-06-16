@@ -90,8 +90,13 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
         val statsFile = File(folder, "statistics.txt").also { it.createNewFile() }
         with(FileWriter(statsFile)) {
             result.statistics.export(this)
+            addAdditionalStatistics(this)
             this.close()
         }
+    }
+
+    open fun addAdditionalStatistics(fileWriter: FileWriter) {
+
     }
 
     protected fun analyzeExtractorResult(result: Extractor.ExtractorResult) = result.learnedModel.analyzeMealyMachine()

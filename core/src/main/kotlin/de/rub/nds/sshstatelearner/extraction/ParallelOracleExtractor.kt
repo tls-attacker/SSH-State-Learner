@@ -205,7 +205,8 @@ class ParallelOracleExtractor(
             sul.switchToEquivalenceCounters()
             MainWindow.statLearningPhase.text = "EQUIVALENCE CHECK"
 
-            counterExample = equivalenceOracle.findCounterExample(hypothesis, alphabet)
+            counterExample = findCounterExampleSafe(hypothesis)
+            LOGGER.warn("Finished counter example round ${rounds}, searching for counter examples (executed SUL steps: ${sul.totalSymbolCount})")
             if (counterExample != null) {
                 LOGGER.info("The equivalence oracle found a counter example: $counterExample")
                 LOGGER.info("Passing counter example to learning algorithm for hypothesis refinement")
@@ -213,7 +214,6 @@ class ParallelOracleExtractor(
                 MainWindow.statLearningPhase.text = "LEARNING"
                 learningAlgorithm.refineHypothesis(counterExample)
             }
-            LOGGER.warn("Finished counter example round ${rounds}, searching for counter examples (executed SUL steps: ${sul.totalSymbolCount})")
         } while (counterExample != null)
 
         LOGGER.warn("Finished learning the target SUL after $rounds rounds")
@@ -247,6 +247,18 @@ class ParallelOracleExtractor(
         extractorResult.learnedModel = stateMachine
         extractorResult.statistics = statistics
         return extractorResult
+    }
+
+    private fun findCounterExampleSafe(hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
+        val counterExample = equivalenceOracle.findCounterExample(hypothesis, alphabet)
+        if (counterExample != null) {
+            val counterExampleSafe = membershipOracle.answerQuerySafer(counterExample.prefix, counterExample.suffix)
+            if (counterExampleSafe != counterExample.output) {
+                counterExample.answer(counterExampleSafe)
+                membershipOracle.overwrite(counterExample.prefix, counterExample.suffix, counterExampleSafe)
+            }
+        }
+        return counterExample
     }
 
     private fun serializeHypothesis(hypothesis: SshStateMachine<*, *>, name: String) {

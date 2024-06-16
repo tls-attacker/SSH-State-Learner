@@ -42,6 +42,5 @@ data class Statistics(
             println("Number of resets during equivalence checks: $equivResetCount")
             println("Number of restarts due to cache inconsistencies: $cacheInconsistencyRestarts")
             println("Time it took to learn state machine: $duration milliseconds")
-            close()
         }
 }
