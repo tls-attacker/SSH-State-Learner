@@ -138,7 +138,12 @@ object EquivalenceOracleFactory {
      *
      * @param suffixLength The length of the suffix to append to each possible happy flow prefix
      */
-    fun setHappyFlowDefaults(stage: ProtocolStage, kex: KeyExchangeAlgorithm, suffixLength: Int) {
+    fun setHappyFlowDefaults(
+        stage: ProtocolStage,
+        kex: KeyExchangeAlgorithm,
+        suffixLength: Int,
+        alternativeHappyFlowAlphabet: List<SshSymbol> = emptyList()
+    ) {
         if (suffixLength < 0) {
             throw IllegalArgumentException("Unable to set default values for a happy flow equivalence oracle. The suffix length (value: $suffixLength) is negative.")
         }
@@ -148,6 +153,7 @@ object EquivalenceOracleFactory {
         happyFlowProtocolStage = stage
         happyFlowKex = kex
         happyFlowSuffixLength = suffixLength
+        this.alternativeHappyFlowAlphabet = alternativeHappyFlowAlphabet
     }
 
     /**

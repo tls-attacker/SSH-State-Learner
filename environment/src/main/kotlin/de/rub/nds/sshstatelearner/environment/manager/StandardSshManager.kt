@@ -48,6 +48,7 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.learnerConfig.smlLimiterTyp,
             configGeneral.learnerConfig.smlLimiterFilePath,
             configGeneral.learnerConfig.batchSize,
+            configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount,
             configGeneral.sulConfig.stateNameAndSuccessorTransitions
         )
         return learner.extractStateMachine()
@@ -105,7 +106,8 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
         EquivalenceOracleFactory.setHappyFlowDefaults(
             configGeneral.sulConfig.protocolStage,
             configGeneral.sulConfig.kexAlgorithm,
-            configGeneral.learnerConfig.equivHappyFlowSuffixLength
+            configGeneral.learnerConfig.equivHappyFlowSuffixLength,
+            configGeneral.learnerConfig.alternativeHappyFlowAlphabet
         )
         EquivalenceOracleFactory.setCompleteExplorationDefaults(
             configGeneral.learnerConfig.equivCompleteExplorationMinDepth,

@@ -41,12 +41,15 @@ import org.apache.logging.log4j.Logger
  */
 class ResponseTreeCache(
     private val delegates: List<MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>>,
-    smlLimiter: SMLLimiter
+    smlLimiter: SMLLimiter,
+    private val repeatedQueriesDuringLearningWithMajorityCount: Int
 ) : LearningCacheOracle.MealyLearningCacheOracle<SshSymbol, ResponseFingerprint> {
+    private val disableCacheForAnswerQuery = true
 
     constructor(delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>) : this(
         listOf(delegate),
-        EmptySMLLimiter()
+        EmptySMLLimiter(),
+        1
     )
 
     companion object {
@@ -140,14 +143,16 @@ class ResponseTreeCache(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>
     ): Word<ResponseFingerprint> {
-        val cachedResponse = find(prefix, suffix)
-        if (cachedResponse != null) {
-            return cachedResponse
+        if (disableCacheForAnswerQuery) {
+            val cachedResponse = find(prefix, suffix)
+            if (cachedResponse != null) {
+                return cachedResponse
+            }
         }
 
         val smlLimiterResponse =
-            analysisInputWithSmlLimiter(prefix, suffix, smlLimiter.createSMLRun(), null)
-        val response = smlLimiterResponse ?: answerQuerySafer(prefix, suffix)
+            analysisInputWithSmlLimiter(prefix, suffix, smlLimiter.createSMLRun())
+        val response = smlLimiterResponse ?: answerQueryWithMajorityVote(prefix, suffix)
         update(prefix, suffix, response)
         return response
     }
@@ -158,37 +163,40 @@ class ResponseTreeCache(
         delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
     ): Word<ResponseFingerprint> = delegate.answerQuery(prefix, suffix)
 
-    fun answerQuerySafer(
+    fun answerQueryWithMajorityVote(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>
     ): Word<ResponseFingerprint> {
         val listOfAnswers: MutableList<Word<ResponseFingerprint>> = mutableListOf()
         val batchOfAnswers: Array<Word<ResponseFingerprint>?> = arrayOfNulls(delegates.size)
 
-        var i = 0
-        val safer = 16
-        while (i < safer) {
+        var currentIndex = 0
+        while (currentIndex < repeatedQueriesDuringLearningWithMajorityCount) {
             runBlocking {
-                for (currentIndex in delegates.indices) {
-                    if (i >= safer) break
+                for (currentDelegateIndex in delegates.indices) {
+                    if (currentIndex >= repeatedQueriesDuringLearningWithMajorityCount) break
                     launch(Dispatchers.IO) {
-                        batchOfAnswers[currentIndex] = delegates[currentIndex].answerQuery(prefix, suffix)
+                        batchOfAnswers[currentDelegateIndex] =
+                            delegates[currentDelegateIndex].answerQuery(prefix, suffix)
                     }
-                    i++
+                    currentIndex++
                 }
             }
             listOfAnswers.addAll(batchOfAnswers.filterNotNull())
             batchOfAnswers.fill(null)
         }
         val setOfAnswers = HashSet(listOfAnswers)
-        return setOfAnswers.maxWith { selector1, selector2 -> listOfAnswers.count { predicate -> selector1 == predicate } compareTo listOfAnswers.count { predicate -> selector2 == predicate } }
+        return setOfAnswers.maxWith { selector1, selector2 ->
+            listOfAnswers.count { predicate -> selector1 == predicate } compareTo
+                    listOfAnswers.count { predicate -> selector2 == predicate }
+        }
     }
 
     private fun analysisInputWithSmlLimiter(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>,
         smlRun: SMLRun,
-        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>?
+        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>? = null
     ): Word<ResponseFingerprint>? {
         fun generateResponseWithOneNotAllowedAndThenSuffixLengthSocketClosed(suffix: Word<SshSymbol>):
                 Word<ResponseFingerprint> =
@@ -234,7 +242,7 @@ class ResponseTreeCache(
             val response = responseFromTreeCache ?: if (delegate != null) {
                 answerQueryWithSul(prefix, validPartOfSuffix, delegate)
             } else {
-                answerQuerySafer(prefix, validPartOfSuffix)
+                answerQueryWithMajorityVote(prefix, validPartOfSuffix)
             }
 
             if (response.any { it.socketState == SocketState.CLOSED }

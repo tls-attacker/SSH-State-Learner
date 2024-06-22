@@ -135,6 +135,11 @@
           "description" : "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis",
           "default" : "true"
         },
+        "repeatedQueriesDuringLearningWithMajorityCount" : {
+          "type" : "integer",
+          "description" : "Specific queries are made to the SUL as frequently as they are defined here. The specific queries are Membership Queries and Counter Example. The result is decided by a majority vote. \n",
+          "default" : "1"
+        },
         "smlLimiterFilePath" : {
           "type" : "string",
           "description" : "Path to the sml limiter file"

@@ -23,7 +23,9 @@
     "equivRandomWBound": 1000,
     "smlLimiterTyp": "EMPTY_SML_LIMITER",
     "smlLimiterFilePath": "/home/jimba/git/SSH-State-Learner/environment/src/main/resources/test.json",
-    "batchSize": 128
+    "batchSize": 128,
+    "repeatedQueriesDuringLearningWithMajorityCount": 16,
+    "alternativeHappyFlowAlphabet": []
   },
   "sulConfig": {
     "type": "configAndroidClientSul",

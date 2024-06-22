@@ -20,7 +20,8 @@
     "equivRandomWBound" : 1000,
     "smlLimiterTyp" : "EMPTY_SML_LIMITER",
     "smlLimiterFilePath" : "",
-    "batchSize" : 128
+    "batchSize" : 128,
+    "repeatedQueriesDuringLearningWithMajorityCount" : 1
   },
   "sulConfig" : {
     "type" : "configServerSul",

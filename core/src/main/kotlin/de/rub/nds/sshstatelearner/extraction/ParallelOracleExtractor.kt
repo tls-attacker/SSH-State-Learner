@@ -60,6 +60,7 @@ class ParallelOracleExtractor(
     private val smlLimiterTyp: SMLLimiterTyp,
     private val pathToSmlLimiterFile: String,
     private val batchSize: Int,
+    private val repeatedQueriesDuringLearningWithMajorityCount: Int,
     private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>
 ) {
 
@@ -120,7 +121,8 @@ class ParallelOracleExtractor(
         repeat(parallelSshSulSize) {
             suls.add(SULOracle(sul.fork()))
         }
-        membershipOracle = ResponseTreeCache(suls, createAndInitSMLLimiter())
+        membershipOracle =
+            ResponseTreeCache(suls, createAndInitSMLLimiter(), repeatedQueriesDuringLearningWithMajorityCount)
         equivalenceOracle = EquivalenceOracleFactory.createChain(
             equivalenceOracleChainTypes,
             membershipOracle,
@@ -205,7 +207,7 @@ class ParallelOracleExtractor(
             sul.switchToEquivalenceCounters()
             MainWindow.statLearningPhase.text = "EQUIVALENCE CHECK"
 
-            counterExample = findCounterExampleSafe(hypothesis)
+            counterExample = findCounterExampleWithMajorityVote(hypothesis)
             LOGGER.warn("Finished counter example round ${rounds}, searching for counter examples (executed SUL steps: ${sul.totalSymbolCount})")
             if (counterExample != null) {
                 LOGGER.info("The equivalence oracle found a counter example: $counterExample")
@@ -249,10 +251,11 @@ class ParallelOracleExtractor(
         return extractorResult
     }
 
-    private fun findCounterExampleSafe(hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
+    private fun findCounterExampleWithMajorityVote(hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
         val counterExample = equivalenceOracle.findCounterExample(hypothesis, alphabet)
         if (counterExample != null) {
-            val counterExampleSafe = membershipOracle.answerQuerySafer(counterExample.prefix, counterExample.suffix)
+            val counterExampleSafe =
+                membershipOracle.answerQueryWithMajorityVote(counterExample.prefix, counterExample.suffix)
             if (counterExampleSafe != counterExample.output) {
                 counterExample.answer(counterExampleSafe)
                 membershipOracle.overwrite(counterExample.prefix, counterExample.suffix, counterExampleSafe)

@@ -104,4 +104,8 @@ class ConfigLearner {
     @JsonProperty(defaultValue = "128")
     var batchSize: Int = 128
 
+    @JsonPropertyDescription("Specific queries are made to the SUL as frequently as they are defined here. The specific queries are Membership Queries and Counter Example. The result is decided by a majority vote. \n")
+    @JsonProperty(defaultValue = "1")
+    var repeatedQueriesDuringLearningWithMajorityCount = 1
+
 }

@@ -7,7 +7,7 @@
     "equivOracleChainTypes": [
       "CACHE_CONSISTENCY",
       "HAPPY_FLOW",
-      "RANDOM_WORDS"
+      "COMPLETE_EXPLORATION"
     ],
     "equivHappyFlowSuffixLength": 2,
     "equivCompleteExplorationMinDepth": 3,
@@ -29,13 +29,15 @@
       "MSG_NEWKEYS",
       "MSG_SERVICE_ACCEPT",
       "MSG_USERAUTH_SUCCESS"
-    ]
+    ],
+    "repeatedQueriesDuringLearningWithMajorityCount": 16,
+    "batchSize": 128
   },
   "sulConfig": {
     "type": "configClientSul",
     "name": "OpenSSH_9.6p1 Client",
     "timeout": 50,
-    "resetDelay": 10,
+    "resetDelay": 20,
     "protocolStage": "UNKNOWN",
     "stateNameAndSuccessorTransitions": [
       {
