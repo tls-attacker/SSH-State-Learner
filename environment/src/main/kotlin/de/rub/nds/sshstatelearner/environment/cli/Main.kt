@@ -4,7 +4,7 @@ import com.beust.jcommander.JCommander
 import com.beust.jcommander.ParameterException
 import de.rub.nds.sshstatelearner.config.ConfigAndroidClientSul
 import de.rub.nds.sshstatelearner.config.ConfigClientSul
-import de.rub.nds.sshstatelearner.config.ConfigReader
+import de.rub.nds.sshstatelearner.config.ConfigHelper
 import de.rub.nds.sshstatelearner.config.ConfigServerSul
 import de.rub.nds.sshstatelearner.environment.cli.args.ArgsEnvironmentGeneral
 import de.rub.nds.sshstatelearner.environment.manager.EnvironmentManager
@@ -45,8 +45,8 @@ fun main(args: Array<out String>) {
     handleArgs(args)
     prepareJCE()
 
-    val configReader = ConfigReader()
-    val configGeneral = configReader.readConfig(ArgsEnvironmentGeneral.pathToConfigJson)
+    val configHelper = ConfigHelper()
+    val configGeneral = configHelper.readConfig(ArgsEnvironmentGeneral.pathToConfigJson)
     val configSulConfig = configGeneral.sulConfig
     val environmentManager: EnvironmentManager = when (configSulConfig) {
         is ConfigServerSul -> {

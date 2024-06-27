@@ -15,6 +15,7 @@ import de.rub.nds.sshstatelearner.SshStateMachine
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCache
+import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCacheWrapperForLearning
 import de.rub.nds.sshstatelearner.algorithms.Statistics
 import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTransition
 import de.rub.nds.sshstatelearner.analysis.limiter.DFASMLLimiter
@@ -25,6 +26,8 @@ import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
+import de.rub.nds.sshstatelearner.db.QueryResultManager
+import de.rub.nds.sshstatelearner.db.QueryTyp
 import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.sul.AdvancedStatisticSul
 import de.rub.nds.sshstatelearner.sul.SshSul
@@ -61,7 +64,8 @@ class ParallelOracleExtractor(
     private val pathToSmlLimiterFile: String,
     private val batchSize: Int,
     private val repeatedQueriesDuringLearningWithMajorityCount: Int,
-    private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>
+    private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>,
+    private val jsonString: String
 ) {
 
     /**
@@ -94,6 +98,8 @@ class ParallelOracleExtractor(
      */
     private var rounds: Int = 0
 
+    private val queryResult = QueryResultManager().apply { init() }
+
     /**
      * Timer used to schedule updates on the GUI at a fixed rate
      */
@@ -122,14 +128,19 @@ class ParallelOracleExtractor(
             suls.add(SULOracle(sul.fork()))
         }
         membershipOracle =
-            ResponseTreeCache(suls, createAndInitSMLLimiter(), repeatedQueriesDuringLearningWithMajorityCount)
+            ResponseTreeCache(
+                suls,
+                createAndInitSMLLimiter(),
+                repeatedQueriesDuringLearningWithMajorityCount,
+                queryResult
+            )
         equivalenceOracle = EquivalenceOracleFactory.createChain(
             equivalenceOracleChainTypes,
             membershipOracle,
             sul,
             membershipOracle,
             useClientAlphabet,
-            batchSize
+            batchSize,
         )
     }
 
@@ -173,13 +184,15 @@ class ParallelOracleExtractor(
         createGUIUpdateTimer()
 
         val extractorResult = Extractor.ExtractorResult()
-        val learningAlgorithm = LearningAlgorithmFactory.create(algorithm, alphabet, membershipOracle)
+        val learningAlgorithm =
+            LearningAlgorithmFactory.create(algorithm, alphabet, ResponseTreeCacheWrapperForLearning(membershipOracle))
 
         var hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>
         var counterExample: DefaultQuery<SshSymbol, Word<ResponseFingerprint>>?
 
         sul.switchToLearningCounters()
         MainWindow.statLearningPhase.text = "LEARNING"
+        queryResult.switchToQueryTypes(QueryTyp.USED_TO_LEARN)
         learningAlgorithm.startLearning()
         do {
             hypothesis = learningAlgorithm.hypothesisModel
@@ -214,6 +227,7 @@ class ParallelOracleExtractor(
                 LOGGER.info("Passing counter example to learning algorithm for hypothesis refinement")
                 sul.switchToLearningCounters()
                 MainWindow.statLearningPhase.text = "LEARNING"
+                queryResult.switchToQueryTypes(QueryTyp.USED_TO_REFINE_HYPOTHESIS)
                 learningAlgorithm.refineHypothesis(counterExample)
             }
         } while (counterExample != null)
@@ -221,7 +235,7 @@ class ParallelOracleExtractor(
         LOGGER.warn("Finished learning the target SUL after $rounds rounds")
         LOGGER.info("Total steps: ${sul.totalSymbolCount} (Learning: ${sul.learnSymbolCount} | Equivalence: ${sul.equivSymbolCount})")
         LOGGER.info("Total resets: ${sul.totalResetCount} (Learning: ${sul.learnResetCount} | Equivalence: ${sul.equivResetCount})")
-
+        queryResult.safeToDatabase(jsonString)
         guiUpdateTimer.cancel()
 
         val stateMachine =
@@ -252,7 +266,9 @@ class ParallelOracleExtractor(
     }
 
     private fun findCounterExampleWithMajorityVote(hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
+        queryResult.switchToQueryTypes(QueryTyp.USED_TO_FIND_A_COUNTER_EXAMPLE)
         val counterExample = equivalenceOracle.findCounterExample(hypothesis, alphabet)
+        queryResult.switchToQueryTypes(QueryTyp.USED_TO_FIND_MAJORITY_COUNTER_EXAMPLE)
         if (counterExample != null) {
             val counterExampleSafe =
                 membershipOracle.answerQueryWithMajorityVote(counterExample.prefix, counterExample.suffix)

@@ -37,7 +37,7 @@
     "type": "configClientSul",
     "name": "OpenSSH_9.6p1 Client",
     "timeout": 50,
-    "resetDelay": 20,
+    "resetDelay": 10,
     "protocolStage": "UNKNOWN",
     "stateNameAndSuccessorTransitions": [
       {

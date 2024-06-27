@@ -5,6 +5,7 @@ import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.config.ConfigGeneral
+import de.rub.nds.sshstatelearner.config.ConfigHelper
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
@@ -49,7 +50,8 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.learnerConfig.smlLimiterFilePath,
             configGeneral.learnerConfig.batchSize,
             configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount,
-            configGeneral.sulConfig.stateNameAndSuccessorTransitions
+            configGeneral.sulConfig.stateNameAndSuccessorTransitions,
+            ConfigHelper().toJsonString(configGeneral)
         )
         return learner.extractStateMachine()
 
