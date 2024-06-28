@@ -24,6 +24,10 @@ data class Statistics(
     val cacheInconsistencyRestarts: Int,
     val duration: Long
 ) {
+    var totalQueryCount: Long? = null
+    var totalMajorityVoteQueryCount: Long? = null
+    var totalNonDeterministicQueryCount: Long? = null
+
     override fun toString(): String =
         StringWriter().apply {
             export(this)
@@ -42,5 +46,8 @@ data class Statistics(
             println("Number of resets during equivalence checks: $equivResetCount")
             println("Number of restarts due to cache inconsistencies: $cacheInconsistencyRestarts")
             println("Time it took to learn state machine: $duration milliseconds")
+            totalQueryCount?.let { println("Total count of different queries: $it") }
+            totalMajorityVoteQueryCount?.let { println("Total number of different queries that required a majority vote: $it") }
+            totalNonDeterministicQueryCount?.let { println("Total number of different queries with different answers: $it") }
         }
 }

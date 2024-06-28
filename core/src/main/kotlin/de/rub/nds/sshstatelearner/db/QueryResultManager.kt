@@ -1,5 +1,6 @@
 package de.rub.nds.sshstatelearner.db
 
+import de.rub.nds.sshstatelearner.algorithms.Statistics
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import jakarta.persistence.Persistence
@@ -56,16 +57,34 @@ class QueryResultManager {
         )
     }
 
-    fun safeToDatabase(jsonConfigString: String) {
-        val entityManagerFactory = Persistence.createEntityManagerFactory("default")
-        val entityManager = entityManagerFactory.createEntityManager()
-        val stlInfo = STLInfo(jsonConfigString, dbQueries, Instant.now())
-        entityManager.use {
-            it.transaction.begin()
-            it.persist(stlInfo)
-            it.transaction.commit()
+    fun safeToDatabaseAndSetStatistics(jsonConfigString: String, statistics: Statistics) {
+        fun safeToDb() {
+            val entityManagerFactory = Persistence.createEntityManagerFactory("default")
+            val entityManager = entityManagerFactory.createEntityManager()
+            val stlInfo = STLInfo(jsonConfigString, dbQueries, Instant.now())
+            entityManager.use {
+                it.transaction.begin()
+                it.persist(stlInfo)
+                it.transaction.commit()
+            }
         }
+
+        fun setStatistics() {
+            statistics.totalQueryCount = dbQueries.size.toLong()
+            statistics.totalMajorityVoteQueryCount = dbQueries.filter { it.count > 1 }.size.toLong()
+            statistics.totalNonDeterministicQueryCount = dbQueries.filter { it1 ->
+                dbQueries.any {
+                    it1.prefix == it.prefix
+                            && it1.suffix == it.suffix
+                            && it1.responseFingerprints != it.responseFingerprints
+                            && it1.queryTyp == it.queryTyp
+                }
+            }.size.toLong()
+        }
+        safeToDb()
+        setStatistics()
     }
+
 
     fun switchToQueryTypes(queryTyp: QueryTyp) {
         currentQueryTyp = queryTyp

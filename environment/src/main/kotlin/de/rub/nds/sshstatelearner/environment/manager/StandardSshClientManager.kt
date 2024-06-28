@@ -70,7 +70,8 @@ class StandardSshClientManager(configGeneral: ConfigGeneral, private val configC
     )
 
     override fun setDown() {
-        /* Do Nothing */
+        sshClientWorker.exit()
+        clientConnectionHandlers.forEach { it.exit() }
     }
 
     override fun addAdditionalStatistics(fileWriter: FileWriter) {

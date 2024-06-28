@@ -11,4 +11,8 @@ object ArgsEnvironmentGeneral {
     var pathToConfigJson: String = ""
         private set
 
+    @Parameter(names = ["--path-to-config-directory"], description = "Path to a directory of config files", order = 2)
+    var pathToConfigDirectory: String = ""
+        private set
+
 }

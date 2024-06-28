@@ -5,6 +5,10 @@ class EmptyClientConnectionHandler : ClientConnectionHandler {
 
     }
 
+    override fun exit() {
+        
+    }
+
     override suspend fun subscribeForConnection() {
 
     }

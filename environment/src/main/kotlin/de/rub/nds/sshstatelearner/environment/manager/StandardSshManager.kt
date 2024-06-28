@@ -2,8 +2,6 @@ package de.rub.nds.sshstatelearner.environment.manager
 
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.MainWindow
-import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
-import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.config.ConfigGeneral
 import de.rub.nds.sshstatelearner.config.ConfigHelper
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
@@ -75,18 +73,18 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
     }
 
     protected fun serializeExtractorResult(result: Extractor.ExtractorResult) {
-        val folder = File(ArgsGeneral.output).also { it.mkdirs() }
+        val folder = File(configGeneral.outputDirectory).also { it.mkdirs() }
         // Serialize learned model to DOT and convert to PDF
         result.learnedModel.exportToDotAndPDF(
-            File(folder, "${ArgsSul.hostname}_${ArgsSul.protocolStage}_long.dot"),
+            File(folder, "finished_${configGeneral.sulConfig.protocolStage}_long.dot"),
             VisualizationDetail.LONG
         )
         result.learnedModel.exportToDotAndPDF(
-            File(folder, "${ArgsSul.hostname}_${ArgsSul.protocolStage}_medium.dot"),
+            File(folder, "finished_${configGeneral.sulConfig.protocolStage}_medium.dot"),
             VisualizationDetail.MEDIUM
         )
         result.learnedModel.exportToDotAndPDF(
-            File(folder, "${ArgsSul.hostname}_${ArgsSul.protocolStage}_short.dot"),
+            File(folder, "finished_${configGeneral.sulConfig.protocolStage}_short.dot"),
             VisualizationDetail.SHORT
         )
         // Serialize extractor statistics
@@ -96,6 +94,7 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             addAdditionalStatistics(this)
             this.close()
         }
+        ConfigHelper().safeConfig(configGeneral)
     }
 
     open fun addAdditionalStatistics(fileWriter: FileWriter) {

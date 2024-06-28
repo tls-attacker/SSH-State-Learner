@@ -17,34 +17,32 @@ class AdvancedStatisticSul<S : SUL<I, O>, I, O> constructor(
 ) : SUL<I, O> {
 
     companion object {
-        private val totalSymbolCounter: Counter = Counter("Total symbol count", "Symbols")
-        private val totalResetCounter: Counter = Counter("Total reset count", "Resets")
-        private val learnSymbolCounter: Counter = Counter("Symbol count during learning", "Symbols")
-        private val learnResetCounter: Counter = Counter("Reset count during learning", "Resets")
-        private val equivSymbolCounter: Counter = Counter("Symbol count during equivalence checks", "Symbols")
-        private val equivResetCounter: Counter = Counter("Reset count during equivalence checks", "Resets")
-        private var learningMode: AtomicBoolean = AtomicBoolean(true)
+        fun resetData() {
+            data = Data()
+        }
+
+        private var data = Data()
     }
 
     val totalSymbolCount
-        get() = totalSymbolCounter.count
+        get() = data.totalSymbolCounter.count
     val totalResetCount
-        get() = totalResetCounter.count
+        get() = data.totalResetCounter.count
     val learnSymbolCount
-        get() = learnSymbolCounter.count
+        get() = data.learnSymbolCounter.count
     val learnResetCount
-        get() = learnResetCounter.count
+        get() = data.learnResetCounter.count
     val equivSymbolCount
-        get() = equivSymbolCounter.count
+        get() = data.equivSymbolCounter.count
     val equivResetCount
-        get() = equivResetCounter.count
+        get() = data.equivResetCounter.count
 
     override fun pre() {
-        totalResetCounter.increment()
-        if (learningMode.get()) {
-            learnResetCounter.increment()
+        data.totalResetCounter.increment()
+        if (data.learningMode.get()) {
+            data.learnResetCounter.increment()
         } else {
-            equivResetCounter.increment()
+            data.equivResetCounter.increment()
         }
         nestedSul.pre()
     }
@@ -54,11 +52,11 @@ class AdvancedStatisticSul<S : SUL<I, O>, I, O> constructor(
     }
 
     override fun step(p0: I): O {
-        totalSymbolCounter.increment()
-        if (learningMode.get()) {
-            learnSymbolCounter.increment()
+        data.totalSymbolCounter.increment()
+        if (data.learningMode.get()) {
+            data.learnSymbolCounter.increment()
         } else {
-            equivSymbolCounter.increment()
+            data.equivSymbolCounter.increment()
         }
         return nestedSul.step(p0)
     }
@@ -74,10 +72,20 @@ class AdvancedStatisticSul<S : SUL<I, O>, I, O> constructor(
     }
 
     fun switchToEquivalenceCounters() {
-        learningMode.set(false)
+        data.learningMode.set(false)
     }
 
     fun switchToLearningCounters() {
-        learningMode.set(true)
+        data.learningMode.set(true)
+    }
+
+    private class Data {
+        val totalSymbolCounter: Counter = Counter("Total symbol count", "Symbols")
+        val totalResetCounter: Counter = Counter("Total reset count", "Resets")
+        val learnSymbolCounter: Counter = Counter("Symbol count during learning", "Symbols")
+        val learnResetCounter: Counter = Counter("Reset count during learning", "Resets")
+        val equivSymbolCounter: Counter = Counter("Symbol count during equivalence checks", "Symbols")
+        val equivResetCounter: Counter = Counter("Reset count during equivalence checks", "Resets")
+        var learningMode: AtomicBoolean = AtomicBoolean(true)
     }
 }

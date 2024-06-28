@@ -36,6 +36,10 @@ class AndroidClientConnectionHandler(
         )
     }
 
+    override fun exit() {
+        androidSSHClientController.quit()
+    }
+
     override fun init() {
         try {
             runBlocking() {

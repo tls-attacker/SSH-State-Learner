@@ -1,7 +1,5 @@
 package de.rub.nds.sshstatelearner.environment.manager
 
-import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
-import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.config.ConfigGeneral
 import de.rub.nds.sshstatelearner.config.ConfigServerSul
 import de.rub.nds.sshstatelearner.constants.ExecutorType
@@ -14,7 +12,7 @@ class StandardSshServerManager(configGeneral: ConfigGeneral, val configServerSul
     override fun setUp() {
     }
 
-    override fun getSul(): SshSul = when (ArgsGeneral.executor) {
+    override fun getSul(): SshSul = when (configGeneral.executorType) {
 //        ExecutorType.NYX -> NyxSshSul(
 //            ArgsSul.name,
 //            "/home/fabian/Workspace/targets/packed_targets/nyx_openssh",
@@ -26,17 +24,17 @@ class StandardSshServerManager(configGeneral: ConfigGeneral, val configServerSul
 //            ArgsSul.kexAlgorithm
 //        )
 
-        ExecutorType.NYX, ExecutorType.NETWORK ->
+        ExecutorType.NYX, ExecutorType.NETWORK -> {
             NetworkSshServerSul(
-                ArgsSul.name,
-                ArgsSul.hostname,
-                ArgsSul.port,
-                ArgsSul.timeout,
-                ArgsSul.resetDelay,
-                ArgsSul.protocolStage,
-                ArgsSul.kexAlgorithm
+                configServerSul.name,
+                configServerSul.hostname,
+                configServerSul.port,
+                configServerSul.timeout,
+                configServerSul.resetDelay,
+                configServerSul.protocolStage,
+                configServerSul.kexAlgorithm
             )
-
+        }
     }
 
     override fun getCountOfParallelSuls(): Int = 1

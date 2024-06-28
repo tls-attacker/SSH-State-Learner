@@ -16,6 +16,7 @@ import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.SendAction
+import de.rub.nds.sshstatelearner.constants.SULTyp
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.SshConfigManager
@@ -86,6 +87,9 @@ class NetworkSshServerSul(
         Thread.sleep(retrieveDelay)
         return retrieveMessages()
     }
+
+    override val isClient: Boolean
+        get() = SULTyp.SERVER_IS_UNDER_TEST.isClientAlphabet
 
     /**
      * Indicates whether this SUL can be forked for parallel queries.

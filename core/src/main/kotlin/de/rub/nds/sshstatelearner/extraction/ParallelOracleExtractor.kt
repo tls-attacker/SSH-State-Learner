@@ -106,7 +106,8 @@ class ParallelOracleExtractor(
     private var guiUpdateTimer: Timer = Timer("GUIUpdateTimer")
 
     init {
-        this.sul = AdvancedStatisticSul(sul)
+        this.sul = AdvancedStatisticSul(sul).apply { AdvancedStatisticSul.resetData() }
+
     }
 
     companion object {
@@ -235,7 +236,6 @@ class ParallelOracleExtractor(
         LOGGER.warn("Finished learning the target SUL after $rounds rounds")
         LOGGER.info("Total steps: ${sul.totalSymbolCount} (Learning: ${sul.learnSymbolCount} | Equivalence: ${sul.equivSymbolCount})")
         LOGGER.info("Total resets: ${sul.totalResetCount} (Learning: ${sul.learnResetCount} | Equivalence: ${sul.equivResetCount})")
-        queryResult.safeToDatabase(jsonString)
         guiUpdateTimer.cancel()
 
         val stateMachine =
@@ -259,9 +259,10 @@ class ParallelOracleExtractor(
             cacheInconsistencyRestarts = cacheInconsistencyRestarts,
             duration = System.currentTimeMillis() - extractionStartTime
         )
-
         extractorResult.learnedModel = stateMachine
         extractorResult.statistics = statistics
+
+        queryResult.safeToDatabaseAndSetStatistics(jsonString, statistics)
         return extractorResult
     }
 

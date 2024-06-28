@@ -12,7 +12,6 @@ import de.learnlib.api.SUL
 import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.state.State
-import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -48,6 +47,8 @@ abstract class SshSul(
      * A list of all executed steps on the current SSH connection.
      */
     protected val executedSteps = mutableListOf<SshSymbol>()
+
+    protected abstract val isClient: Boolean
 
     companion object {
         /**
@@ -88,7 +89,7 @@ abstract class SshSul(
                 HappyFlowFactory.constructHappyFlow(
                     ProtocolStage.TRANSPORT,
                     kex,
-                    ArgsSul.sulTyp.isClientAlphabet
+                    isClient
                 )
             )
         }
@@ -97,7 +98,7 @@ abstract class SshSul(
                 HappyFlowFactory.constructHappyFlow(
                     ProtocolStage.AUTHENTICATION,
                     kex,
-                    ArgsSul.sulTyp.isClientAlphabet
+                    isClient
                 )
             )
         }
@@ -115,7 +116,7 @@ abstract class SshSul(
         executedSteps.clear()
     }
 
-    override fun close() { }
+    override fun close() {}
 
     fun majorityVote(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, count: Int): Word<ResponseFingerprint> {
         val voteList = mutableListOf<Word<ResponseFingerprint>>()

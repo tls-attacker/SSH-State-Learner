@@ -27,7 +27,7 @@ abstract class NetworkSshSul(
     timeout: Long = DEFAULT_SUL_TIMEOUT,
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
-    kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
+    kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
 ) : SshSul(name, timeout, resetDelay, stage, kex) {
 
     /**
@@ -104,7 +104,9 @@ abstract class NetworkSshSul(
     override fun close() {
         try {
             state.sshContext.transportHandler.closeConnection()
-        } catch (_: Exception) { /* Ignore */ }
+        } catch (_: Exception) {
+            /* Ignore */
+        }
     }
 
     /**

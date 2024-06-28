@@ -76,7 +76,8 @@ class StandardAndroidSshClientManager(
     )
 
     override fun setDown() {
-        /* Do Nothing */
+        androidClientConnectionHandlers.forEach { it.exit() }
+        sshClientWorker.exit()
     }
 
     override fun addAdditionalStatistics(fileWriter: FileWriter) {

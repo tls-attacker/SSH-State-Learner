@@ -16,15 +16,21 @@ import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.SendAction
+import de.rub.nds.sshstatelearner.constants.SULTyp
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.SshConfigManager
 import de.rub.nds.tlsattacker.transport.tcp.ServerTcpTransportHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class NetworkSshClientSul(
     name: String,
@@ -58,16 +64,26 @@ class NetworkSshClientSul(
             state = State(config)
             try {
                 runBlocking {
-                    launch(Dispatchers.IO) {
+                    val jobSomethingWentWrongTimer =
+                        launch(Dispatchers.IO) {
+                            delay(10.toDuration(DurationUnit.SECONDS))
+                            state.sshContext.transportHandler.closeConnection()
+                            LOGGER.warn("SUL with port ${port} could not be started successfully within 60 seconds! Try again!")
+                            this.cancel()
+                        }
+
+                    val jobServer = launch(Dispatchers.IO) {
                         state.sshContext.transportHandler = ServerTcpTransportHandler(timeout, timeout, port)
                         state.sshContext.initTransportHandler()
                         connectionClosed = false
                         serverIsReady = true
                     }
-                    launch(Dispatchers.IO) {
+                    val jobClient = launch(Dispatchers.IO) {
                         clientConnectionHandler.subscribeForConnection()
                         connectionIsReady = true
                     }
+                    joinAll(jobClient, jobServer)
+                    jobSomethingWentWrongTimer.cancel()
                 }
             } catch (e: TransportHandlerConnectException) {
                 LOGGER.warn(e.message)
@@ -105,6 +121,9 @@ class NetworkSshClientSul(
         val retrieveDelay = 50L
         return retrieveMessages(retrieveDelay)
     }
+
+    override val isClient: Boolean
+        get() = SULTyp.CLIENT_IS_UNDER_TEST.isClientAlphabet
 
     /**
      * Indicates whether this SUL can be forked for parallel queries.

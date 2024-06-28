@@ -13,4 +13,8 @@ class ConfigHelper {
     }
 
     fun toJsonString(configGeneral: ConfigGeneral): String = ObjectMapper().writeValueAsString(configGeneral)
+
+    fun safeConfig(configGeneral: ConfigGeneral) {
+        ObjectMapper().writeValue(File(configGeneral.outputDirectory + "/usedConfig.json"), configGeneral)
+    }
 }

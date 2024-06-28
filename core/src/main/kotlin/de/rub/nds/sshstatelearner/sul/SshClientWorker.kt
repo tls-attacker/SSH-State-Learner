@@ -2,7 +2,9 @@ package de.rub.nds.sshstatelearner.sul
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration
@@ -10,17 +12,30 @@ import kotlin.time.TimeSource
 
 class SshClientWorker {
     private val scope = CoroutineScope(Dispatchers.IO)
-    private val sulToUse = Channel<NetworkSshClientSul>(32)
+    private val sulToUse = Channel<NetworkSshClientSul>(64)
+    private val allSuls = mutableListOf<NetworkSshClientSul>()
     private val map = HashMap<Int, IdleVsWorkTime>()
 
     fun init(suls: List<NetworkSshClientSul>) {
         runBlocking {
             for (sul in suls) {
-
                 sul.pre()
                 sulToUse.send(sul)
+                allSuls.add(sul)
 
                 map[sul.port] = IdleVsWorkTime()
+            }
+        }
+    }
+
+    fun exit() {
+        runBlocking {
+            if (scope.isActive) {
+                scope.runCatching { cancel() }
+            }
+            sulToUse.close()
+            allSuls.forEach {
+                it.post()
             }
         }
     }
