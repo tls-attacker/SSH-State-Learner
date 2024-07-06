@@ -262,11 +262,14 @@ object EquivalenceOracleFactory {
         batchSize: Int
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
+        val constantSeed = 0L
         return when (type) {
 
             EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache.createCacheConsistencyTest()
                 ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
 
+            //HAPPY_FLOW count of generated queries
+            // var generatedQueries = 0L; repeat(happyFlowAlphabet.count()){ generatedQueries += input.count().toDouble().pow(happyFlowSuffixLength).toLong() }
             EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(
                 membershipOracle,
                 happyFlowProtocolStage,
@@ -276,7 +279,8 @@ object EquivalenceOracleFactory {
                 batchSize,
                 alternativeHappyFlowAlphabet
             )
-
+            // COMPLETE_EXPLORATION count of generated queries
+            // var generatedQueries = 0L; for(x in min .. max){ generatedQueries += input.count().toDouble().pow(x).toLong() }
             EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(
                 membershipOracle,
                 completeExplorationMinDepth,
@@ -289,7 +293,7 @@ object EquivalenceOracleFactory {
                 randomWordsMinLength,
                 randomWordsMaxLength,
                 randomWordsMaxTests,
-                Random(),
+                Random(constantSeed),
                 batchSize
             )
 
@@ -297,7 +301,7 @@ object EquivalenceOracleFactory {
                 sul,
                 randomWalkRestartProbability,
                 randomWalkMaxSteps,
-                Random()
+                Random(constantSeed)
             )
 
             EquivalenceOracleType.W -> WMethodEQOracle(membershipOracle, wMaxDepth, batchSize)

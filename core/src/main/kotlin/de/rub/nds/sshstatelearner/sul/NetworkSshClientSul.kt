@@ -84,15 +84,21 @@ class NetworkSshClientSul(
                     }
                     joinAll(jobClient, jobServer)
                     jobSomethingWentWrongTimer.cancel()
+
+                    if (!preVersionExchange()) {
+                        state.sshContext.transportHandler.closeConnection()
+                        serverIsReady = false
+                        connectionIsReady = false
+                    } else {
+                        // TODO: Exception handling for preamble
+                        preamble.forEach {
+                            executeSymbol(it)
+                        }
+                    }
                 }
             } catch (e: TransportHandlerConnectException) {
                 LOGGER.warn(e.message)
             }
-        }
-        preVersionExchange()
-        // TODO: Exception handling for preamble
-        preamble.forEach {
-            executeSymbol(it)
         }
     }
 
@@ -100,11 +106,15 @@ class NetworkSshClientSul(
      * Executes a version exchange on the state and changes the packet layer to binary packets afterwards. This function
      * will be called during the pre() lifecycle hook after initializing a new state and opening the connection.
      */
-    private fun preVersionExchange() {
-        ReceiveAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageCreator()).execute(state)
+    private fun preVersionExchange(): Boolean {
+        val receiveMessageVersionExchange =
+            ReceiveAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageCreator()).apply { execute(state) }
         SendAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageCreator()).execute(state)
         ChangePacketLayerAction(connectionAlias, PacketLayerType.BINARY_PACKET).execute(state)
-        ReceiveAction(connectionAlias, SshSymbol.MSG_KEXINIT.messageCreator()).execute(state)
+        Thread.sleep(timeout)
+        val receiveKexInit =
+            ReceiveAction(connectionAlias, SshSymbol.MSG_KEXINIT.messageCreator()).apply { execute(state) }
+        return receiveMessageVersionExchange.executedAsPlanned() && receiveKexInit.executedAsPlanned() && !state.sshContext.transportHandler.isClosed
     }
 
     /**

@@ -65,6 +65,7 @@ class ParallelOracleExtractor(
     private val batchSize: Int,
     private val repeatedQueriesDuringLearningWithMajorityCount: Int,
     private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>,
+    private val customProtocolStageNameForGraph: String,
     private val jsonString: String
 ) {
 
@@ -159,6 +160,11 @@ class ParallelOracleExtractor(
                 val majorityResult = sul.nestedSul.majorityVote(e.inputPrefix, e.inputSuffix, 7)
                 membershipOracle.overwrite(e.inputPrefix, e.inputSuffix, majorityResult)
                 cacheInconsistencyRestarts++
+            } catch (e: RuntimeException) {
+                queryResult.safeToDatabase(
+                    jsonString
+                )
+                throw e
             }
         } while (extractorResult == null)
 
@@ -204,7 +210,8 @@ class ParallelOracleExtractor(
                     sul.nestedSul.name,
                     sul.nestedSul.stage,
                     sul.nestedSul.kex,
-                    stateNameAndSuccessorTransitions
+                    stateNameAndSuccessorTransitions,
+                    customProtocolStageNameForGraph
                 )
             extractorResult.addHypothesis(stateMachine)
 
@@ -245,7 +252,8 @@ class ParallelOracleExtractor(
                 sul.nestedSul.name,
                 sul.nestedSul.stage,
                 sul.nestedSul.kex,
-                stateNameAndSuccessorTransitions
+                stateNameAndSuccessorTransitions,
+                customProtocolStageNameForGraph
             )
         val statistics = Statistics(
             states = stateMachine.mealyMachine.size(),
@@ -261,8 +269,8 @@ class ParallelOracleExtractor(
         )
         extractorResult.learnedModel = stateMachine
         extractorResult.statistics = statistics
-
-        queryResult.safeToDatabaseAndSetStatistics(jsonString, statistics)
+        queryResult.setStatistics(statistics)
+        queryResult.safeToDatabase(jsonString)
         return extractorResult
     }
 
@@ -273,10 +281,10 @@ class ParallelOracleExtractor(
         if (counterExample != null) {
             val counterExampleSafe =
                 membershipOracle.answerQueryWithMajorityVote(counterExample.prefix, counterExample.suffix)
-            if (counterExampleSafe != counterExample.output) {
+            //TODO: Kontrollieren ob sich der Wert geändert hat zu einem Wert im Cache. Nur wenn es zu keinen Fehler Kommt geht es weiter
                 counterExample.answer(counterExampleSafe)
                 membershipOracle.overwrite(counterExample.prefix, counterExample.suffix, counterExampleSafe)
-            }
+
         }
         return counterExample
     }

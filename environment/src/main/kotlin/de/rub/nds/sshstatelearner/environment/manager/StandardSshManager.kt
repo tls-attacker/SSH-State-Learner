@@ -49,7 +49,8 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.learnerConfig.batchSize,
             configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount,
             configGeneral.sulConfig.stateNameAndSuccessorTransitions,
-            ConfigHelper().toJsonString(configGeneral)
+            configGeneral.sulConfig.customProtocolStageNameForGraph,
+            ConfigHelper().toJsonString(configGeneral),
         )
         return learner.extractStateMachine()
 

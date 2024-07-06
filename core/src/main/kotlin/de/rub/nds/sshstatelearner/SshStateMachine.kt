@@ -37,6 +37,7 @@ class SshStateMachine<S, T>(
     val stage: ProtocolStage,
     val kexAlgorithm: KeyExchangeAlgorithm,
     private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition> = emptyList(),
+    private val customProtocolStageNameForGraph: String = ""
 ) : StateMachine<S, SshSymbol, T, ResponseFingerprint>(
     mealyMachine,
     alphabet
@@ -50,7 +51,8 @@ class SshStateMachine<S, T>(
             title,
             alphabet,
             stage,
-            kexAlgorithm
+            kexAlgorithm,
+            customProtocolStageNameForGraph
         )
 
     private fun getEmptyGraphDetails(): GraphDetails<S, SshSymbol, T> {

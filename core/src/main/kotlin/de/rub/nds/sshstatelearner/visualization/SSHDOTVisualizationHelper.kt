@@ -20,7 +20,8 @@ class SSHDOTVisualizationHelper<N, E>(
     private val title: String,
     private val alphabet: Alphabet<SshSymbol>,
     private val stage: ProtocolStage,
-    private val kexAlgorithm: KeyExchangeAlgorithm
+    private val kexAlgorithm: KeyExchangeAlgorithm,
+    private val customProtocolStageNameForGraph: String = ""
 ) : DefaultDOTVisualizationHelper<N, E>(delegate) {
 
     override fun writePreamble(a: Appendable) {
@@ -28,7 +29,11 @@ class SSHDOTVisualizationHelper<N, E>(
 
         a.append(System.lineSeparator())
         a.append("    labelloc = \"b\"${System.lineSeparator()}")
-        a.append("    label = \"Server: $title\nProtocol Stage: $stage")
+        a.append("    label = \"Server/Client: $title\nProtocol Stage: $stage")
+        when (stage) {
+            ProtocolStage.UNKNOWN -> a.append("    Protocol Stage: $customProtocolStageNameForGraph")
+            else -> a.append("    Protocol Stage: $stage")
+        }
         if (stage == ProtocolStage.TRANSPORT) {
             a.append("\nKEX Algorithm: $kexAlgorithm")
         }

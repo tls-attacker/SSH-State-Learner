@@ -61,8 +61,10 @@ class HappyFlowEQOracle(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? =
-        if (batchSize == 1) findCounterExampleSequentially(hypothesis, alphabet)
-        else findCounterExampleParallel(hypothesis, alphabet)
+        if (batchSize == 1) findCounterExampleSequentially(hypothesis, alphabet) else findCounterExampleParallel(
+            hypothesis,
+            alphabet
+        )
 
     private fun findCounterExampleSequentially(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,

@@ -37,10 +37,12 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.DhKeyExchangeReply
 import de.rub.nds.sshattacker.core.protocol.transport.message.DisconnectMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.EcdhKeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.EcdhKeyExchangeReplyMessage
+import de.rub.nds.sshattacker.core.protocol.transport.message.ExtensionInfoMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.HybridKeyExchangeInitMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.HybridKeyExchangeReplyMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.IgnoreMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.KeyExchangeInitMessage
+import de.rub.nds.sshattacker.core.protocol.transport.message.NewCompressMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.NewKeysMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.RsaKeyExchangeDoneMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.RsaKeyExchangePubkeyMessage
@@ -82,7 +84,8 @@ enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
     MSG_KEX_RSA_DONE({ RsaKeyExchangeDoneMessage() }),
     MSG_KEX_HBR_INIT({ HybridKeyExchangeInitMessage() }),
     MSG_KEX_HBR_REPLY({ HybridKeyExchangeReplyMessage() }),
-
+    MSG_EXT_INFO({ ExtensionInfoMessage() }),
+    MSG_NEWCOMPRESS({ NewCompressMessage() }),
     /*
      * SSH authentication protocol symbols
      */

@@ -106,7 +106,7 @@ class ResponseTreeCache(
                 query.suffix,
                 delegates[delegateIndex]
             )
-            isQueryValidInCacheContext(query.prefix, query.suffix, response)
+
             pairOfQueriesAndResponsesToUpdateToCache[delegateIndex] = Pair(query, response)
         }
 
@@ -186,6 +186,16 @@ class ResponseTreeCache(
         return answer
     }
 
+    private fun answerQueryWithSulAndWithPrefixAnswer(
+        prefix: Word<SshSymbol>,
+        suffix: Word<SshSymbol>,
+        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
+    ): Word<ResponseFingerprint> {
+        val answer = delegate.answerQuery(prefix.concat(suffix))
+        queryResultManager?.addDBQueryResult(prefix, suffix, answer)
+        return answer
+    }
+
     fun answerQueryWithMajorityVote(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>
@@ -200,7 +210,7 @@ class ResponseTreeCache(
                     if (currentIndex >= repeatedQueriesDuringLearningWithMajorityCount) break
                     launch(Dispatchers.IO) {
                         batchOfAnswers[currentDelegateIndex] =
-                            answerQueryWithSul(prefix, suffix, delegates[currentDelegateIndex])
+                            answerQueryWithSulAndWithPrefixAnswer(prefix, suffix, delegates[currentDelegateIndex])
                     }
                     currentIndex++
                 }
@@ -209,10 +219,26 @@ class ResponseTreeCache(
             batchOfAnswers.fill(null)
         }
         val setOfAnswers = HashSet(listOfAnswers)
-        return setOfAnswers.maxWith { selector1, selector2 ->
+        if (setOfAnswers.size > 1 || setOfAnswers.any {
+                !isQueryValidInCacheContext(
+                    prefix,
+                    suffix,
+                    it.suffix(suffix.length())
+                )
+            }
+        ) {
+            logger.warn("prefix: " + prefix.joinToString(separator = ", ") { it.name })
+            logger.warn("suffix: " + suffix.joinToString(separator = ", ") { it.name })
+            logger.warn(
+                setOfAnswers.joinToString(
+                    separator = "\n",
+                    transform = { it.joinToString { it.toString() } + " -> count: " + listOfAnswers.count { predicate -> it == predicate } })
+            )
+        }
+        return setOfAnswers.maxWithOrNull { selector1, selector2 ->
             listOfAnswers.count { predicate -> selector1 == predicate } compareTo
                     listOfAnswers.count { predicate -> selector2 == predicate }
-        }
+        }?.suffix(suffix.length()) ?: throw IllegalStateException("Empty Answers!")
     }
 
     fun analysisInputWithSmlLimiter(
@@ -375,9 +401,6 @@ class ResponseTreeCache(
                 // The next nodes marks a closed connection, abort if we're not forced to update
                 return
             }
-            if (force) {
-                next.isMajorityProved = true
-            }
             current = next
         }
         // Descend the tree according to the suffix and create nodes with their corresponding response fingerprint
@@ -389,14 +412,14 @@ class ResponseTreeCache(
             next = current.findChild(suffixSymbol)
             if (next == null) {
                 // Node is not yet present in the tree, create a new one
-                next = Node(suffixSymbol, outputSymbol)
+                next = Node(suffixSymbol, outputSymbol, force)
                 current.children.add(next)
             } else if (next.outputSymbol != outputSymbol) {
                 // We were asked to update the cache, but the cached information is inconsistent with the provided prefix-suffix / output combination
                 // We'll throw an exception if the force parameter is false. If its value is true however, we'll overwrite the cached information and continue.
                 if (force) {
                     if (current.isMajorityProved) {
-                        throw IllegalStateException("Two different majority proved outputsymbols")
+                        throw IllegalStateException("Two different majority proved output symbols")
                     }
 
                     next.outputSymbol = outputSymbol

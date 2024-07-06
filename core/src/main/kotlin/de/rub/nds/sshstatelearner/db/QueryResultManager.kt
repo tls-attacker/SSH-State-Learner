@@ -15,11 +15,12 @@ import java.time.Instant
 
 class QueryResultManager {
 
-    val localScope = CoroutineScope(Dispatchers.IO)
+    private val localScope = CoroutineScope(Dispatchers.IO)
     val dbChannel: Channel<QueryResult> = Channel(Channel.UNLIMITED)
-    val dbQueries: MutableList<QueryResult> = mutableListOf()
-    var dbJob: Job? = null
-    var currentQueryTyp = QueryTyp.USED_TO_LEARN
+    private val dbQueries: MutableList<QueryResult> = mutableListOf()
+    private var dbJob: Job? = null
+    private var currentQueryTyp = QueryTyp.USED_TO_LEARN
+
 
     fun init() {
         dbJob = dbJob ?: localScope.launch {
@@ -41,7 +42,7 @@ class QueryResultManager {
         }
     }
 
-    fun addDBQueryResult(queryResult: QueryResult) {
+    private fun addDBQueryResult(queryResult: QueryResult) {
         runBlocking {
             dbChannel.send(queryResult)
         }
@@ -51,13 +52,19 @@ class QueryResultManager {
         addDBQueryResult(
             QueryResult(
                 prefix.asList(), suffix.asList(),
-                answer.map { QueryResultResponseFingerprint(it.messages.map { it.toCompactString() }, it.socketState) },
+                answer.asList()
+                    .map {
+                        QueryResultResponseFingerprint(
+                            it.messages.map { it2 -> it2.toCompactString() },
+                            it.socketState
+                        )
+                    },
                 currentQueryTyp
             )
         )
     }
 
-    fun safeToDatabaseAndSetStatistics(jsonConfigString: String, statistics: Statistics) {
+    fun safeToDatabase(jsonConfigString: String) {
         fun safeToDb() {
             val entityManagerFactory = Persistence.createEntityManagerFactory("default")
             val entityManager = entityManagerFactory.createEntityManager()
@@ -68,21 +75,31 @@ class QueryResultManager {
                 it.transaction.commit()
             }
         }
-
-        fun setStatistics() {
-            statistics.totalQueryCount = dbQueries.size.toLong()
-            statistics.totalMajorityVoteQueryCount = dbQueries.filter { it.count > 1 }.size.toLong()
-            statistics.totalNonDeterministicQueryCount = dbQueries.filter { it1 ->
-                dbQueries.any {
-                    it1.prefix == it.prefix
-                            && it1.suffix == it.suffix
-                            && it1.responseFingerprints != it.responseFingerprints
-                            && it1.queryTyp == it.queryTyp
-                }
-            }.size.toLong()
-        }
         safeToDb()
-        setStatistics()
+    }
+
+    fun setStatistics(statistics: Statistics) {
+        statistics.totalQueryCount = dbQueries.sumOf { it.count }.toLong()
+
+        statistics.totalUniqueQueryCount = dbQueries.size.toLong() - dbQueries.filter { currentQuery ->
+            dbQueries.any { anyQuery ->
+                currentQuery.prefix == anyQuery.prefix
+                        && currentQuery.suffix == anyQuery.suffix
+                        && currentQuery.responseFingerprints == anyQuery.responseFingerprints
+                        && currentQuery.queryTyp != anyQuery.queryTyp
+            }
+        }.size.toLong() / 2
+
+        statistics.totalMajorityVoteQueryCount = dbQueries.filter { it.count > 1 }.size.toLong()
+
+        statistics.totalNonDeterministicQueryCount = dbQueries.filter { it1 ->
+            dbQueries.any { it2 ->
+                it1.prefix == it2.prefix
+                        && it1.suffix == it2.suffix
+                        && it1.responseFingerprints != it2.responseFingerprints
+                        && it1.queryTyp == it2.queryTyp
+            }
+        }.size.toLong()
     }
 
 

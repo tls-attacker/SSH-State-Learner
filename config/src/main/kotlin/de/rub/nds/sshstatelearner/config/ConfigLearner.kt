@@ -33,7 +33,7 @@ class ConfigLearner {
     @JsonProperty(defaultValue = "2")
     var equivHappyFlowSuffixLength: Int = EquivalenceOracleFactory.happyFlowSuffixLength
 
-    @JsonPropertyDescription("[HAPPY_FLOW only] An Alternative Happy Flow to use.")
+    @JsonPropertyDescription("[HAPPY_FLOW only] An Alternative Happy Flow to use. It is only used if protocolStage==UNKNOWN")
     @JsonProperty(defaultValue = "[]")
     var alternativeHappyFlowAlphabet: List<SshSymbol> = emptyList()
 

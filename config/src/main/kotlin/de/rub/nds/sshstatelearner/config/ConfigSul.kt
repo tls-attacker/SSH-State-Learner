@@ -45,6 +45,12 @@ abstract class ConfigSul(
     @field:JsonProperty(defaultValue = "TRANSPORT")
     var protocolStage: ProtocolStage = SshSul.DEFAULT_PROTOCOL_STAGE,
 
+    @field:JsonPropertyDescription("Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\"")
+    @field:JsonProperty(defaultValue = "")
+    var customProtocolStageNameForGraph: String = "",
+
+    @field:JsonPropertyDescription("Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN")
+    @field:JsonProperty(defaultValue = "[]")
     var stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition> = emptyList(),
 
 
@@ -53,7 +59,7 @@ abstract class ConfigSul(
     var kexAlgorithm: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM,
 
 
-    @field:JsonPropertyDescription("A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm")
+    @field:JsonPropertyDescription("A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN")
     @field:JsonProperty(defaultValue = "[]")
     var alphabet: List<SshSymbol> = emptyList(),
 

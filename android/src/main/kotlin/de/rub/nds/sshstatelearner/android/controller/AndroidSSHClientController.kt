@@ -4,9 +4,11 @@ import io.appium.java_client.android.AndroidDriver
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import org.openqa.selenium.By
+import org.openqa.selenium.NoSuchSessionException
 import org.openqa.selenium.Point
 import org.openqa.selenium.StaleElementReferenceException
 import org.openqa.selenium.TimeoutException
+import org.openqa.selenium.WebDriverException
 import org.openqa.selenium.WebElement
 import org.openqa.selenium.interactions.PointerInput
 import org.openqa.selenium.remote.DesiredCapabilities
@@ -43,7 +45,15 @@ abstract class AndroidSSHClientController(
     protected var isInStateMachineLearningMode = false
 
     fun installApp() {
-        driver.terminateApp(bundleId)
+        var appIsTerminated = false
+        while (!appIsTerminated) {
+            try {
+                driver.terminateApp(bundleId)
+                appIsTerminated = true
+            } catch (e: WebDriverException) {
+                logger.error(e)
+            }
+        }
         if (driver.isAppInstalled(bundleId)) {
             driver.terminateApp(bundleId)
             driver.executeScript("mobile:clearApp", mapOf("appId" to bundleId))
@@ -120,12 +130,23 @@ abstract class AndroidSSHClientController(
     }
 
     protected fun catchAppiumException(func: () -> Unit) {
-        try {
-            func()
-        } catch (e: StaleElementReferenceException) {
-            logger.error(e.message)
-        } catch (e: TimeoutException) {
-            logger.error(e.message)
+        var retry = true
+        while (retry) {
+            try {
+                func()
+                retry = false
+            } catch (e: Exception) {
+                when (e) {
+                    is TimeoutException,
+                    is NoSuchSessionException,
+                    is StaleElementReferenceException -> {
+                        logger.error(e)
+                        restartApp()
+                    }
+
+                    else -> throw e
+                }
+            }
         }
     }
 

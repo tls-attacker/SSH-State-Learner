@@ -62,7 +62,7 @@ class AndroidClientConnectionHandler(
                 }
             }
         } catch (e: Exception) {
-            throw IllegalStateException(e)
+            throw e
         }
     }
 
