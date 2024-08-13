@@ -35,7 +35,9 @@
     "alphabet" : [ ],
     "sulTyp" : "CLIENT_IS_UNDER_TEST",
     "preLearnFingerprintAcceptance" : true,
+    "enableEncryptionOnNewKeysMessageType" : "BOTH",
     "androidConnectionInfos" : [ ],
-    "androidSshClientTyp" : "INVALID"
+    "androidSshClientTyp" : "INVALID",
+    "pathToApks" : [ ]
   }
 }

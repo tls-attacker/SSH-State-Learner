@@ -284,8 +284,28 @@ class ParallelOracleExtractor(
             val counterExampleSafe =
                 membershipOracle.answerQueryWithMajorityVote(counterExample.prefix, counterExample.suffix)
             //TODO: Kontrollieren ob sich der Wert geändert hat zu einem Wert im Cache. Nur wenn es zu keinen Fehler Kommt geht es weiter
-                counterExample.answer(counterExampleSafe)
+            counterExample.answer(counterExampleSafe)
+            if (membershipOracle.isQueryValidInCacheContext(
+                    counterExample.prefix,
+                    counterExample.suffix,
+                    counterExampleSafe
+                )
+            ) {
                 membershipOracle.overwrite(counterExample.prefix, counterExample.suffix, counterExampleSafe)
+            } else {
+                var string = "prefix: " + counterExample.prefix.joinToString(separator = ", ") { it.name }
+                string += "\nsuffix: " + counterExample.suffix.joinToString(separator = ", ") { it.name }
+                string += "\n" + listOf(
+                    membershipOracle.find(
+                        counterExample.prefix,
+                        counterExample.suffix
+                    ).wordResponseFingerprint, counterExampleSafe
+                ).joinToString(
+                    separator = "\n",
+                    transform = { it!!.joinToString { it.toString() } })
+
+                throw IllegalStateException(string)
+            }
 
         }
         return counterExample

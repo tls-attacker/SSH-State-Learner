@@ -48,6 +48,7 @@ class StandardSshClientManager(configGeneral: ConfigGeneral, private val configC
                         configClientSul.resetDelay,
                         configClientSul.protocolStage,
                         configClientSul.kexAlgorithm,
+                        configClientSul.enableEncryptionOnNewKeysMessageType,
                         clientConnectionHandler
                     )
                 )

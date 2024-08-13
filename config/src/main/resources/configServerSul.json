@@ -35,6 +35,7 @@
     "alphabet" : [ ],
     "sulTyp" : "CLIENT_IS_UNDER_TEST",
     "preLearnFingerprintAcceptance" : true,
+    "enableEncryptionOnNewKeysMessageType" : "BOTH",
     "hostname" : "localhost",
     "port" : 22
   }

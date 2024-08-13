@@ -31,7 +31,7 @@ class StandardAndroidSshClientManager(
                         connectionInfo.portToAppium,
                         connectionInfo.ipToServer,
                         connectionInfo.portToServer,
-                        connectionInfo.pathToApks,
+                        configAndroidClientSul.pathToApks,
                         connectionInfo.uuid,
                         configAndroidClientSul.preLearnFingerprintAcceptance
                     )
@@ -54,6 +54,7 @@ class StandardAndroidSshClientManager(
                         configAndroidClientSul.resetDelay,
                         configAndroidClientSul.protocolStage,
                         configAndroidClientSul.kexAlgorithm,
+                        configAndroidClientSul.enableEncryptionOnNewKeysMessageType,
                         clientConnectionHandler
                     )
                 )

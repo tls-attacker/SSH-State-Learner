@@ -9,6 +9,7 @@
 package de.rub.nds.sshstatelearner.sul
 
 import de.learnlib.api.SUL
+import de.rub.nds.sshattacker.core.constants.EnableEncryptionOnNewKeysMessageType
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.PacketLayerType
 import de.rub.nds.sshattacker.core.exceptions.TransportHandlerConnectException
@@ -39,6 +40,7 @@ class NetworkSshClientSul(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
+    private val enableEncryptionOnNewKeysMessageType: EnableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.BOTH,
     private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler(),
 ) : NetworkSshSul(name, timeout, resetDelay, stage, kex) {
 
@@ -60,9 +62,8 @@ class NetworkSshClientSul(
         var serverIsReady = false
         var connectionIsReady = false
         while (!serverIsReady || !connectionIsReady) {
-            //config.enableEncryptionOnNewKeysMessage = false
+            config.enableEncryptionOnNewKeysMessageType = enableEncryptionOnNewKeysMessageType
             state = State(config)
-            state.sshContext.disableEncrption = true
 
             try {
                 runBlocking {
@@ -148,7 +149,16 @@ class NetworkSshClientSul(
      * Returns a new SUL instance that must behave exactly as the original SUL.
      */
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        return NetworkSshClientSul(name, port, timeout, resetDelay)
+        return NetworkSshClientSul(
+            name,
+            port,
+            timeout,
+            resetDelay,
+            stage,
+            kex,
+            enableEncryptionOnNewKeysMessageType,
+            clientConnectionHandler
+        )
     }
 
     override fun toString(): String {

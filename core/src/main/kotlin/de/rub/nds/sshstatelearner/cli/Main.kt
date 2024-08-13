@@ -122,7 +122,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                     ArgsSul.timeout,
                     ArgsSul.resetDelay,
                     ArgsSul.protocolStage,
-                    ArgsSul.kexAlgorithm
+                    ArgsSul.kexAlgorithm,
                 )
 
                 SULTyp.SERVER_IS_UNDER_TEST -> NetworkSshServerSul(
