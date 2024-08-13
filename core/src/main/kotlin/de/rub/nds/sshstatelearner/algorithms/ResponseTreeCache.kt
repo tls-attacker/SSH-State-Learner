@@ -447,7 +447,7 @@ class ResponseTreeCache(
         }
     }
 
-    private fun isQueryValidInCacheContext(
+    fun isQueryValidInCacheContext(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>,
         responseFingerprint: Word<ResponseFingerprint>

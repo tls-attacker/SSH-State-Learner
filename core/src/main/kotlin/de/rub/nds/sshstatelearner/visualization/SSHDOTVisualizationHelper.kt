@@ -29,7 +29,7 @@ class SSHDOTVisualizationHelper<N, E>(
 
         a.append(System.lineSeparator())
         a.append("    labelloc = \"b\"${System.lineSeparator()}")
-        a.append("    label = \"Server/Client: $title\nProtocol Stage: $stage")
+        a.append("    label = \"Server/Client: $title\n")
         when (stage) {
             ProtocolStage.UNKNOWN -> a.append("    Protocol Stage: $customProtocolStageNameForGraph")
             else -> a.append("    Protocol Stage: $stage")

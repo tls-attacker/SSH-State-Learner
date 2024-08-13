@@ -1,5 +1,5 @@
 {
-  "outputDirectory": "out/",
+  "outputDirectory": "/home/jimba/Schreibtisch/config/transportLayer/",
   "executorType": "NETWORK",
   "learnerConfig": {
     "learningAlgorithmType": "TTT",
@@ -7,7 +7,8 @@
     "equivOracleChainTypes": [
       "CACHE_CONSISTENCY",
       "HAPPY_FLOW",
-      "COMPLETE_EXPLORATION"
+      "COMPLETE_EXPLORATION",
+      "RANDOM_WORDS"
     ],
     "equivHappyFlowSuffixLength": 2,
     "equivCompleteExplorationMinDepth": 3,
@@ -29,18 +30,41 @@
   },
   "sulConfig": {
     "type": "configAndroidClientSul",
+    "stateNameAndSuccessorTransitions": [
+      {
+        "stateName": "Protocol Version Exchanged",
+        "successorTransition": "MSG_KEXINIT"
+      },
+      {
+        "stateName": "KEX: Algorithms Negotiated",
+        "successorTransition": "MSG_KEX_ECDH_REPLY"
+      },
+      {
+        "stateName": "KEX: DH Group Negotiated",
+        "successorTransition": "MSG_NEWKEYS"
+      },
+      {
+        "stateName": "KEX: Keys Derived",
+        "successorTransition": "MSG_SERVICE_ACCEPT"
+      },
+      {
+        "stateName": "Protocol Completed / Transport Layer completed",
+        "successorTransition": null
+      }
+    ],
     "name": "Unspecified SSH Server/Client",
     "timeout": 50,
     "resetDelay": 0,
-    "protocolStage": "TRANSPORT",
+    "protocolStage": "UNKNOWN",
     "kexAlgorithm": "ECDH_SHA2_NISTP521",
     "alphabet": [
       "MSG_KEXINIT",
       "MSG_KEX_ECDH_REPLY",
       "MSG_NEWKEYS",
       "MSG_SERVICE_ACCEPT",
-      "MSG_USERAUTH_FAILURE",
-      "MSG_USERAUTH_SUCCESS"
+      "MSG_KEX_ECDH_INIT",
+      "MSG_SERVICE_REQUEST_CONNECTION",
+      "MSG_SERVICE_REQUEST_USERAUTH"
     ],
     "sulTyp": "CLIENT_IS_UNDER_TEST",
     "androidConnectionInfos": [

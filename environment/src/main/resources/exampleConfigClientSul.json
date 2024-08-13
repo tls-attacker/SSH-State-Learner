@@ -9,9 +9,9 @@
       "HAPPY_FLOW",
       "COMPLETE_EXPLORATION"
     ],
-    "equivHappyFlowSuffixLength": 2,
-    "equivCompleteExplorationMinDepth": 3,
-    "equivCompleteExplorationMaxDepth": 6,
+    "equivHappyFlowSuffixLength": 3,
+    "equivCompleteExplorationMinDepth": 5,
+    "equivCompleteExplorationMaxDepth": 5,
     "equivRandomWordsMinLength": 5,
     "equivRandomWordsMaxLength": 15,
     "equivRandomWordsMaxTests": 1000,
@@ -39,6 +39,7 @@
     "timeout": 50,
     "resetDelay": 10,
     "protocolStage": "UNKNOWN",
+    "customProtocolStageNameForGraph": "TRANSPORT-CUSTOM",
     "stateNameAndSuccessorTransitions": [
       {
         "stateName": "Protocol Version Exchanged",
@@ -71,7 +72,9 @@
       "MSG_KEX_ECDH_REPLY",
       "MSG_NEWKEYS",
       "MSG_SERVICE_ACCEPT",
-      "MSG_USERAUTH_SUCCESS"
+      "MSG_USERAUTH_SUCCESS",
+      "MSG_EXT_INFO",
+      "MSG_NEWCOMPRESS"
     ],
     "sulTyp": "CLIENT_IS_UNDER_TEST",
     "connectionInfos": [

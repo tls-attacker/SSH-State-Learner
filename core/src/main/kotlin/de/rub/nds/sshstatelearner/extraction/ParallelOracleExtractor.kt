@@ -161,6 +161,7 @@ class ParallelOracleExtractor(
                 membershipOracle.overwrite(e.inputPrefix, e.inputSuffix, majorityResult)
                 cacheInconsistencyRestarts++
             } catch (e: RuntimeException) {
+                queryResult.waitUntilAllIsProcessed()
                 queryResult.safeToDatabase(
                     jsonString
                 )
@@ -269,6 +270,7 @@ class ParallelOracleExtractor(
         )
         extractorResult.learnedModel = stateMachine
         extractorResult.statistics = statistics
+        queryResult.waitUntilAllIsProcessed()
         queryResult.setStatistics(statistics)
         queryResult.safeToDatabase(jsonString)
         return extractorResult

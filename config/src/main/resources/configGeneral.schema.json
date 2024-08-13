@@ -15,7 +15,7 @@
     },
     "SshSymbol" : {
       "type" : "string",
-      "enum" : [ "MSG_VERSION_EXCHANGE", "MSG_DISCONNECT", "MSG_IGNORE", "MSG_UNIMPLEMENTED", "MSG_DEBUG", "MSG_SERVICE_REQUEST_USERAUTH", "MSG_SERVICE_ACCEPT", "MSG_KEXINIT", "MSG_NEWKEYS", "MSG_KEX_DH_GEX_REQUEST", "MSG_KEX_DH_GEX_REQUEST_OLD", "MSG_KEX_DH_GEX_GROUP", "MSG_KEX_DH_GEX_INIT", "MSG_KEX_DH_GEX_REPLY", "MSG_KEXDH_INIT", "MSG_KEXDH_REPLY", "MSG_KEX_ECDH_INIT", "MSG_KEX_ECDH_REPLY", "MSG_KEX_RSA_PUBKEY", "MSG_KEX_RSA_SECRET", "MSG_KEX_RSA_DONE", "MSG_KEX_HBR_INIT", "MSG_KEX_HBR_REPLY", "MSG_USERAUTH_REQUEST_PASSWD_VALID", "MSG_USERAUTH_REQUEST_PASSWD_INVALID", "MSG_USERAUTH_REQUEST_PUBKEY_VALID", "MSG_USERAUTH_SUCCESS", "MSG_USERAUTH_FAILURE", "MSG_USERAUTH_BANNER", "MSG_SERVICE_REQUEST_CONNECTION", "MSG_REQUEST_SUCCESS", "MSG_REQUEST_FAILURE", "MSG_CHANNEL_OPEN_SESSION", "MSG_CHANNEL_OPEN_CONFIRMATION", "MSG_CHANNEL_OPEN_FAILURE", "MSG_CHANNEL_WINDOW_ADJUST", "MSG_CHANNEL_EOF", "MSG_CHANNEL_CLOSE", "MSG_CHANNEL_REQUEST_EXEC", "MSG_CHANNEL_SUCCESS", "MSG_CHANNEL_FAILURE" ]
+      "enum" : [ "MSG_VERSION_EXCHANGE", "MSG_DISCONNECT", "MSG_IGNORE", "MSG_UNIMPLEMENTED", "MSG_DEBUG", "MSG_SERVICE_REQUEST_USERAUTH", "MSG_SERVICE_ACCEPT", "MSG_KEXINIT", "MSG_KEXINIT_EMPTY", "MSG_NEWKEYS", "MSG_KEX_DH_GEX_REQUEST", "MSG_KEX_DH_GEX_REQUEST_OLD", "MSG_KEX_DH_GEX_GROUP", "MSG_KEX_DH_GEX_INIT", "MSG_KEX_DH_GEX_REPLY", "MSG_KEXDH_INIT", "MSG_KEXDH_REPLY", "MSG_KEX_ECDH_INIT", "MSG_KEX_ECDH_REPLY", "MSG_KEX_RSA_PUBKEY", "MSG_KEX_RSA_SECRET", "MSG_KEX_RSA_DONE", "MSG_KEX_HBR_INIT", "MSG_KEX_HBR_REPLY", "MSG_EXT_INFO", "MSG_NEWCOMPRESS", "MSG_USERAUTH_REQUEST_PASSWD_VALID", "MSG_USERAUTH_REQUEST_PASSWD_INVALID", "MSG_USERAUTH_REQUEST_PUBKEY_VALID", "MSG_USERAUTH_SUCCESS", "MSG_USERAUTH_FAILURE", "MSG_USERAUTH_BANNER", "MSG_SERVICE_REQUEST_CONNECTION", "MSG_REQUEST_SUCCESS", "MSG_REQUEST_FAILURE", "MSG_CHANNEL_OPEN_SESSION", "MSG_CHANNEL_OPEN_CONFIRMATION", "MSG_CHANNEL_OPEN_FAILURE", "MSG_CHANNEL_WINDOW_ADJUST", "MSG_CHANNEL_EOF", "MSG_CHANNEL_CLOSE", "MSG_CHANNEL_REQUEST_EXEC", "MSG_CHANNEL_SUCCESS", "MSG_CHANNEL_FAILURE" ]
     },
     "StateNameAndSuccessorTransition" : {
       "type" : "object",
@@ -41,7 +41,7 @@
       "type" : "object",
       "properties" : {
         "alternativeHappyFlowAlphabet" : {
-          "description" : "[HAPPY_FLOW only] An Alternative Happy Flow to use.",
+          "description" : "[HAPPY_FLOW only] An Alternative Happy Flow to use. It is only used if protocolStage==UNKNOWN",
           "default" : "[]",
           "type" : "array",
           "items" : {
@@ -163,13 +163,17 @@
         "type" : "object",
         "properties" : {
           "alphabet" : {
-            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm",
+            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN",
             "default" : "[]",
             "type" : "array",
             "items" : {
               "$ref" : "#/$defs/SshSymbol",
               "default" : "[]"
             }
+          },
+          "customProtocolStageNameForGraph" : {
+            "type" : "string",
+            "description" : "Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\""
           },
           "hostname" : {
             "type" : "string",
@@ -191,6 +195,11 @@
             "description" : "Port on which the target SSH server is listening for incoming connection",
             "default" : "22"
           },
+          "preLearnFingerprintAcceptance" : {
+            "type" : "boolean",
+            "description" : "This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process",
+            "default" : "true"
+          },
           "protocolStage" : {
             "$ref" : "#/$defs/ProtocolStage",
             "description" : "The SSH protocol stage whose state machine is to be extracted",
@@ -202,9 +211,12 @@
             "default" : "0"
           },
           "stateNameAndSuccessorTransitions" : {
+            "description" : "Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
             "type" : "array",
             "items" : {
-              "$ref" : "#/$defs/StateNameAndSuccessorTransition"
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition",
+              "default" : "[]"
             }
           },
           "sulTyp" : {
@@ -228,7 +240,7 @@
         "type" : "object",
         "properties" : {
           "alphabet" : {
-            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm",
+            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN",
             "default" : "[]",
             "type" : "array",
             "items" : {
@@ -255,6 +267,10 @@
               "default" : "[]"
             }
           },
+          "customProtocolStageNameForGraph" : {
+            "type" : "string",
+            "description" : "Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\""
+          },
           "kexAlgorithm" : {
             "$ref" : "#/$defs/KeyExchangeAlgorithm",
             "description" : "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm",
@@ -264,6 +280,11 @@
             "type" : "string",
             "description" : "Human-readable name of the target SSH server (i. e. SSH server implementation and version)",
             "default" : "Unspecified SSH Server/Client"
+          },
+          "preLearnFingerprintAcceptance" : {
+            "type" : "boolean",
+            "description" : "This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process",
+            "default" : "true"
           },
           "protocolStage" : {
             "$ref" : "#/$defs/ProtocolStage",
@@ -276,9 +297,12 @@
             "default" : "0"
           },
           "stateNameAndSuccessorTransitions" : {
+            "description" : "Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
             "type" : "array",
             "items" : {
-              "$ref" : "#/$defs/StateNameAndSuccessorTransition"
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition",
+              "default" : "[]"
             }
           },
           "sulTyp" : {
@@ -302,7 +326,7 @@
         "type" : "object",
         "properties" : {
           "alphabet" : {
-            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm",
+            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN",
             "default" : "[]",
             "type" : "array",
             "items" : {
@@ -354,6 +378,10 @@
             "description" : "Which Android SSH client should be started.",
             "default" : "INVALID"
           },
+          "customProtocolStageNameForGraph" : {
+            "type" : "string",
+            "description" : "Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\""
+          },
           "kexAlgorithm" : {
             "$ref" : "#/$defs/KeyExchangeAlgorithm",
             "description" : "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm",
@@ -363,6 +391,11 @@
             "type" : "string",
             "description" : "Human-readable name of the target SSH server (i. e. SSH server implementation and version)",
             "default" : "Unspecified SSH Server/Client"
+          },
+          "preLearnFingerprintAcceptance" : {
+            "type" : "boolean",
+            "description" : "This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process",
+            "default" : "true"
           },
           "protocolStage" : {
             "$ref" : "#/$defs/ProtocolStage",
@@ -375,9 +408,12 @@
             "default" : "0"
           },
           "stateNameAndSuccessorTransitions" : {
+            "description" : "Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
             "type" : "array",
             "items" : {
-              "$ref" : "#/$defs/StateNameAndSuccessorTransition"
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition",
+              "default" : "[]"
             }
           },
           "sulTyp" : {

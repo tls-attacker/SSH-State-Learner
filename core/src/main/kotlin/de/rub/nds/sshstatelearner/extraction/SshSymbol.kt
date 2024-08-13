@@ -51,24 +51,36 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceAcceptMessa
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.UnimplementedMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
+import de.rub.nds.sshattacker.core.state.SshContext
 
-enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
+enum class SshSymbol(
+    val messageCreator: () -> ProtocolMessage<*>,
+    private val afterPrepare: ((message: ProtocolMessage<*>, context: SshContext) -> Unit)? = null
+) {
     /*
      * SSH transport protocol symbols
      */
     MSG_VERSION_EXCHANGE({ VersionExchangeMessage() }),
     MSG_DISCONNECT({ DisconnectMessage() }),
     MSG_IGNORE({ IgnoreMessage() }),
-    MSG_UNIMPLEMENTED({ UnimplementedMessage() }),
+    MSG_UNIMPLEMENTED({ UnimplementedMessage() }, { message, context ->
+        (message as UnimplementedMessage).apply {
+            setSequenceNumber(context.readSequenceNumber - 1)
+        }
+    }),
     MSG_DEBUG({ DebugMessage() }),
     MSG_SERVICE_REQUEST_USERAUTH({
-        ServiceRequestMessage().apply {
+        ServiceRequestMessage()
+    }, { message, _ ->
+        (message as ServiceRequestMessage).apply {
             serviceNameLength = Modifiable.explicit(12)
             serviceName = Modifiable.explicit("ssh-userauth")
         }
     }),
     MSG_SERVICE_ACCEPT({ ServiceAcceptMessage() }),
     MSG_KEXINIT({ KeyExchangeInitMessage() }),
+    MSG_KEXINIT_EMPTY({ KeyExchangeInitMessage() },
+        { message, _ -> (message as KeyExchangeInitMessage).apply { setKeyExchangeAlgorithms(arrayOf(), true) } }),
     MSG_NEWKEYS({ NewKeysMessage() }),
     MSG_KEX_DH_GEX_REQUEST({ DhGexKeyExchangeRequestMessage() }),
     MSG_KEX_DH_GEX_REQUEST_OLD({ DhGexKeyExchangeOldRequestMessage() }),
@@ -91,7 +103,9 @@ enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
      */
     MSG_USERAUTH_REQUEST_PASSWD_VALID({ UserAuthPasswordMessage() }),
     MSG_USERAUTH_REQUEST_PASSWD_INVALID({
-        UserAuthPasswordMessage().apply {
+        UserAuthPasswordMessage()
+    }, { message, _ ->
+        (message as UserAuthPasswordMessage).apply {
             passwordLength = Modifiable.explicit(14)
             password = Modifiable.explicit("Wrong password")
         }
@@ -101,7 +115,9 @@ enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
     MSG_USERAUTH_FAILURE({ UserAuthFailureMessage() }),
     MSG_USERAUTH_BANNER({ UserAuthBannerMessage() }),
     MSG_SERVICE_REQUEST_CONNECTION({
-        ServiceRequestMessage().apply {
+        ServiceRequestMessage()
+    }, { message, _ ->
+        (message as ServiceRequestMessage).apply {
             serviceNameLength = Modifiable.explicit(14)
             serviceName = Modifiable.explicit("ssh-connection")
         }
@@ -120,5 +136,13 @@ enum class SshSymbol(val messageCreator: () -> ProtocolMessage<*>) {
     MSG_CHANNEL_CLOSE({ ChannelCloseMessage() }),
     MSG_CHANNEL_REQUEST_EXEC({ ChannelRequestExecMessage() }),
     MSG_CHANNEL_SUCCESS({ ChannelSuccessMessage() }),
-    MSG_CHANNEL_FAILURE({ ChannelFailureMessage() })
+    MSG_CHANNEL_FAILURE({ ChannelFailureMessage() });
+
+    private fun createAndPrepare(context: SshContext): ProtocolMessage<*> = this.messageCreator().apply {
+        getHandler(context).preparator.prepare()
+    }
+
+    fun createAndPrepareAndAfterPrepare(context: SshContext): ProtocolMessage<*> =
+        createAndPrepare(context).apply { this@SshSymbol.afterPrepare?.invoke(this, context) }
+
 }

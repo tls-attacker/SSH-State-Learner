@@ -32,7 +32,8 @@ class StandardAndroidSshClientManager(
                         connectionInfo.ipToServer,
                         connectionInfo.portToServer,
                         connectionInfo.pathToApks,
-                        connectionInfo.uuid
+                        connectionInfo.uuid,
+                        configAndroidClientSul.preLearnFingerprintAcceptance
                     )
                     androidClientConnectionHandlers.add(
                         androidClientConnectionHandler

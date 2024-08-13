@@ -74,7 +74,7 @@ abstract class AndroidSSHClientController(
         }
     }
 
-    abstract fun connectToGetFingerprint()
+    abstract fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean)
 
     abstract fun connectForStateLearning()
 
@@ -151,6 +151,6 @@ abstract class AndroidSSHClientController(
     }
 
     protected enum class Action {
-        RESTART, NORMAL_CONNECT, RECONNECT
+        RESTART, NORMAL_CONNECT, RECONNECT, REFUSE
     }
 }

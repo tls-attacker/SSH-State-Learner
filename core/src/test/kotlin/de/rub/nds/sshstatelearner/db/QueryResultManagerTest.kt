@@ -4,9 +4,6 @@ import de.rub.nds.sshstatelearner.algorithms.Statistics
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import net.automatalib.words.Word
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -38,13 +35,7 @@ class QueryResultManagerTest {
 
 
         //Wait until it is processed
-        runBlocking {
-            launch {
-                while (!queryResultManager.dbChannel.tryReceive().isFailure) {
-                    delay(1)
-                }
-            }
-        }
+        queryResultManager.waitUntilAllIsProcessed()
 
         queryResultManager.setStatistics(statistics)
         assertEquals(7, statistics.totalQueryCount)

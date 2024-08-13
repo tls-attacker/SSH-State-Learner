@@ -30,7 +30,7 @@ fun main(vararg args: String) {
     val androidSSHController = AndroidSSHClientControllerFactory.getClientController(ArgsAndroidGeneral)
     with(androidSSHController) {
         installApp()
-        connectToGetFingerprint()
+        connectToGetFingerprint(true)
         connectForStateLearning()
     }
 }

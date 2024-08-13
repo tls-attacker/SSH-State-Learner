@@ -67,4 +67,8 @@ abstract class ConfigSul(
     @field:JsonPropertyDescription("Type under test")
     @field:JsonProperty(defaultValue = "CLIENT_IS_UNDER_TEST")
     var sulTyp: SULTyp = SULTyp.CLIENT_IS_UNDER_TEST,
+
+    @field:JsonPropertyDescription("This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process")
+    @field:JsonProperty(defaultValue = "true")
+    var preLearnFingerprintAcceptance: Boolean = true
 )

@@ -2,9 +2,19 @@ package de.rub.nds.sshstatelearner.sul
 
 import kotlinx.coroutines.delay
 
-class LocalSSHClientConnectionHandler(private val ip: String, private val port: Int) : ClientConnectionHandler {
+class LocalSSHClientConnectionHandler(
+    private val ip: String,
+    private val port: Int,
+    private val preLearnFingerprintAcceptance: Boolean
+) : ClientConnectionHandler {
+    private val acceptFingerprintOption = "-o StrictHostKeyChecking=accept-new"
     private val process: ProcessBuilder =
-        ProcessBuilder("ssh", "attacker@$ip", "-o StrictHostKeyChecking=accept-new", "-p $port")
+        ProcessBuilder(
+            "ssh",
+            "attacker@$ip",
+            if (preLearnFingerprintAcceptance) acceptFingerprintOption else "",
+            "-p $port"
+        )
 
     private val jobs: MutableList<Process> = mutableListOf()
 

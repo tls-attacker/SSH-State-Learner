@@ -26,7 +26,8 @@ class StandardSshClientManager(configGeneral: ConfigGeneral, private val configC
                 for (connectionInfo in configClientSul.connectionInfos) {
                     val connectionHandler = LocalSSHClientConnectionHandler(
                         connectionInfo.ipToServer,
-                        connectionInfo.portToServer
+                        connectionInfo.portToServer,
+                        configClientSul.preLearnFingerprintAcceptance
                     )
                     clientConnectionHandlers.add(
                         connectionHandler

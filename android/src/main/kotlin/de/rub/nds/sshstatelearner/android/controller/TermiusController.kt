@@ -30,7 +30,7 @@ class TermiusController(
         waitUntilElementIsClickable(AppiumBy.id(reconnectButtonId)).click()
     }
 
-    override fun connectToGetFingerprint() {
+    override fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean) {
         fun clickSaveFingerprint() {
             waitUntilElementIsClickable(
                 AppiumBy.id("com.server.auditor.ssh.client:id/save_and_continue_button")
@@ -42,7 +42,11 @@ class TermiusController(
         addHost()
 
         connectToServer()
-        clickSaveFingerprint()
+        if (preLearnFingerprintAcceptance) {
+            clickSaveFingerprint()
+        } else {
+            //Self-closing pop-up window after the connection has been closed
+        }
         reconnectToServer()
     }
 
@@ -104,7 +108,7 @@ class TermiusController(
     }
 
     private fun getAction(): Action? {
-        val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
+        val applicationIsNotRunning = driver.queryAppState(bundleId) == ApplicationState.NOT_RUNNING
         val alertIsShown = ExpectedConditions.elementToBeClickable(
             AppiumBy.id("android:id/aerr_close")
         ).apply(driver) != null
@@ -118,11 +122,11 @@ class TermiusController(
             AppiumBy.id(reconnectButtonId)
         ).apply(driver) != null
 
-        if (!applicationIsRunning || alertIsShown) {
+        if (applicationIsNotRunning || alertIsShown) {
             return Action.RESTART
-        } else if (isNormalConnectPossible) {
+        } else if (isNormalConnectPossible && !isReconnectPossible) {
             return Action.NORMAL_CONNECT
-        } else if (isReconnectPossible) {
+        } else if (isReconnectPossible && !isNormalConnectPossible) {
             return Action.RECONNECT
         } else {
             return null

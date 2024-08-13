@@ -8,10 +8,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import net.automatalib.words.Word
+import org.apache.logging.log4j.LogManager
 import java.time.Instant
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class QueryResultManager {
 
@@ -21,22 +26,30 @@ class QueryResultManager {
     private var dbJob: Job? = null
     private var currentQueryTyp = QueryTyp.USED_TO_LEARN
 
+    companion object {
+        private val LOGGER = LogManager.getLogger()
+    }
+
 
     fun init() {
         dbJob = dbJob ?: localScope.launch {
             while (true) {
-                val newQueryResult = dbChannel.receive()
-                val oldQueryResult = dbQueries.find {
-                    it.prefix == newQueryResult.prefix
-                            && it.suffix == newQueryResult.suffix
-                            && it.responseFingerprints == newQueryResult.responseFingerprints
-                            && it.queryTyp == newQueryResult.queryTyp
-                }
+                val tryToReceiveNewQueryResult = runCatching { dbChannel.receive() }.onSuccess { newQueryResult ->
+                    val oldQueryResult = dbQueries.find {
+                        it.prefix == newQueryResult.prefix
+                                && it.suffix == newQueryResult.suffix
+                                && it.responseFingerprints == newQueryResult.responseFingerprints
+                                && it.queryTyp == newQueryResult.queryTyp
+                    }
 
-                if (oldQueryResult != null) {
-                    oldQueryResult.count++
-                } else {
-                    dbQueries.add(newQueryResult)
+                    if (oldQueryResult != null) {
+                        oldQueryResult.count++
+                    } else {
+                        dbQueries.add(newQueryResult)
+                    }
+                }
+                if (tryToReceiveNewQueryResult.isFailure) {
+                    break
                 }
             }
         }
@@ -65,7 +78,7 @@ class QueryResultManager {
     }
 
     fun safeToDatabase(jsonConfigString: String) {
-        fun safeToDb() {
+        try {
             val entityManagerFactory = Persistence.createEntityManagerFactory("default")
             val entityManager = entityManagerFactory.createEntityManager()
             val stlInfo = STLInfo(jsonConfigString, dbQueries, Instant.now())
@@ -74,8 +87,9 @@ class QueryResultManager {
                 it.persist(stlInfo)
                 it.transaction.commit()
             }
+        } catch (_: RuntimeException) {
+            LOGGER.warn("Failed to save to the database!")
         }
-        safeToDb()
     }
 
     fun setStatistics(statistics: Statistics) {
@@ -100,6 +114,16 @@ class QueryResultManager {
                         && it1.queryTyp == it2.queryTyp
             }
         }.size.toLong()
+    }
+
+    fun waitUntilAllIsProcessed() {
+        runBlocking {
+            while (dbChannel.tryReceive().isSuccess) {
+                delay(1.toDuration(DurationUnit.SECONDS))
+            }
+            dbChannel.close()
+            dbJob?.let { joinAll(it) }
+        }
     }
 
 

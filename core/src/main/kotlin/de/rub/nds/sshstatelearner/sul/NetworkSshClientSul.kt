@@ -56,12 +56,14 @@ class NetworkSshClientSul(
      */
     override fun pre() {
         config = SshConfigManager.getServerConfig(kex)
-
         // Initialize transport handler
         var serverIsReady = false
         var connectionIsReady = false
         while (!serverIsReady || !connectionIsReady) {
+            //config.enableEncryptionOnNewKeysMessage = false
             state = State(config)
+            state.sshContext.disableEncrption = true
+
             try {
                 runBlocking {
                     val jobSomethingWentWrongTimer =
@@ -70,6 +72,7 @@ class NetworkSshClientSul(
                             state.sshContext.transportHandler.closeConnection()
                             LOGGER.warn("SUL with port ${port} could not be started successfully within 60 seconds! Try again!")
                             this.cancel()
+                            //TODO -> Android Canceled Attribute -> Wenn gesetzt hört er auf zu arbeiten :)
                         }
 
                     val jobServer = launch(Dispatchers.IO) {
@@ -124,10 +127,9 @@ class NetworkSshClientSul(
      */
     override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
         LOGGER.trace("Executing symbol: {}", symbol)
-        val protocolMessage = symbol.messageCreator()
-        protocolMessage.getHandler(state.sshContext).preparator.prepare()
-        // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
+        val protocolMessage = symbol.createAndPrepareAndAfterPrepare(state.sshContext)
         sendMessage(protocolMessage)
+        // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         val retrieveDelay = 50L
         return retrieveMessages(retrieveDelay)
     }

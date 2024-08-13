@@ -17,7 +17,7 @@ class ConnectBotController(
     override val bundleId = "org.connectbot"
     private val xpathToConnectButton = "//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]"
 
-    override fun connectToGetFingerprint() {
+    override fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean) {
         fun acceptSSHFingerPrint() = waitUntilElementIsClickable(
             AppiumBy.id("org.connectbot:id/console_prompt_yes")
         ).click()
@@ -25,7 +25,11 @@ class ConnectBotController(
         addHost()
         setSettings()
         restartAndconnectToServer()
-        acceptSSHFingerPrint()
+        if (preLearnFingerprintAcceptance) {
+            acceptSSHFingerPrint()
+        } else {
+            rejectSSHFingerPrint()
+        }
     }
 
     override fun connectForStateLearning() {
@@ -44,8 +48,12 @@ class ConnectBotController(
         waitUntilElementIsClickable(AppiumBy.xpath(xpathToConnectButton)).click()
     }
 
+    private fun rejectSSHFingerPrint() {
+        waitUntilElementIsClickable(AppiumBy.id("org.connectbot:id/console_prompt_no")).click()
+    }
+
     private fun getNextAction(): Action? {
-        val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
+        val applicationIsNotRunning = driver.queryAppState(bundleId) == ApplicationState.NOT_RUNNING
         val alertIsShown = ExpectedConditions.elementToBeClickable(
             AppiumBy.id("android:id/aerr_close")
         ).apply(driver) != null
@@ -53,10 +61,20 @@ class ConnectBotController(
             AppiumBy.xpath(xpathToConnectButton)
         ).apply(driver) != null
 
-        if (!applicationIsRunning || alertIsShown) {
+        val isAcceptFingerPrintShown = runCatching {
+            ExpectedConditions.textToBePresentInElementLocated(
+                AppiumBy.id("org.connectbot:id/console_prompt"), "Are you sure you want\nto continue connecting?"
+            ).apply(driver)
+        }.getOrDefault(false)
+
+
+
+        if (applicationIsNotRunning || alertIsShown) {
             return Action.RESTART
         } else if (isNormalConnectPossible) {
             return Action.NORMAL_CONNECT
+        } else if (isAcceptFingerPrintShown) {
+            return Action.REFUSE
         } else {
             return null
         }
@@ -68,6 +86,9 @@ class ConnectBotController(
             restartApp()
             clickConnectToServerButton()
         } else if (Action.NORMAL_CONNECT == action) {
+            clickConnectToServerButton()
+        } else if (Action.REFUSE == action) {
+            rejectSSHFingerPrint()
             clickConnectToServerButton()
         } else {
             throw IllegalStateException()

@@ -17,32 +17,48 @@ class JuiceSSHController(
         "//android.widget.TextView[@resource-id=\"com.sonelli.juicessh:id/itemTitle\" and @text=\"Quick Connect\"]"
     private val xPathToReconnectButton = "//android.widget.Button[@resource-id=\"android:id/button1\"]"
 
-    override fun connectToGetFingerprint() {
+    override fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean) {
         fun acceptSSHFingerPrint() =
             waitUntilElementIsClickable(AppiumBy.id("android:id/button1")).click()
 
         restartAndConnectToServer()
-        acceptSSHFingerPrint()
+        if (preLearnFingerprintAcceptance) {
+            acceptSSHFingerPrint()
+        } else {
+            rejecttSSHFingerPrint()
+        }
     }
 
+    fun rejecttSSHFingerPrint() =
+        waitUntilElementIsClickable(AppiumBy.id("android:id/button2")).click()
+
     private fun getAction(): Action? {
-        val applicationIsRunning = driver.queryAppState(bundleId) == ApplicationState.RUNNING_IN_FOREGROUND
+        val applicationIsNotRunning = driver.queryAppState(bundleId) == ApplicationState.NOT_RUNNING
         val alertIsShown = ExpectedConditions.elementToBeClickable(
             AppiumBy.id("android:id/aerr_close")
         ).apply(driver) != null
         val isNormalConnectPossible = ExpectedConditions.elementToBeClickable(
             AppiumBy.xpath(xPathToCickConnectButton)
         ).apply(driver) != null
-        val isReconnectPossible = ExpectedConditions.elementToBeClickable(
-            AppiumBy.xpath(xPathToReconnectButton)
-        ).apply(driver) != null
+        val isReconnectPossible = runCatching {
+            ExpectedConditions.textToBePresentInElementLocated(
+                AppiumBy.id("android:id/alertTitle"), "Connection Failed"
+            ).apply(driver)
+        }.getOrDefault(false)
+        val isAcceptFingerPrintShown = runCatching {
+            ExpectedConditions.textToBePresentInElementLocated(
+                AppiumBy.id("android:id/alertTitle"), "Host Verification"
+            ).apply(driver)
+        }.getOrDefault(false)
 
-        if (!applicationIsRunning || alertIsShown) {
+        if (applicationIsNotRunning || alertIsShown) {
             return Action.RESTART
-        } else if (isNormalConnectPossible) {
+        } else if (isNormalConnectPossible && !isReconnectPossible) {
             return Action.NORMAL_CONNECT
-        } else if (isReconnectPossible) {
+        } else if (isReconnectPossible && !isNormalConnectPossible && !isAcceptFingerPrintShown) {
             return Action.RECONNECT
+        } else if (isAcceptFingerPrintShown) {
+            return Action.REFUSE
         } else {
             return null
         }
@@ -61,6 +77,11 @@ class JuiceSSHController(
 
             Action.NORMAL_CONNECT -> {
                 connectToServer()
+            }
+
+            Action.REFUSE -> {
+                rejecttSSHFingerPrint()
+                clickReconnectButton()
             }
 
             else -> {}

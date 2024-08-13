@@ -17,7 +17,8 @@ class AndroidClientConnectionHandler(
     private val ipToSshServer: String,
     private val portToSshServer: Int,
     private val pathToApks: List<String>,
-    private val udid: String
+    private val udid: String,
+    private val preLearnFingerprintAcceptance: Boolean
 
 ) : ClientConnectionHandler {
     private val androidSSHClientController: AndroidSSHClientController
@@ -52,7 +53,7 @@ class AndroidClientConnectionHandler(
 
                 val fingerprintAndroid = launch(Dispatchers.IO) {
                     androidSSHClientController.installApp()
-                    androidSSHClientController.connectToGetFingerprint()
+                    androidSSHClientController.connectToGetFingerprint(preLearnFingerprintAcceptance)
                 }
                 try {
                     joinAll(fingerprint, fingerprintAndroid)
