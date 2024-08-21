@@ -16,6 +16,7 @@ abstract class GraphDetails<S, I, T> {
     var happyFlows: MutableList<List<S>> = mutableListOf()
     var happyFlowTransitions: MutableSet<T> = mutableSetOf()
     var socketStateMap: MutableMap<S, MutableSet<SocketState>> = mutableMapOf()
+    var notInStateMachineLearningFocusState: S? = null
 
     open fun extractStateNames(): Map<S?, String> {
         return mapOf(initialState to "TCP Established", errorState to "TCP Closed")

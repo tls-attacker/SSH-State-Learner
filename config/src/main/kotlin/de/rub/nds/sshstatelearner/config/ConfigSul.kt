@@ -75,6 +75,6 @@ abstract class ConfigSul(
 
     @field:JsonPropertyDescription("Activates the encryption after receiving or sending the NewKeys message. BOTH -> Receive,Send | SEND -> Send only | Receive -> Receive only")
     @field:JsonProperty(defaultValue = "BOTH")
-    val enableEncryptionOnNewKeysMessageType: EnableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.BOTH,
+    var enableEncryptionOnNewKeysMessageType: EnableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.BOTH,
 
     )

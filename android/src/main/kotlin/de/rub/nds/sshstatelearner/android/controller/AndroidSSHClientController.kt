@@ -39,7 +39,7 @@ abstract class AndroidSSHClientController(
     }
 
     protected val wait: WebDriverWait by lazy {
-        WebDriverWait(driver, Duration.ofSeconds(60))
+        WebDriverWait(driver, Duration.ofSeconds(10))
     }
 
     protected var isInStateMachineLearningMode = false
@@ -87,14 +87,6 @@ abstract class AndroidSSHClientController(
     protected fun restartApp() {
         driver.terminateApp(bundleId)
         driver.activateApp(bundleId)
-    }
-
-    fun startStateLearningMode() {
-        isInStateMachineLearningMode = true
-    }
-
-    fun stopStateLearningMode() {
-        isInStateMachineLearningMode = false
     }
 
     fun quit(): Unit = driver.quit()

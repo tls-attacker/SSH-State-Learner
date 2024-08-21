@@ -9,7 +9,9 @@ import com.github.victools.jsonschema.generator.SchemaGeneratorConfigBuilder
 import com.github.victools.jsonschema.generator.SchemaVersion
 import com.github.victools.jsonschema.module.jackson.JacksonModule
 import com.github.victools.jsonschema.module.jackson.JacksonOption
+import de.rub.nds.sshattacker.core.constants.EnableEncryptionOnNewKeysMessageType
 import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTransition
+import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiterTyp
 import de.rub.nds.sshstatelearner.android.controller.constants.AndroidSshClientTyp
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
@@ -197,6 +199,272 @@ fun createConfigForAnalysis(outputDir: String) {
         }
     }
 
+    fun createTransportLayerConfig_Eigenschaft1347MehrAufloesung(
+        filePathToSave: String
+    ) {
+        val configName = "TransportLayer_Eigenschaft1347MehrAuflösung"
+        for (androidSshClientTyp in listOf(
+            AndroidSshClientTyp.TERMIUS,
+            AndroidSshClientTyp.JUICE_SSH,
+            AndroidSshClientTyp.CONNECT_BOT
+        )) {
+            val configGeneral = createDefaultConfig()
+            configGeneral.outputDirectory += androidSshClientTyp.name + "_" + configName
+            configGeneral.sulConfig.protocolStage = ProtocolStage.UNKNOWN
+            configGeneral.sulConfig.customProtocolStageNameForGraph = "Transport-Layer"
+
+            configGeneral.learnerConfig.equivCompleteExplorationMinDepth = 9
+            configGeneral.learnerConfig.equivCompleteExplorationMaxDepth = 9
+            configGeneral.learnerConfig.equivHappyFlowSuffixLength = 3
+            configGeneral.learnerConfig.smlLimiterTyp = SMLLimiterTyp.DFA_SML_LIMITER
+            configGeneral.learnerConfig.smlLimiterFilePath =
+                "/home/jimba/Schreibtisch/config/DFA_SML_Eigenschaft1347.jdson"
+
+            configGeneral.learnerConfig.alternativeHappyFlowAlphabet = listOf(
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.alphabet = listOf(
+                //ServerMessages
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.stateNameAndSuccessorTransitions = listOf(
+                StateNameAndSuccessorTransition("Protocol Version Exchanged", SshSymbol.MSG_KEXINIT),
+                StateNameAndSuccessorTransition("KEX: Algorithms Negotiated", SshSymbol.MSG_KEX_ECDH_REPLY),
+                StateNameAndSuccessorTransition("KEX: DH Group Negotiated", SshSymbol.MSG_NEWKEYS),
+                StateNameAndSuccessorTransition("KEX: Keys Derived", SshSymbol.MSG_SERVICE_ACCEPT),
+                StateNameAndSuccessorTransition("Transport Layer completed", SshSymbol.MSG_USERAUTH_SUCCESS),
+                StateNameAndSuccessorTransition("Authentication Layer completed "),
+            )
+            when (androidSshClientTyp) {
+                AndroidSshClientTyp.TERMIUS -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.JUICE_SSH -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.CONNECT_BOT -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 64
+                }
+
+                else -> {}
+            }
+            safeFile(filePathToSave + "${androidSshClientTyp.name}_$configName", configGeneral)
+        }
+    }
+
+    fun createTransportLayerConfig_Eigenschaft7_SEND(
+        filePathToSave: String
+    ) {
+        val configName = "TransportLayer_Eigenschaft7_SEND"
+        for (androidSshClientTyp in listOf(
+            AndroidSshClientTyp.TERMIUS,
+            AndroidSshClientTyp.JUICE_SSH,
+            AndroidSshClientTyp.CONNECT_BOT
+        )) {
+            val configGeneral = createDefaultConfig()
+            configGeneral.outputDirectory += androidSshClientTyp.name + "_" + configName
+            configGeneral.sulConfig.protocolStage = ProtocolStage.UNKNOWN
+            configGeneral.sulConfig.customProtocolStageNameForGraph = "Transport-Layer"
+            configGeneral.sulConfig.enableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.SEND
+
+            configGeneral.learnerConfig.equivCompleteExplorationMinDepth = 5
+            configGeneral.learnerConfig.equivCompleteExplorationMaxDepth = 5
+            configGeneral.learnerConfig.equivHappyFlowSuffixLength = 3
+
+            configGeneral.learnerConfig.alternativeHappyFlowAlphabet = listOf(
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.alphabet = listOf(
+                //ServerMessages
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.stateNameAndSuccessorTransitions = listOf(
+                StateNameAndSuccessorTransition("Protocol Version Exchanged", SshSymbol.MSG_KEXINIT),
+                StateNameAndSuccessorTransition("KEX: Algorithms Negotiated", SshSymbol.MSG_KEX_ECDH_REPLY),
+                StateNameAndSuccessorTransition("KEX: DH Group Negotiated", SshSymbol.MSG_NEWKEYS),
+                StateNameAndSuccessorTransition("KEX: Keys Derived", SshSymbol.MSG_SERVICE_ACCEPT),
+                StateNameAndSuccessorTransition("Transport Layer completed", SshSymbol.MSG_USERAUTH_SUCCESS),
+                StateNameAndSuccessorTransition("Authentication Layer completed "),
+            )
+            when (androidSshClientTyp) {
+                AndroidSshClientTyp.TERMIUS -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.JUICE_SSH -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.CONNECT_BOT -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 64
+                }
+
+                else -> {}
+            }
+            safeFile(filePathToSave + "${androidSshClientTyp.name}_$configName", configGeneral)
+        }
+    }
+
+    fun createTransportLayerConfig_Eigenschaft7_RECEIVE(
+        filePathToSave: String
+    ) {
+        val configName = "TransportLayer_Eigenschaft7_RECEIVE"
+        for (androidSshClientTyp in listOf(
+            AndroidSshClientTyp.TERMIUS,
+            AndroidSshClientTyp.JUICE_SSH,
+            AndroidSshClientTyp.CONNECT_BOT
+        )) {
+            val configGeneral = createDefaultConfig()
+            configGeneral.outputDirectory += androidSshClientTyp.name + "_" + configName
+            configGeneral.sulConfig.protocolStage = ProtocolStage.UNKNOWN
+            configGeneral.sulConfig.customProtocolStageNameForGraph = "Transport-Layer"
+            configGeneral.sulConfig.enableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.RECEIVE
+
+            configGeneral.learnerConfig.equivCompleteExplorationMinDepth = 5
+            configGeneral.learnerConfig.equivCompleteExplorationMaxDepth = 5
+            configGeneral.learnerConfig.equivHappyFlowSuffixLength = 3
+
+            configGeneral.learnerConfig.alternativeHappyFlowAlphabet = listOf(
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.alphabet = listOf(
+                //ServerMessages
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.stateNameAndSuccessorTransitions = listOf(
+                StateNameAndSuccessorTransition("Protocol Version Exchanged", SshSymbol.MSG_KEXINIT),
+                StateNameAndSuccessorTransition("KEX: Algorithms Negotiated", SshSymbol.MSG_KEX_ECDH_REPLY),
+                StateNameAndSuccessorTransition("KEX: DH Group Negotiated", SshSymbol.MSG_NEWKEYS),
+                StateNameAndSuccessorTransition("KEX: Keys Derived", SshSymbol.MSG_SERVICE_ACCEPT),
+                StateNameAndSuccessorTransition("Transport Layer completed", SshSymbol.MSG_USERAUTH_SUCCESS),
+                StateNameAndSuccessorTransition("Authentication Layer completed "),
+            )
+            when (androidSshClientTyp) {
+                AndroidSshClientTyp.TERMIUS -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.JUICE_SSH -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.CONNECT_BOT -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 64
+                }
+
+                else -> {}
+            }
+            safeFile(filePathToSave + "${androidSshClientTyp.name}_$configName", configGeneral)
+        }
+    }
+
+    fun createTransportLayerConfig_Eigenschaft7_NONE(
+        filePathToSave: String
+    ) {
+        val configName = "TransportLayer_Eigenschaft7_NONE"
+        for (androidSshClientTyp in listOf(
+            AndroidSshClientTyp.TERMIUS,
+            AndroidSshClientTyp.JUICE_SSH,
+            AndroidSshClientTyp.CONNECT_BOT
+        )) {
+            val configGeneral = createDefaultConfig()
+            configGeneral.outputDirectory += androidSshClientTyp.name + "_" + configName
+            configGeneral.sulConfig.protocolStage = ProtocolStage.UNKNOWN
+            configGeneral.sulConfig.customProtocolStageNameForGraph = "Transport-Layer"
+            configGeneral.sulConfig.enableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.NONE
+
+            configGeneral.learnerConfig.equivCompleteExplorationMinDepth = 5
+            configGeneral.learnerConfig.equivCompleteExplorationMaxDepth = 5
+            configGeneral.learnerConfig.equivHappyFlowSuffixLength = 3
+
+            configGeneral.learnerConfig.alternativeHappyFlowAlphabet = listOf(
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.alphabet = listOf(
+                //ServerMessages
+                SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_REPLY,
+                SshSymbol.MSG_NEWKEYS,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
+            )
+
+            configGeneral.sulConfig.stateNameAndSuccessorTransitions = listOf(
+                StateNameAndSuccessorTransition("Protocol Version Exchanged", SshSymbol.MSG_KEXINIT),
+                StateNameAndSuccessorTransition("KEX: Algorithms Negotiated", SshSymbol.MSG_KEX_ECDH_REPLY),
+                StateNameAndSuccessorTransition("KEX: DH Group Negotiated", SshSymbol.MSG_NEWKEYS),
+                StateNameAndSuccessorTransition("KEX: Keys Derived", SshSymbol.MSG_SERVICE_ACCEPT),
+                StateNameAndSuccessorTransition("Transport Layer completed", SshSymbol.MSG_USERAUTH_SUCCESS),
+                StateNameAndSuccessorTransition("Authentication Layer completed "),
+            )
+            when (androidSshClientTyp) {
+                AndroidSshClientTyp.TERMIUS -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.JUICE_SSH -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 16
+                }
+
+                AndroidSshClientTyp.CONNECT_BOT -> {
+                    setClientTypSpecific(configGeneral, androidSshClientTyp)
+                    configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount = 64
+                }
+
+                else -> {}
+            }
+            safeFile(filePathToSave + "${androidSshClientTyp.name}_$configName", configGeneral)
+        }
+    }
+
     fun createTransportLayerConfig_Eigenschaft5(
         filePathToSave: String
     ) {
@@ -292,14 +560,12 @@ fun createConfigForAnalysis(outputDir: String) {
             configGeneral.sulConfig.alphabet = listOf(
                 //ServerMessages
                 SshSymbol.MSG_KEXINIT,
+                SshSymbol.MSG_KEX_ECDH_INIT,
                 SshSymbol.MSG_KEX_ECDH_REPLY,
                 SshSymbol.MSG_NEWKEYS,
-                SshSymbol.MSG_SERVICE_ACCEPT,
-                SshSymbol.MSG_USERAUTH_SUCCESS,
-                SshSymbol.MSG_USERAUTH_FAILURE,
-                //ClientMessages
-                SshSymbol.MSG_KEX_ECDH_INIT,
                 SshSymbol.MSG_SERVICE_REQUEST_USERAUTH,
+                SshSymbol.MSG_SERVICE_ACCEPT,
+                SshSymbol.MSG_USERAUTH_SUCCESS
             )
 
             configGeneral.sulConfig.stateNameAndSuccessorTransitions = listOf(
@@ -470,6 +736,10 @@ fun createConfigForAnalysis(outputDir: String) {
     createTransportLayerConfig_Eigenschaft2(outputDir)
     createTransportLayerConfig_Eigenschaft6(outputDir)
     createTransportLayerConfig_Eigenschaft8(outputDir)
+    createTransportLayerConfig_Eigenschaft7_RECEIVE(outputDir)
+//    createTransportLayerConfig_Eigenschaft7_SEND(outputDir)
+//    createTransportLayerConfig_Eigenschaft7_NONE(outputDir)
+//    createTransportLayerConfig_Eigenschaft1347MehrAufloesung(outputDir)
 }
 
 

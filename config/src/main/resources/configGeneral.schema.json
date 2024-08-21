@@ -3,7 +3,7 @@
   "$defs" : {
     "EnableEncryptionOnNewKeysMessageType" : {
       "type" : "string",
-      "enum" : [ "BOTH", "RECEIVE", "SEND" ]
+      "enum" : [ "BOTH", "RECEIVE", "SEND", "NONE" ]
     },
     "KeyExchangeAlgorithm" : {
       "type" : "string",

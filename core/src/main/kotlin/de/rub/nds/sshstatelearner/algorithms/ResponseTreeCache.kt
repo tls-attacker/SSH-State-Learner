@@ -27,6 +27,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 import net.automatalib.words.WordBuilder
@@ -87,6 +89,7 @@ class ResponseTreeCache(
         fun processOneQuery(
             query: Query<SshSymbol, Word<ResponseFingerprint>>,
             delegateIndex: Int,
+            cacheIndex: Int,
             pairOfQueriesAndResponsesToUpdateToCache: Array<Pair<Query<SshSymbol, Word<ResponseFingerprint>>, Word<ResponseFingerprint>>?>
         ) {
             val cachedResponse = find(query.prefix, query.suffix)
@@ -107,7 +110,7 @@ class ResponseTreeCache(
                 delegates[delegateIndex]
             )
 
-            pairOfQueriesAndResponsesToUpdateToCache[delegateIndex] = Pair(query, response)
+            pairOfQueriesAndResponsesToUpdateToCache[cacheIndex] = Pair(query, response)
         }
 
         fun processQueryAnswerAndUpdate(pairOfQueriesAndResponsesToUpdateToCache: Array<Pair<Query<SshSymbol, Word<ResponseFingerprint>>, Word<ResponseFingerprint>>?>) {
@@ -128,26 +131,33 @@ class ResponseTreeCache(
 
         runBlocking {
             val jobs = mutableListOf<Job>()
-            val iterator = queries.iterator()
+            val iterator = queries.iterator().withIndex()
             val pairOfQueriesAndResponsesToUpdateToCache: Array<Pair<Query<SshSymbol, Word<ResponseFingerprint>>, Word<ResponseFingerprint>>?> =
-                arrayOfNulls(delegates.size)
+                arrayOfNulls(queries.size)
+            val mutex = Mutex()
 
-            while (iterator.hasNext()) {
-                for (delegateIndex in delegates.indices) {
-                    if (!iterator.hasNext()) break
-                    val query = iterator.next()
-                    jobs.add(
-                        launch(Dispatchers.IO) {
-                            processOneQuery(query, delegateIndex, pairOfQueriesAndResponsesToUpdateToCache)
+            for (delegateIndex in delegates.indices) {
+                jobs.add(
+                    launch(Dispatchers.IO) {
+                        while (true) {
+                            val element = mutex.withLock {
+                                if (iterator.hasNext()) {
+                                    iterator.next()
+                                } else return@launch
+                            }
+                            processOneQuery(
+                                element.value,
+                                delegateIndex,
+                                element.index,
+                                pairOfQueriesAndResponsesToUpdateToCache
+                            )
                         }
-                    )
-                }
-
-                joinAll(*jobs.toTypedArray())
-                processQueryAnswerAndUpdate(pairOfQueriesAndResponsesToUpdateToCache)
-                pairOfQueriesAndResponsesToUpdateToCache.fill(null)
-                jobs.clear()
+                    }
+                )
             }
+
+            joinAll(*jobs.toTypedArray())
+            processQueryAnswerAndUpdate(pairOfQueriesAndResponsesToUpdateToCache)
         }
     }
 
@@ -186,31 +196,31 @@ class ResponseTreeCache(
         return answer
     }
 
-    private fun answerQueryWithSulAndWithPrefixAnswer(
-        prefix: Word<SshSymbol>,
-        suffix: Word<SshSymbol>,
-        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>
-    ): Word<ResponseFingerprint> {
-        val answer = delegate.answerQuery(prefix.concat(suffix))
-        queryResultManager?.addDBQueryResult(prefix, suffix, answer)
-        return answer
-    }
-
     fun answerQueryWithMajorityVote(
         prefix: Word<SshSymbol>,
-        suffix: Word<SshSymbol>
+        suffix: Word<SshSymbol>,
+        overrideMajorityCount: Int? = null
     ): Word<ResponseFingerprint> {
         val listOfAnswers: MutableList<Word<ResponseFingerprint>> = mutableListOf()
         val batchOfAnswers: Array<Word<ResponseFingerprint>?> = arrayOfNulls(delegates.size)
 
+        var majorityCount = repeatedQueriesDuringLearningWithMajorityCount
+        if (overrideMajorityCount != null) {
+            majorityCount = overrideMajorityCount
+        }
+
         var currentIndex = 0
-        while (currentIndex < repeatedQueriesDuringLearningWithMajorityCount) {
+        while (currentIndex < majorityCount) {
             runBlocking {
                 for (currentDelegateIndex in delegates.indices) {
-                    if (currentIndex >= repeatedQueriesDuringLearningWithMajorityCount) break
+                    if (currentIndex >= majorityCount) break
                     launch(Dispatchers.IO) {
-                        batchOfAnswers[currentDelegateIndex] =
-                            answerQueryWithSulAndWithPrefixAnswer(prefix, suffix, delegates[currentDelegateIndex])
+                        batchOfAnswers[currentDelegateIndex] = if (smlLimiter is EmptySMLLimiter) {
+                            answerQueryWithSul(prefix, suffix, delegates[currentDelegateIndex])
+                        } else {
+                            analysisInputWithSmlLimiter(prefix, suffix, delegates[currentDelegateIndex], true)
+                                ?: answerQueryWithSul(prefix, suffix, delegates[currentDelegateIndex])
+                        }
                     }
                     currentIndex++
                 }
@@ -218,23 +228,8 @@ class ResponseTreeCache(
             listOfAnswers.addAll(batchOfAnswers.filterNotNull())
             batchOfAnswers.fill(null)
         }
+
         val setOfAnswers = HashSet(listOfAnswers)
-        if (setOfAnswers.size > 1 || setOfAnswers.any {
-                !isQueryValidInCacheContext(
-                    prefix,
-                    suffix,
-                    it.suffix(suffix.length())
-                )
-            }
-        ) {
-            logger.warn("prefix: " + prefix.joinToString(separator = ", ") { it.name })
-            logger.warn("suffix: " + suffix.joinToString(separator = ", ") { it.name })
-            logger.warn(
-                setOfAnswers.joinToString(
-                    separator = "\n",
-                    transform = { it.joinToString { it.toString() } + " -> count: " + listOfAnswers.count { predicate -> it == predicate } })
-            )
-        }
         return setOfAnswers.maxWithOrNull { selector1, selector2 ->
             listOfAnswers.count { predicate -> selector1 == predicate } compareTo
                     listOfAnswers.count { predicate -> selector2 == predicate }
@@ -244,7 +239,8 @@ class ResponseTreeCache(
     fun analysisInputWithSmlLimiter(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>,
-        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>? = null
+        delegate: MembershipOracle.MealyMembershipOracle<SshSymbol, ResponseFingerprint>? = null,
+        disableCachedAnswer: Boolean = false
     ): Word<ResponseFingerprint>? {
         val smlRun: SMLRun = smlLimiter.createSMLRun()
 
@@ -287,9 +283,10 @@ class ResponseTreeCache(
             val validAndInvalidPartOfSuffix = getValidAndInvalidPartOfSuffix(suffix)
             val validPartOfSuffix = validAndInvalidPartOfSuffix.first
             val invalidPartOfSuffix = validAndInvalidPartOfSuffix.second
-            val cachedAnswer = this.find(prefix, validPartOfSuffix)
-            val cachedResponseFingerprint = cachedAnswer.wordResponseFingerprint
 
+            val cachedAnswer =
+                if (disableCachedAnswer) CachedAnswer(null, false) else this.find(prefix, validPartOfSuffix)
+            val cachedResponseFingerprint = cachedAnswer.wordResponseFingerprint
             val response = if (delegate != null) {
                 cachedResponseFingerprint ?: answerQueryWithSul(prefix, validPartOfSuffix, delegate)
             } else {
@@ -381,7 +378,7 @@ class ResponseTreeCache(
      * @throws CacheConflictException Thrown when the provided query and output and the stored information are inconsistent
      *                           with each other.
      */
-    private fun update(
+    fun update(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>,
         output: Word<ResponseFingerprint>,
@@ -418,10 +415,6 @@ class ResponseTreeCache(
                 // We were asked to update the cache, but the cached information is inconsistent with the provided prefix-suffix / output combination
                 // We'll throw an exception if the force parameter is false. If its value is true however, we'll overwrite the cached information and continue.
                 if (force) {
-                    if (current.isMajorityProved) {
-                        throw IllegalStateException("Two different majority proved output symbols")
-                    }
-
                     next.outputSymbol = outputSymbol
                 } else {
                     throw CacheConflictException(

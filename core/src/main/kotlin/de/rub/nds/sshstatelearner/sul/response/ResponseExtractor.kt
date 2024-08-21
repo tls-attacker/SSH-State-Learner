@@ -8,6 +8,8 @@
  */
 package de.rub.nds.sshstatelearner.sul.response
 
+import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
+import de.rub.nds.sshattacker.core.protocol.transport.message.UnknownMessage
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ReceivingAction
 import de.rub.nds.sshstatelearner.sul.NyxTransportHandler
@@ -27,8 +29,18 @@ object ResponseExtractor {
      */
     fun getFingerprint(state: State, action: ReceivingAction): ResponseFingerprint {
         val messages = action.receivedMessages
+        normalizeUnknownMessages(messages)
         val socketState = extractSocketState(state)
         return ResponseFingerprint(messages, socketState)
+    }
+
+    private fun normalizeUnknownMessages(messages: List<ProtocolMessage<*>>) {
+        for (message in messages) {
+            if (message is UnknownMessage) {
+                message.setMessageId(0)
+                message.setPayload(ByteArray(0))
+            }
+        }
     }
 
     /**

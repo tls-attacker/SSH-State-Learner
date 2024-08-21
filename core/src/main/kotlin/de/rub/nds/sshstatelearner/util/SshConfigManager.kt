@@ -2,6 +2,7 @@ package de.rub.nds.sshstatelearner.util
 
 import de.rub.nds.modifiablevariable.util.ArrayConverter
 import de.rub.nds.sshattacker.core.config.Config
+import de.rub.nds.sshattacker.core.constants.CompressionMethod
 import de.rub.nds.sshattacker.core.constants.EncryptionAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.NamedEcGroup
@@ -71,6 +72,8 @@ object SshConfigManager {
             hostKeys = listOf(
                 getSshPublicKey()
             )
+            serverSupportedCompressionMethodsClientToServer = listOf(CompressionMethod.NONE)
+            serverSupportedCompressionMethodsServerToClient = listOf(CompressionMethod.NONE)
         }
 
     /**

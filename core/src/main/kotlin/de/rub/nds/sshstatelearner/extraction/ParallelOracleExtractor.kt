@@ -157,7 +157,11 @@ class ParallelOracleExtractor(
                 extractorResult = provideResult()
             } catch (e: CacheConflictException) {
                 LOGGER.warn(e.message)
-                val majorityResult = sul.nestedSul.majorityVote(e.inputPrefix, e.inputSuffix, 7)
+                val majorityResult = membershipOracle.answerQueryWithMajorityVote(
+                    e.inputPrefix,
+                    e.inputSuffix,
+                    repeatedQueriesDuringLearningWithMajorityCount * 2
+                )
                 membershipOracle.overwrite(e.inputPrefix, e.inputSuffix, majorityResult)
                 cacheInconsistencyRestarts++
             } catch (e: RuntimeException) {
@@ -220,7 +224,7 @@ class ParallelOracleExtractor(
                 // TODO: Remove analysis of intermediate hypotheses later on
                 stateMachine.analyzeMealyMachine()
                 serializeHypothesis(stateMachine, "hyp$rounds.dot")
-                if (rounds > 50) {
+                if (rounds > 100) {
                     exitProcess(-1)
                 }
             }
@@ -293,18 +297,9 @@ class ParallelOracleExtractor(
             ) {
                 membershipOracle.overwrite(counterExample.prefix, counterExample.suffix, counterExampleSafe)
             } else {
-                var string = "prefix: " + counterExample.prefix.joinToString(separator = ", ") { it.name }
-                string += "\nsuffix: " + counterExample.suffix.joinToString(separator = ", ") { it.name }
-                string += "\n" + listOf(
-                    membershipOracle.find(
-                        counterExample.prefix,
-                        counterExample.suffix
-                    ).wordResponseFingerprint, counterExampleSafe
-                ).joinToString(
-                    separator = "\n",
-                    transform = { it!!.joinToString { it.toString() } })
-
-                throw IllegalStateException(string)
+                //Error in learning: Trigger error in update..
+                membershipOracle.update(counterExample.prefix, counterExample.suffix, counterExampleSafe)
+                throw IllegalStateException("Trigger error in update did not work")
             }
 
         }
