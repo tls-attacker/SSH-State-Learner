@@ -7,7 +7,14 @@ import de.rub.nds.sshstatelearner.android.controller.JuiceSSHController
 import de.rub.nds.sshstatelearner.android.controller.TermiusController
 import de.rub.nds.sshstatelearner.android.controller.constants.AndroidSshClientTyp
 
+/**
+ * Class creates the corresponding controller from a configurations.
+ */
 object AndroidSSHClientControllerFactory {
+
+    /**
+     * creates the corresponding controller from a configurations
+     */
     fun getClientController(
         androidSshClientTyp: AndroidSshClientTyp,
         ipToAppium: String,
@@ -45,6 +52,9 @@ object AndroidSSHClientControllerFactory {
         )
     }
 
+    /**
+     * creates the corresponding controller from a configurations
+     */
     fun getClientController(argsAndroidGeneral: ArgsAndroidGeneral): AndroidSSHClientController =
         getClientController(
             argsAndroidGeneral.androidSshClientTyp,

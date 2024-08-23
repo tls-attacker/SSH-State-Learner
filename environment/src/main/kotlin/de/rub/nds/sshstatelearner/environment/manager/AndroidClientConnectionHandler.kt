@@ -53,7 +53,7 @@ class AndroidClientConnectionHandler(
 
                 val fingerprintAndroid = launch(Dispatchers.IO) {
                     androidSSHClientController.installApp()
-                    androidSSHClientController.init()
+                    androidSSHClientController.setSettingsInApp()
                     if (preLearnFingerprintAcceptance) androidSSHClientController.connectToGetFingerprint()
                 }
                 try {

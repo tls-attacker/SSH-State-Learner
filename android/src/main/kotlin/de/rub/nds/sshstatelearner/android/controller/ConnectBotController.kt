@@ -5,7 +5,9 @@ import io.appium.java_client.appmanagement.ApplicationState
 import org.openqa.selenium.Point
 import org.openqa.selenium.support.ui.ExpectedConditions
 
-
+/**
+ * Automates the control of the ConnectBot.
+ */
 class ConnectBotController(
     ipToAppium: String,
     portToAppium: Int,
@@ -17,7 +19,7 @@ class ConnectBotController(
     override val bundleId = "org.connectbot"
     private val xpathToConnectButton = "//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]"
 
-    override fun init() {
+    override fun setSettingsInApp() {
         addHost()
         setSettings()
     }
@@ -31,18 +33,6 @@ class ConnectBotController(
         acceptSSHFingerPrint()
     }
 
-    override fun connectForStateLearning() {
-        do {
-            catchAppiumException {
-                restartAndconnectToServer()
-
-                do {
-                    getNextActionAndExecuteIt()
-                } while (isInStateMachineLearningMode)
-            }
-        } while (isInStateMachineLearningMode)
-    }
-
     private fun clickConnectToServerButton() {
         waitUntilElementIsClickable(AppiumBy.xpath(xpathToConnectButton)).click()
     }
@@ -51,11 +41,16 @@ class ConnectBotController(
         waitUntilElementIsClickable(AppiumBy.id("org.connectbot:id/console_prompt_no")).click()
     }
 
+    /**
+     * Determines the next action
+     */
     private fun getNextAction(): Action? {
         val applicationIsNotRunning = driver.queryAppState(bundleId) == ApplicationState.NOT_RUNNING
+
         val alertIsShown = ExpectedConditions.elementToBeClickable(
             AppiumBy.id("android:id/aerr_close")
         ).apply(driver) != null
+
         val isNormalConnectPossible = ExpectedConditions.elementToBeClickable(
             AppiumBy.xpath(xpathToConnectButton)
         ).apply(driver) != null

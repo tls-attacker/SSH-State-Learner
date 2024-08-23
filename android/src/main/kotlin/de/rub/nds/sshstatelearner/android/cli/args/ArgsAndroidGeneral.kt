@@ -3,6 +3,9 @@ package de.rub.nds.sshstatelearner.android.cli.args
 import com.beust.jcommander.Parameter
 import de.rub.nds.sshstatelearner.android.controller.constants.AndroidSshClientTyp
 
+/**
+ * CLI options to control Android SSH clients without state learning.
+ */
 object ArgsAndroidGeneral {
     @Parameter(names = ["--help"], help = true, description = "Print this help screen", order = 0)
     var help = false

@@ -4,6 +4,9 @@ import io.appium.java_client.AppiumBy
 import io.appium.java_client.appmanagement.ApplicationState
 import org.openqa.selenium.support.ui.ExpectedConditions
 
+/**
+ * Automates the control of the JuiceSSH.
+ */
 class JuiceSSHController(
     ipToAppium: String,
     portToAppium: Int,
@@ -17,7 +20,7 @@ class JuiceSSHController(
         "//android.widget.TextView[@resource-id=\"com.sonelli.juicessh:id/itemTitle\" and @text=\"Quick Connect\"]"
     private val xPathToReconnectButton = "//android.widget.Button[@resource-id=\"android:id/button1\"]"
 
-    override fun init() {
+    override fun setSettingsInApp() {
         //Nothing to do!
     }
 
@@ -32,19 +35,26 @@ class JuiceSSHController(
     fun rejecttSSHFingerPrint() =
         waitUntilElementIsClickable(AppiumBy.id("android:id/button2")).click()
 
+    /**
+     * Determines the next action
+     */
     private fun getAction(): Action? {
         val applicationIsNotRunning = driver.queryAppState(bundleId) == ApplicationState.NOT_RUNNING
+
         val alertIsShown = ExpectedConditions.elementToBeClickable(
             AppiumBy.id("android:id/aerr_close")
         ).apply(driver) != null
+
         val isNormalConnectPossible = ExpectedConditions.elementToBeClickable(
             AppiumBy.xpath(xPathToCickConnectButton)
         ).apply(driver) != null
+
         val isReconnectPossible = runCatching {
             ExpectedConditions.textToBePresentInElementLocated(
                 AppiumBy.id("android:id/alertTitle"), "Connection Failed"
             ).apply(driver)
         }.getOrDefault(false)
+
         val isAcceptFingerPrintShown = runCatching {
             ExpectedConditions.textToBePresentInElementLocated(
                 AppiumBy.id("android:id/alertTitle"), "Host Verification"
@@ -92,14 +102,6 @@ class JuiceSSHController(
     private fun clickReconnectButton() = waitUntilElementIsClickable(
         AppiumBy.xpath(xPathToReconnectButton)
     ).click()
-
-    override fun connectForStateLearning() {
-        do {
-            catchAppiumException {
-                getActionAndExecuteIt()
-            }
-        } while (isInStateMachineLearningMode)
-    }
 
     override fun oneConnectForStateLearning() {
         catchAppiumException { getActionAndExecuteIt() }

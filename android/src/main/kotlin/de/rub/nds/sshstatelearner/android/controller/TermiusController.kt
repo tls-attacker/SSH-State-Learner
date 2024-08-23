@@ -5,6 +5,9 @@ import io.appium.java_client.appmanagement.ApplicationState
 import org.openqa.selenium.Point
 import org.openqa.selenium.support.ui.ExpectedConditions
 
+/**
+ * Automates the control of the Termius.
+ */
 class TermiusController(
     ipToAppium: String,
     portToAppium: Int,
@@ -20,7 +23,7 @@ class TermiusController(
     val connectButtonXPath =
         "(//android.view.ViewGroup[@resource-id=\"com.server.auditor.ssh.client:id/clickable_layout\"])[2]"
 
-    override fun init() {
+    override fun setSettingsInApp() {
         restartApp()
         finishTutorial()
         addHost()
@@ -105,6 +108,9 @@ class TermiusController(
         saveHost()
     }
 
+    /**
+     * Determines the next action
+     */
     private fun getAction(): Action? {
         val applicationIsNotRunning = driver.queryAppState(bundleId) == ApplicationState.NOT_RUNNING
         val alertIsShown = ExpectedConditions.elementToBeClickable(
@@ -149,15 +155,6 @@ class TermiusController(
 
             else -> {}
         }
-    }
-
-    override fun connectForStateLearning() {
-        restartApp()
-        do {
-            catchAppiumException {
-                getActionAndExecuteIt()
-            }
-        } while (isInStateMachineLearningMode)
     }
 
     override fun oneConnectForStateLearning() {
