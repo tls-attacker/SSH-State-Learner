@@ -8,6 +8,9 @@ import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
+/**
+ * This class bundles all configuration options for state learning.
+ */
 class ConfigLearner {
     @JsonPropertyDescription("The learning algorithm to use")
     @JsonProperty(defaultValue = "TTT")

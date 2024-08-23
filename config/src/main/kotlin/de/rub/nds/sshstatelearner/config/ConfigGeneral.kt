@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyDescription
 import de.rub.nds.sshstatelearner.constants.ExecutorType
 
+/**
+ * This class bundles all other configuration classes and offers a few configuration attributes itself.
+ */
 data class ConfigGeneral(
     @field:JsonPropertyDescription("Folder to output the extracted state machine to")
     @field:JsonProperty(defaultValue = "out/")

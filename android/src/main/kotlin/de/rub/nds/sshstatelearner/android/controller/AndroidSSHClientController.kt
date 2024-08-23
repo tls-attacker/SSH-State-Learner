@@ -74,11 +74,13 @@ abstract class AndroidSSHClientController(
         }
     }
 
-    abstract fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean)
+    abstract fun connectToGetFingerprint()
 
     abstract fun connectForStateLearning()
 
     abstract fun oneConnectForStateLearning()
+
+    abstract fun init()
 
     private fun connectTo(ip: String, port: Int): AndroidDriver {
         return AndroidDriver(URI("http://$ip:$port/").toURL(), caps)

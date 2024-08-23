@@ -17,16 +17,16 @@ class JuiceSSHController(
         "//android.widget.TextView[@resource-id=\"com.sonelli.juicessh:id/itemTitle\" and @text=\"Quick Connect\"]"
     private val xPathToReconnectButton = "//android.widget.Button[@resource-id=\"android:id/button1\"]"
 
-    override fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean) {
+    override fun init() {
+        //Nothing to do!
+    }
+
+    override fun connectToGetFingerprint() {
         fun acceptSSHFingerPrint() =
             waitUntilElementIsClickable(AppiumBy.id("android:id/button1")).click()
 
         restartAndConnectToServer()
-        if (preLearnFingerprintAcceptance) {
-            acceptSSHFingerPrint()
-        } else {
-            rejecttSSHFingerPrint()
-        }
+        acceptSSHFingerPrint()
     }
 
     fun rejecttSSHFingerPrint() =

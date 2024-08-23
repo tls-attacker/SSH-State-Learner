@@ -20,6 +20,12 @@ class TermiusController(
     val connectButtonXPath =
         "(//android.view.ViewGroup[@resource-id=\"com.server.auditor.ssh.client:id/clickable_layout\"])[2]"
 
+    override fun init() {
+        restartApp()
+        finishTutorial()
+        addHost()
+    }
+
     private fun connectToServer() {
         waitUntilElementIsClickable(
             AppiumBy.xpath(connectButtonXPath)
@@ -30,23 +36,15 @@ class TermiusController(
         waitUntilElementIsClickable(AppiumBy.id(reconnectButtonId)).click()
     }
 
-    override fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean) {
+    override fun connectToGetFingerprint() {
         fun clickSaveFingerprint() {
             waitUntilElementIsClickable(
                 AppiumBy.id("com.server.auditor.ssh.client:id/save_and_continue_button")
             ).click()
         }
 
-        restartApp()
-        finishTutorial()
-        addHost()
-
         connectToServer()
-        if (preLearnFingerprintAcceptance) {
-            clickSaveFingerprint()
-        } else {
-            //Self-closing pop-up window after the connection has been closed
-        }
+        clickSaveFingerprint()
         reconnectToServer()
     }
 

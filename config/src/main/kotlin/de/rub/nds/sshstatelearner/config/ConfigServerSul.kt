@@ -3,6 +3,9 @@ package de.rub.nds.sshstatelearner.config
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyDescription
 
+/**
+ * Configuration class that contains special configuration attributes that are required for a server SUL.
+ */
 data class ConfigServerSul(
     @field:JsonPropertyDescription("Hostname of the system where the target SSH server is running")
     @field:JsonProperty(defaultValue = "localhost")

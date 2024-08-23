@@ -17,19 +17,18 @@ class ConnectBotController(
     override val bundleId = "org.connectbot"
     private val xpathToConnectButton = "//android.widget.RelativeLayout[@resource-id=\"android:id/content\"]"
 
-    override fun connectToGetFingerprint(preLearnFingerprintAcceptance: Boolean) {
+    override fun init() {
+        addHost()
+        setSettings()
+    }
+
+    override fun connectToGetFingerprint() {
         fun acceptSSHFingerPrint() = waitUntilElementIsClickable(
             AppiumBy.id("org.connectbot:id/console_prompt_yes")
         ).click()
 
-        addHost()
-        setSettings()
         restartAndconnectToServer()
-        if (preLearnFingerprintAcceptance) {
-            acceptSSHFingerPrint()
-        } else {
-            rejectSSHFingerPrint()
-        }
+        acceptSSHFingerPrint()
     }
 
     override fun connectForStateLearning() {

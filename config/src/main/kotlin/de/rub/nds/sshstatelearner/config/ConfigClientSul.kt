@@ -3,6 +3,9 @@ package de.rub.nds.sshstatelearner.config
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyDescription
 
+/**
+ * Configuration class that contains special configuration attributes that are required for a client SUL.
+ */
 data class ConfigClientSul(
     @field:JsonPropertyDescription("Information for clients to connect to the SUL")
     @field:JsonProperty(defaultValue = "[]")

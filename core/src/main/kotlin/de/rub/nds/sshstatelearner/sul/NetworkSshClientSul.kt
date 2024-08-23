@@ -73,7 +73,6 @@ class NetworkSshClientSul(
                             state.sshContext.transportHandler.closeConnection()
                             LOGGER.warn("SUL with port ${port} could not be started successfully within 60 seconds! Try again!")
                             this.cancel()
-                            //TODO -> Android Canceled Attribute -> Wenn gesetzt hört er auf zu arbeiten :)
                         }
 
                     val jobServer = launch(Dispatchers.IO) {

@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyDescription
 import de.rub.nds.sshstatelearner.android.controller.constants.AndroidSshClientTyp
 
+/**
+ * Configuration class that contains special configuration attributes that are required for android client SUL.
+ */
 data class ConfigAndroidClientSul(
     @field:JsonPropertyDescription("Information for controlling the Android clients and the connection with the SUL")
     @field:JsonProperty(defaultValue = "[]")

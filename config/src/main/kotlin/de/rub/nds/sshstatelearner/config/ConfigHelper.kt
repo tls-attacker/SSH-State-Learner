@@ -4,6 +4,9 @@ import com.fasterxml.jackson.core.JsonParser.Feature
 import com.fasterxml.jackson.databind.ObjectMapper
 import java.io.File
 
+/**
+ * Class provides the basic function for reading and saving configuration files.
+ */
 class ConfigHelper {
     fun readConfig(pathToFile: String): ConfigGeneral = try {
         ObjectMapper().enable(Feature.INCLUDE_SOURCE_IN_LOCATION)
