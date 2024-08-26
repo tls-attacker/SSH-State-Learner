@@ -58,7 +58,6 @@ abstract class AndroidSSHClientController(
             driver.terminateApp(bundleId)
             driver.removeApp(bundleId)
             Thread.sleep(Duration.ofSeconds(1))
-            return
         }
 
         //apps can also consist of several files
