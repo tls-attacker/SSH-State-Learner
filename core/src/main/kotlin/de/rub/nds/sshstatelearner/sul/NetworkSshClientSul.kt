@@ -61,12 +61,15 @@ class NetworkSshClientSul(
         // Initialize transport handler
         var serverIsReady = false
         var connectionIsReady = false
+        // In case something goes wrong: while
         while (!serverIsReady || !connectionIsReady) {
             config.enableEncryptionOnNewKeysMessageType = enableEncryptionOnNewKeysMessageType
             state = State(config)
 
             try {
                 runBlocking {
+                    // Starts a timer in case something goes wrong to terminate the other jobs.
+                    // If everything goes smoothly, the timer will be stopped.
                     val jobSomethingWentWrongTimer =
                         launch(Dispatchers.IO) {
                             delay(10.toDuration(DurationUnit.SECONDS))
@@ -88,6 +91,7 @@ class NetworkSshClientSul(
                     joinAll(jobClient, jobServer)
                     jobSomethingWentWrongTimer.cancel()
 
+                    // The case where the PreVersionExchange fails
                     if (!preVersionExchange()) {
                         state.sshContext.transportHandler.closeConnection()
                         serverIsReady = false
@@ -117,6 +121,7 @@ class NetworkSshClientSul(
         Thread.sleep(timeout)
         val receiveKexInit =
             ReceiveAction(connectionAlias, SshSymbol.MSG_KEXINIT.messageCreator()).apply { execute(state) }
+        // Checks if everything went according to plan and if the connection is still open
         return receiveMessageVersionExchange.executedAsPlanned() && receiveKexInit.executedAsPlanned() && !state.sshContext.transportHandler.isClosed
     }
 

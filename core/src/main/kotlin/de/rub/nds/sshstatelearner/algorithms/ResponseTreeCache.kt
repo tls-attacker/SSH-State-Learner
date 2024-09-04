@@ -85,7 +85,6 @@ class ResponseTreeCache(
      * @param queries The collection of queries to answer.
      */
     override fun processQueries(queries: MutableCollection<out Query<SshSymbol, Word<ResponseFingerprint>>>) {
-
         fun processOneQuery(
             query: Query<SshSymbol, Word<ResponseFingerprint>>,
             delegateIndex: Int,
@@ -113,6 +112,9 @@ class ResponseTreeCache(
             pairOfQueriesAndResponsesToUpdateToCache[cacheIndex] = Pair(query, response)
         }
 
+        /**
+         * Updates the cache
+         */
         fun processQueryAnswerAndUpdate(pairOfQueriesAndResponsesToUpdateToCache: Array<Pair<Query<SshSymbol, Word<ResponseFingerprint>>, Word<ResponseFingerprint>>?>) {
             pairOfQueriesAndResponsesToUpdateToCache.filterNotNull()
                 .forEach {
@@ -135,7 +137,7 @@ class ResponseTreeCache(
             val pairOfQueriesAndResponsesToUpdateToCache: Array<Pair<Query<SshSymbol, Word<ResponseFingerprint>>, Word<ResponseFingerprint>>?> =
                 arrayOfNulls(queries.size)
             val mutex = Mutex()
-
+            // Each thread independently retrieves the query that it then processes.
             for (delegateIndex in delegates.indices) {
                 jobs.add(
                     launch(Dispatchers.IO) {
@@ -196,6 +198,9 @@ class ResponseTreeCache(
         return answer
     }
 
+    /**
+     * Executes a majority voting query
+     */
     fun answerQueryWithMajorityVote(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>,
@@ -204,11 +209,13 @@ class ResponseTreeCache(
         val listOfAnswers: MutableList<Word<ResponseFingerprint>> = mutableListOf()
         val batchOfAnswers: Array<Word<ResponseFingerprint>?> = arrayOfNulls(delegates.size)
 
+
         var majorityCount = repeatedQueriesDuringLearningWithMajorityCount
         if (overrideMajorityCount != null) {
             majorityCount = overrideMajorityCount
         }
 
+        // Concurrent query retrieval
         var currentIndex = 0
         while (currentIndex < majorityCount) {
             runBlocking {
@@ -229,6 +236,7 @@ class ResponseTreeCache(
             batchOfAnswers.fill(null)
         }
 
+        // Finds the answer with the most votes
         val setOfAnswers = HashSet(listOfAnswers)
         return setOfAnswers.maxWithOrNull { selector1, selector2 ->
             listOfAnswers.count { predicate -> selector1 == predicate } compareTo
@@ -236,6 +244,9 @@ class ResponseTreeCache(
         }?.suffix(suffix.length()) ?: throw IllegalStateException("Empty Answers!")
     }
 
+    /**
+     * Analyzes prefix and suffix and thus limits the SUL.
+     */
     fun analysisInputWithSmlLimiter(
         prefix: Word<SshSymbol>,
         suffix: Word<SshSymbol>,
@@ -288,11 +299,14 @@ class ResponseTreeCache(
                 if (disableCachedAnswer) CachedAnswer(null, false) else this.find(prefix, validPartOfSuffix)
             val cachedResponseFingerprint = cachedAnswer.wordResponseFingerprint
             val response = if (delegate != null) {
+                // If a delegate is present use it.
                 cachedResponseFingerprint ?: answerQueryWithSul(prefix, validPartOfSuffix, delegate)
             } else {
                 if (cachedResponseFingerprint != null && cachedAnswer.isMajorityProved) {
+                    // Only majority verified responses are returned.
                     cachedResponseFingerprint
                 } else {
+                    // starts a query with majority vote
                     answerQueryWithMajorityVote(prefix, validPartOfSuffix)
                 }
             }

@@ -10,12 +10,18 @@ import kotlinx.coroutines.runBlocking
 import kotlin.time.Duration
 import kotlin.time.TimeSource
 
+/**
+ * The NetworkSshClientSul pool for the SUL. Tracks idle times, initialization, and work time of SULs.
+ */
 class SshClientWorker {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val sulToUse = Channel<NetworkSshClientSul>(64)
     private val allSuls = mutableListOf<NetworkSshClientSul>()
     private val map = HashMap<Int, IdleVsWorkTime>()
 
+    /**
+     *
+     */
     fun init(suls: List<NetworkSshClientSul>) {
         runBlocking {
             for (sul in suls) {
@@ -30,6 +36,7 @@ class SshClientWorker {
 
     fun exit() {
         runBlocking {
+            // Terminates any remaining running threads
             if (scope.isActive) {
                 scope.runCatching { cancel() }
             }

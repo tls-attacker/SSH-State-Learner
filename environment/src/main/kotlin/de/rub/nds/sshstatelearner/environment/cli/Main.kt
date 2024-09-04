@@ -62,9 +62,11 @@ fun main(args: Array<out String>) {
             }
         }
     }
-
 }
 
+/**
+ * Starts a STL run with the configuration file
+ */
 private fun runSML(configHelper: ConfigHelper, absolutePath: String) {
     val configGeneral = configHelper.readConfig(absolutePath)
     val configSulConfig = configGeneral.sulConfig

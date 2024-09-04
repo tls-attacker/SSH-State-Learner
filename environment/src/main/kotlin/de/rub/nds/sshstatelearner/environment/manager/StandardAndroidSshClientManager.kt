@@ -12,6 +12,9 @@ import kotlinx.coroutines.runBlocking
 import java.io.FileWriter
 import java.io.PrintWriter
 
+/**
+ * Enables the SML for Android clients
+ */
 class StandardAndroidSshClientManager(
     configGeneral: ConfigGeneral,
     private val configAndroidClientSul: ConfigAndroidClientSul
@@ -22,6 +25,11 @@ class StandardAndroidSshClientManager(
     private val sshClientWorker = SshClientWorker()
 
     override fun setUp() {
+        /**
+         * Creates the `AndroidClientConnectionHandler` and performs an initialization.
+         * This allows the `AndroidSSHClientController` to establish a connection to the emulator, install the app,
+         * configure settings, and, if desired, accept the host key.
+         */
         fun createConnectionHandlersForAndroidClients() {
             runBlocking {
                 for (connectionInfo in configAndroidClientSul.androidConnectionInfos) {
@@ -43,6 +51,9 @@ class StandardAndroidSshClientManager(
             }
         }
 
+        /**
+         *  Passes the ConnectionHandler to the SUL so that it can request the connection when needed
+         */
         fun createNetworkSshClientSulsAndAddItToClientWorker() {
             val suls = mutableListOf<NetworkSshClientSul>()
             for (clientConnectionHandler in androidClientConnectionHandlers) {

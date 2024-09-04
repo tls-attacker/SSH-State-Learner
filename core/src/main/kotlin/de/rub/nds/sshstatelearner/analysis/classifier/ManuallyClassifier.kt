@@ -6,6 +6,9 @@ import de.rub.nds.sshstatelearner.exceptions.ClassificationException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
+/**
+ * Allows a path defined in the configuration file to be represented as a Happy Flow in the graph
+ */
 class ManuallyClassifier<S, T>(private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>) :
     Classifier<S, SshSymbol, T, ResponseFingerprint>() {
     override fun performClassification(stateMachine: StateMachine<S, SshSymbol, T, ResponseFingerprint>) {

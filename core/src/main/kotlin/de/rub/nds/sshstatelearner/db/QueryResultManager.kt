@@ -18,6 +18,9 @@ import java.time.Instant
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
+/**
+ * The DB manager is currently still very complicated. It has only been implemented so far to find errors...
+ */
 class QueryResultManager {
 
     private val localScope = CoroutineScope(Dispatchers.IO)
@@ -31,6 +34,10 @@ class QueryResultManager {
     }
 
 
+    /**
+     * Starts a worker that processes the queue filled by queries from the SML.
+     * Transforms the data into a format suitable for the database.
+     */
     fun init() {
         dbJob = dbJob ?: localScope.launch {
             while (true) {
@@ -118,6 +125,7 @@ class QueryResultManager {
 
     fun waitUntilAllIsProcessed() {
         runBlocking {
+            // Waits until the queue has been processed
             while (dbChannel.tryReceive().isSuccess) {
                 delay(1.toDuration(DurationUnit.SECONDS))
             }

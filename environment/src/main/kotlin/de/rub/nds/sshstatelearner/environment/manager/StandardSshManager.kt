@@ -34,7 +34,6 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
         val alphabet = getInputAlphabet()
         MainWindow.infoAlphabetSize.text = alphabet.size.toString()
         val sul = getSul()
-
         val learner = ParallelOracleExtractor(
             alphabet,
             sul,
@@ -56,9 +55,19 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
 
     }
 
+    /**
+     * It must be possible to fork the SshSul
+     */
     abstract fun getSul(): SshSul
+
+    /**
+     * Specifies how many SUL instances are forked
+     */
     abstract fun getCountOfParallelSuls(): Int
 
+    /**
+     * Determines the input alphabet to be used.
+     */
     protected fun getInputAlphabet(): Alphabet<SshSymbol> {
         val alphabet =
             when (configGeneral.sulConfig.protocolStage) {
@@ -98,10 +107,16 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
         ConfigHelper().safeConfig(configGeneral)
     }
 
+    /**
+     * Möglichkeit SUL spezifische Statistikten zu erstellen
+     */
     open fun addAdditionalStatistics(fileWriter: FileWriter) {
 
     }
 
+    /**
+     * Ability to generate SUL-specific statistics
+     */
     protected fun analyzeExtractorResult(result: Extractor.ExtractorResult) = result.learnedModel.analyzeMealyMachine()
 
     private fun setEquivalenceOracleDefaults() {

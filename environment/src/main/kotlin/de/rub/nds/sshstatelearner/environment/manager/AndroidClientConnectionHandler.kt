@@ -10,6 +10,9 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+/**
+ * This class abstracts the initialization and control of the AndroidSSHClientController
+ */
 class AndroidClientConnectionHandler(
     private val androidSshClientTyp: AndroidSshClientTyp,
     private val ipToAppium: String,
@@ -73,7 +76,7 @@ class AndroidClientConnectionHandler(
             throw e
         }
     }
-
+    
     override suspend fun subscribeForConnection() {
         androidSSHClientController.oneConnectForStateLearning()
     }

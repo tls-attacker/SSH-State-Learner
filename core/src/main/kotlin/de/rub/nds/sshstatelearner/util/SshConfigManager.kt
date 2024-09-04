@@ -17,6 +17,9 @@ import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
 import de.rub.nds.sshstatelearner.sul.SshSul
 import java.math.BigInteger
 
+/**
+ * Object that returns a default SSH configuration.
+ */
 object SshConfigManager {
 
     private fun getSshPublicKey(): SshPublicKey<CustomEcPublicKey, CustomEcPrivateKey> = SshPublicKey(

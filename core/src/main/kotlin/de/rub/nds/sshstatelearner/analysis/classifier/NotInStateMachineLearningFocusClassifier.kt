@@ -15,6 +15,10 @@ import de.rub.nds.sshstatelearner.exceptions.ClassificationException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
+/**
+ * Not yet working.
+ * Should format the outputs created with DFASMLLIMITER.
+ */
 class NotInStateMachineLearningFocusClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseFingerprint>() {
     override fun performClassification(stateMachine: StateMachine<S, SshSymbol, T, ResponseFingerprint>) {
         stateMachine as SshStateMachine

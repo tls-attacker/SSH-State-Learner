@@ -39,7 +39,6 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.File
 import java.util.*
-import kotlin.system.exitProcess
 
 /**
  * A wrapper for learning an SSH SUL oracle. It exposes a single method, learn(), which constructs all necessary
@@ -125,6 +124,7 @@ class ParallelOracleExtractor(
      * Constructs the membership and equivalence oracle to use within the learning process.
      */
     private fun constructOracles() {
+        // Forks the SUL and then stores it in the cache
         val suls = mutableListOf<SULOracle<SshSymbol, ResponseFingerprint>>()
         repeat(parallelSshSulSize) {
             suls.add(SULOracle(sul.fork()))
@@ -196,6 +196,7 @@ class ParallelOracleExtractor(
         createGUIUpdateTimer()
 
         val extractorResult = Extractor.ExtractorResult()
+        // The learning algorithm receives a wrapper for the cache so that only majority verified queries are used for the SML.
         val learningAlgorithm =
             LearningAlgorithmFactory.create(algorithm, alphabet, ResponseTreeCacheWrapperForLearning(membershipOracle))
 
@@ -224,9 +225,6 @@ class ParallelOracleExtractor(
                 // TODO: Remove analysis of intermediate hypotheses later on
                 stateMachine.analyzeMealyMachine()
                 serializeHypothesis(stateMachine, "hyp$rounds.dot")
-                if (rounds > 100) {
-                    exitProcess(-1)
-                }
             }
             LOGGER.warn("Finished learning round ${rounds++}, searching for counter examples (executed SUL steps: ${sul.totalSymbolCount})")
 
@@ -287,7 +285,6 @@ class ParallelOracleExtractor(
         if (counterExample != null) {
             val counterExampleSafe =
                 membershipOracle.answerQueryWithMajorityVote(counterExample.prefix, counterExample.suffix)
-            //TODO: Kontrollieren ob sich der Wert geändert hat zu einem Wert im Cache. Nur wenn es zu keinen Fehler Kommt geht es weiter
             counterExample.answer(counterExampleSafe)
             if (membershipOracle.isQueryValidInCacheContext(
                     counterExample.prefix,

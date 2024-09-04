@@ -6,6 +6,9 @@ import de.rub.nds.sshstatelearner.constants.SULTyp
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
+/**
+ * SUL Proxy die sich einen SUL aus dem Pool holt.
+ */
 class NetworkSshClientSulProxy(
     name: String,
     timeout: Long = DEFAULT_SUL_TIMEOUT,

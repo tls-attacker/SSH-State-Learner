@@ -3,7 +3,9 @@ package de.rub.nds.sshstatelearner.analysis.automata
 import de.rub.nds.sshstatelearner.analysis.limiter.SMLRun
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
-
+/**
+ * Class that simulates the defined DEA for inputs sequentially.
+ */
 class AnalysisDFARun(analysisDFACreationHelper: AnalysisDFACreationHelper) : SMLRun() {
     val alphabet = analysisDFACreationHelper.alphabet
     private val extendedAlphabet = analysisDFACreationHelper.extendedAlphabet

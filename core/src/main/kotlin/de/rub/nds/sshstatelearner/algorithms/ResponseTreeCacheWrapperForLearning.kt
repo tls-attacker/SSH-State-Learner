@@ -8,6 +8,9 @@ import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import net.automatalib.automata.transducers.MealyMachine
 import net.automatalib.words.Word
 
+/**
+ *This class helps to answer the queries posed by the SML algorithm using majority vote.
+ */
 class ResponseTreeCacheWrapperForLearning(private val responseTreeCache: ResponseTreeCache) :
     LearningCacheOracle.MealyLearningCacheOracle<SshSymbol, ResponseFingerprint> {
 

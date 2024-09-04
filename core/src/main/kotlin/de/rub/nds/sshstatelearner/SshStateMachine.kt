@@ -69,6 +69,7 @@ class SshStateMachine<S, T>(
             ProtocolStage.TRANSPORT -> SshTransportAnalyzer<S, T>().analyze(this)
             ProtocolStage.AUTHENTICATION -> SshAuthenticationAnalyzer<S, T>().analyze(this)
             ProtocolStage.CONNECTION -> SshConnectionAnalyzer<S, T>().analyze(this)
+            // Can be controlled via the configuration in case of UNKNOWN
             ProtocolStage.UNKNOWN -> SshManuallyAnalyzer<S, T>(stateNameAndSuccessorTransitions).analyze(this)
         }
     }

@@ -4,6 +4,9 @@ import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessageHandler
 import de.rub.nds.sshattacker.core.state.SshContext
 
+/**
+ * Protocol message returned by the SMLLimiter
+ */
 class NotInStateMachineLearningFocusMessage : ProtocolMessage<NotInStateMachineLearningFocusMessage>() {
     override fun getHandler(context: SshContext?): ProtocolMessageHandler<NotInStateMachineLearningFocusMessage> {
         throw IllegalStateException("This message typ should only be used to limit the state machine learning.")

@@ -2,6 +2,9 @@ package de.rub.nds.sshstatelearner.sul
 
 import kotlinx.coroutines.delay
 
+/**
+ * This class starts the local client and establishes a connection to the SUL.
+ */
 class LocalSSHClientConnectionHandler(
     private val ip: String,
     private val port: Int,

@@ -7,6 +7,9 @@ import de.rub.nds.sshattacker.core.workflow.DefaultWorkflowExecutor
 import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
 import de.rub.nds.sshstatelearner.util.SshConfigManager
 
+/**
+ * Class for starting an SSH server to accept the host key before the SML.
+ */
 class SshServerForFingerprint(port: Int) {
     private val config: Config =
         SshConfigManager.getServerConfig().apply {

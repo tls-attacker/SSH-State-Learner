@@ -101,6 +101,9 @@ abstract class NetworkSshSul(
         }
     }
 
+    /**
+     * Closes the connection
+     */
     override fun close() {
         try {
             state.sshContext.transportHandler.closeConnection()
