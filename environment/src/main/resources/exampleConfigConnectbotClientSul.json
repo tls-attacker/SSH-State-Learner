@@ -1,0 +1,210 @@
+{
+  "outputDirectory": "out/",
+  "executorType": "NETWORK",
+  "learnerConfig": {
+    "learningAlgorithmType": "TTT",
+    "outputIntermediateHypothesis": true,
+    "equivOracleChainTypes": [
+      "CACHE_CONSISTENCY",
+      "HAPPY_FLOW",
+      "COMPLETE_EXPLORATION"
+    ],
+    "equivHappyFlowSuffixLength": 2,
+    "equivCompleteExplorationMinDepth": 3,
+    "equivCompleteExplorationMaxDepth": 6,
+    "equivRandomWordsMinLength": 5,
+    "equivRandomWordsMaxLength": 15,
+    "equivRandomWordsMaxTests": 2000,
+    "equivRandomWalkResetProbability": 0.1,
+    "equivRandomWalkMaxSteps": 10000,
+    "equivWMaxDepth": 10,
+    "equivRandomWMinimalSize": 3,
+    "equivRandomWRndLength": 7,
+    "equivRandomWBound": 1000,
+    "smlLimiterTyp": "EMPTY_SML_LIMITER",
+    "smlLimiterFilePath": "/home/jimba/git/SSH-State-Learner/environment/src/main/resources/test.json",
+    "batchSize": 128,
+    "repeatedQueriesDuringLearningWithMajorityCount": 16,
+    "alternativeHappyFlowAlphabet": []
+  },
+  "sulConfig": {
+    "type": "configAndroidClientSul",
+    "name": "Unspecified SSH Server/Client",
+    "timeout": 50,
+    "resetDelay": 0,
+    "protocolStage": "TRANSPORT",
+    "kexAlgorithm": "ECDH_SHA2_NISTP521",
+    "alphabet": [
+      "MSG_KEXINIT",
+      "MSG_KEX_ECDH_REPLY",
+      "MSG_NEWKEYS",
+      "MSG_SERVICE_ACCEPT",
+      "MSG_USERAUTH_FAILURE",
+      "MSG_USERAUTH_SUCCESS"
+    ],
+    "sulTyp": "CLIENT_IS_UNDER_TEST",
+    "androidConnectionInfos": [
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30031,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5554"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30032,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5556"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30033,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5558"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30034,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5560"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30035,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5562"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30036,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5564"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30037,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5566"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30038,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5568"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30039,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5570"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30040,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5572"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30041,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5574"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30042,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5576"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30043,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5578"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30044,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5580"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30045,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5582"
+      },
+      {
+        "ipToAppium": "127.0.0.1",
+        "portToAppium": 4723,
+        "ipToServer": "10.0.2.2",
+        "portToServer": 30046,
+        "pathToApks": [
+          "/home/jimba/apks/ConnectBot-git-v1.9.10-19.apk"
+        ],
+        "uuid": "emulator-5584"
+      }
+    ],
+    "androidSshClientTyp": "CONNECT_BOT"
+  }
+}

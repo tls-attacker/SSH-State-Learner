@@ -1,0 +1,462 @@
+{
+  "$schema" : "https://json-schema.org/draft/2020-12/schema",
+  "$defs" : {
+    "EnableEncryptionOnNewKeysMessageType" : {
+      "type" : "string",
+      "enum" : [ "BOTH", "RECEIVE", "SEND", "NONE" ]
+    },
+    "KeyExchangeAlgorithm" : {
+      "type" : "string",
+      "enum" : [ "DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA1", "DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA256", "DIFFIE_HELLMAN_GROUP1_SHA1", "DIFFIE_HELLMAN_GROUP14_SHA1", "DIFFIE_HELLMAN_GROUP14_SHA256", "DIFFIE_HELLMAN_GROUP15_SHA512", "DIFFIE_HELLMAN_GROUP16_SHA512", "DIFFIE_HELLMAN_GROUP17_SHA512", "DIFFIE_HELLMAN_GROUP18_SHA512", "ECDH_SHA2_SECP160K1", "ECDH_SHA2_SECP160R1", "ECDH_SHA2_SECP160R2", "ECDH_SHA2_SECP192K1", "ECDH_SHA2_SECP192R1", "ECDH_SHA2_SECP224K1", "ECDH_SHA2_SECP224R1", "ECDH_SHA2_SECP256K1", "ECDH_SHA2_NISTP256", "ECDH_SHA2_NISTP384", "ECDH_SHA2_NISTP521", "ECDH_SHA2_SECT163K1", "ECDH_SHA2_SECT163R1", "ECDH_SHA2_SECT163R2", "ECDH_SHA2_SECT193R1", "ECDH_SHA2_SECT193R2", "ECDH_SHA2_SECT233K1", "ECDH_SHA2_SECT233R1", "ECDH_SHA2_SECT239K1", "ECDH_SHA2_SECT283K1", "ECDH_SHA2_SECT283R1", "ECDH_SHA2_SECT409K1", "ECDH_SHA2_SECT409R1", "ECDH_SHA2_SECT571K1", "ECDH_SHA2_SECT571R1", "ECDH_SHA2_BRAINPOOLP256R1", "ECDH_SHA2_BRAINPOOLP384R1", "ECDH_SHA2_BRAINPOOLP512R1", "ECMQV_SHA2", "RSA1024_SHA1", "RSA2048_SHA256", "EXT_INFO_S", "EXT_INFO_C", "CURVE25519_SHA256", "CURVE448_SHA512", "CURVE25519_SHA256_LIBSSH_ORG", "SNTRUP4591761_X25519", "SNTRUP761_X25519", "KEX_STRICT_S_V00_OPENSSH_COM", "KEX_STRICT_C_V00_OPENSSH_COM", "CURVE25519_FRODOKEM1344", "NISTP521_KYBER1024", "NISTP521_FIRESABER", "DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA224_SSH_COM", "DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA384_SSH_COM", "DIFFIE_HELLMAN_GROUP_EXCHANGE_SHA512_SSH_COM", "DIFFIE_HELLMAN_GROUP14_SHA224_SSH_COM", "DIFFIE_HELLMAN_GROUP14_SHA256_SSH_COM", "DIFFIE_HELLMAN_GROUP15_SHA256_SSH_COM", "DIFFIE_HELLMAN_GROUP15_SHA384_SSH_COM", "DIFFIE_HELLMAN_GROUP16_SHA384_SSH_COM", "DIFFIE_HELLMAN_GROUP16_SHA512_SSH_COM", "DIFFIE_HELLMAN_GROUP18_SHA512_SSH_COM", "UNKNOWN" ]
+    },
+    "ProtocolStage" : {
+      "type" : "string",
+      "enum" : [ "TRANSPORT", "AUTHENTICATION", "CONNECTION", "UNKNOWN" ]
+    },
+    "SULTyp" : {
+      "type" : "string",
+      "enum" : [ "SERVER_IS_UNDER_TEST", "CLIENT_IS_UNDER_TEST" ]
+    },
+    "SshSymbol" : {
+      "type" : "string",
+      "enum" : [ "MSG_VERSION_EXCHANGE", "MSG_DISCONNECT", "MSG_IGNORE", "MSG_UNIMPLEMENTED", "MSG_DEBUG", "MSG_SERVICE_REQUEST_USERAUTH", "MSG_SERVICE_ACCEPT", "MSG_KEXINIT", "MSG_KEXINIT_EMPTY", "MSG_NEWKEYS", "MSG_KEX_DH_GEX_REQUEST", "MSG_KEX_DH_GEX_REQUEST_OLD", "MSG_KEX_DH_GEX_GROUP", "MSG_KEX_DH_GEX_INIT", "MSG_KEX_DH_GEX_REPLY", "MSG_KEXDH_INIT", "MSG_KEXDH_REPLY", "MSG_KEX_ECDH_INIT", "MSG_KEX_ECDH_REPLY", "MSG_KEX_RSA_PUBKEY", "MSG_KEX_RSA_SECRET", "MSG_KEX_RSA_DONE", "MSG_KEX_HBR_INIT", "MSG_KEX_HBR_REPLY", "MSG_EXT_INFO", "MSG_NEWCOMPRESS", "MSG_USERAUTH_REQUEST_PASSWD_VALID", "MSG_USERAUTH_REQUEST_PASSWD_INVALID", "MSG_USERAUTH_REQUEST_PUBKEY_VALID", "MSG_USERAUTH_SUCCESS", "MSG_USERAUTH_FAILURE", "MSG_USERAUTH_BANNER", "MSG_SERVICE_REQUEST_CONNECTION", "MSG_REQUEST_SUCCESS", "MSG_REQUEST_FAILURE", "MSG_CHANNEL_OPEN_SESSION", "MSG_CHANNEL_OPEN_CONFIRMATION", "MSG_CHANNEL_OPEN_FAILURE", "MSG_CHANNEL_WINDOW_ADJUST", "MSG_CHANNEL_EOF", "MSG_CHANNEL_CLOSE", "MSG_CHANNEL_REQUEST_EXEC", "MSG_CHANNEL_SUCCESS", "MSG_CHANNEL_FAILURE" ]
+    },
+    "StateNameAndSuccessorTransition" : {
+      "type" : "object",
+      "properties" : {
+        "stateName" : {
+          "type" : "string"
+        },
+        "successorTransition" : {
+          "$ref" : "#/$defs/SshSymbol"
+        }
+      }
+    }
+  },
+  "type" : "object",
+  "properties" : {
+    "executorType" : {
+      "type" : "string",
+      "enum" : [ "NYX", "NETWORK" ],
+      "description" : "Executor to use",
+      "default" : "NETWORK"
+    },
+    "learnerConfig" : {
+      "type" : "object",
+      "properties" : {
+        "alternativeHappyFlowAlphabet" : {
+          "description" : "[HAPPY_FLOW only] An Alternative Happy Flow to use. It is only used if protocolStage==UNKNOWN",
+          "default" : "[]",
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/SshSymbol",
+            "default" : "[]"
+          }
+        },
+        "batchSize" : {
+          "type" : "integer",
+          "description" : "Batch size of the Oracle equivalence requests",
+          "default" : "128"
+        },
+        "equivCompleteExplorationMaxDepth" : {
+          "type" : "integer",
+          "description" : "[COMPLETE_EXPLORATION only] The maximum depth to explore (i. e. the maximum length of words tested)",
+          "default" : "6"
+        },
+        "equivCompleteExplorationMinDepth" : {
+          "type" : "integer",
+          "description" : "[COMPLETE_EXPLORATION only] The minimum depth to explore (i. e. the minimum length of words tested)",
+          "default" : "3"
+        },
+        "equivHappyFlowSuffixLength" : {
+          "type" : "integer",
+          "description" : "[HAPPY_FLOW only] The length of the suffix to append to each possible happy flow prefix",
+          "default" : "2"
+        },
+        "equivOracleChainTypes" : {
+          "description" : "The equivalence oracle chain to use (comma-separated combination of CACHE_CONSISTENCY, HAPPY_FLOW, COMPLETE_EXPLORATION, RANDOM_WORDS, RANDOM_WALK, RANDOM_W, RANDOM_WP, W, WP)",
+          "default" : "[CACHE_CONSISTENCY, HAPPY_FLOW, RANDOM_WORDS]",
+          "type" : "array",
+          "items" : {
+            "type" : "string",
+            "enum" : [ "CACHE_CONSISTENCY", "HAPPY_FLOW", "COMPLETE_EXPLORATION", "RANDOM_WORDS", "RANDOM_WALK", "W", "RANDOM_W", "WP", "RANDOM_WP" ],
+            "default" : "[CACHE_CONSISTENCY, HAPPY_FLOW, RANDOM_WORDS]"
+          }
+        },
+        "equivRandomWBound" : {
+          "type" : "integer",
+          "description" : "[RANDOM_W / RANDOM_WP only] The maximum number of words to test before hypothesis and SUL are considered equal. If this oracle is configured to be unbounded (bound = 0), it does not terminate if the hypothesis is correct",
+          "default" : "1000"
+        },
+        "equivRandomWMinimalSize" : {
+          "type" : "integer",
+          "description" : "[RANDOM_W / RANDOM_WP only] The minimal size of a random word",
+          "default" : "3"
+        },
+        "equivRandomWRndLength" : {
+          "type" : "integer",
+          "description" : "[RANDOM_W / RANDOM_WP only] The expected length of a random word. The effective expected length is minimal size + rnd length",
+          "default" : "7"
+        },
+        "equivRandomWalkMaxSteps" : {
+          "type" : "integer",
+          "description" : "[RANDOM_WALK only] Maximum number of steps to walk before hypothesis and SUL are considered equal",
+          "default" : "10000"
+        },
+        "equivRandomWalkResetProbability" : {
+          "type" : "number",
+          "description" : "[RANDOM_WALK only] The probability that the walk is restarted after a step",
+          "default" : "0.1"
+        },
+        "equivRandomWordsMaxLength" : {
+          "type" : "integer",
+          "description" : "[RANDOM_WORDS only] Maximum length of random words used to test for equivalence of the hypothesis with the real SUL",
+          "default" : "15"
+        },
+        "equivRandomWordsMaxTests" : {
+          "type" : "integer",
+          "description" : "[RANDOM_WORDS only] Maximum number of random words to test before hypothesis and real SUL are considered equivalent",
+          "default" : "1000"
+        },
+        "equivRandomWordsMinLength" : {
+          "type" : "integer",
+          "description" : "[RANDOM_WORDS only] Minimum length of random words used to test for equivalence of the hypothesis with the real SUL",
+          "default" : "5"
+        },
+        "equivWMaxDepth" : {
+          "type" : "integer",
+          "description" : "[W / WP only] The maximum length of the \"middle\" part of all words generated",
+          "default" : "10"
+        },
+        "learningAlgorithmType" : {
+          "type" : "string",
+          "enum" : [ "DHC", "DT", "KV", "LSTAR", "TTT" ],
+          "description" : "The learning algorithm to use",
+          "default" : "TTT"
+        },
+        "outputIntermediateHypothesis" : {
+          "type" : "boolean",
+          "description" : "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis",
+          "default" : "true"
+        },
+        "repeatedQueriesDuringLearningWithMajorityCount" : {
+          "type" : "integer",
+          "description" : "Specific queries are made to the SUL as frequently as they are defined here. The specific queries are Membership Queries and Counter Example. The result is decided by a majority vote. \n",
+          "default" : "1"
+        },
+        "smlLimiterFilePath" : {
+          "type" : "string",
+          "description" : "Path to the sml limiter file"
+        },
+        "smlLimiterTyp" : {
+          "type" : "string",
+          "enum" : [ "EMPTY_SML_LIMITER", "DFA_SML_LIMITER" ],
+          "description" : "Possibility to restrict state machine learning (SML)",
+          "default" : "EMPTY_SML_LIMITER"
+        }
+      },
+      "description" : "Bundling of all Learning options"
+    },
+    "outputDirectory" : {
+      "type" : "string",
+      "description" : "Folder to output the extracted state machine to",
+      "default" : "out/"
+    },
+    "sulConfig" : {
+      "anyOf" : [ {
+        "type" : "object",
+        "properties" : {
+          "alphabet" : {
+            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/SshSymbol",
+              "default" : "[]"
+            }
+          },
+          "customProtocolStageNameForGraph" : {
+            "type" : "string",
+            "description" : "Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\""
+          },
+          "enableEncryptionOnNewKeysMessageType" : {
+            "$ref" : "#/$defs/EnableEncryptionOnNewKeysMessageType",
+            "description" : "Activates the encryption after receiving or sending the NewKeys message. BOTH -> Receive,Send | SEND -> Send only | Receive -> Receive only",
+            "default" : "BOTH"
+          },
+          "hostname" : {
+            "type" : "string",
+            "description" : "Hostname of the system where the target SSH server is running",
+            "default" : "localhost"
+          },
+          "kexAlgorithm" : {
+            "$ref" : "#/$defs/KeyExchangeAlgorithm",
+            "description" : "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm",
+            "default" : "ECDH_SHA2_NISTP521"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Human-readable name of the target SSH server (i. e. SSH server implementation and version)",
+            "default" : "Unspecified SSH Server/Client"
+          },
+          "port" : {
+            "type" : "integer",
+            "description" : "Port on which the target SSH server is listening for incoming connection",
+            "default" : "22"
+          },
+          "preLearnFingerprintAcceptance" : {
+            "type" : "boolean",
+            "description" : "This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process",
+            "default" : "true"
+          },
+          "protocolStage" : {
+            "$ref" : "#/$defs/ProtocolStage",
+            "description" : "The SSH protocol stage whose state machine is to be extracted",
+            "default" : "TRANSPORT"
+          },
+          "resetDelay" : {
+            "type" : "integer",
+            "description" : "Delay in milliseconds during reset of a SUL instance",
+            "default" : "0"
+          },
+          "stateNameAndSuccessorTransitions" : {
+            "description" : "Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition",
+              "default" : "[]"
+            }
+          },
+          "sulTyp" : {
+            "$ref" : "#/$defs/SULTyp",
+            "description" : "Type under test",
+            "default" : "CLIENT_IS_UNDER_TEST"
+          },
+          "timeout" : {
+            "type" : "integer",
+            "description" : "Timeout in milliseconds when executing a single symbol",
+            "default" : "50"
+          },
+          "type" : {
+            "const" : "configServerSul"
+          }
+        },
+        "required" : [ "type" ],
+        "description" : "Bundling of all Sul options",
+        "default" : "ConfigServerSul"
+      }, {
+        "type" : "object",
+        "properties" : {
+          "alphabet" : {
+            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/SshSymbol",
+              "default" : "[]"
+            }
+          },
+          "connectionInfos" : {
+            "description" : "Information for clients to connect to the SUL",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "ipToServer" : {
+                  "type" : "string",
+                  "description" : "IP to connect to the SUL"
+                },
+                "portToServer" : {
+                  "type" : "integer",
+                  "description" : "Port to connect to the SUL"
+                }
+              },
+              "default" : "[]"
+            }
+          },
+          "customProtocolStageNameForGraph" : {
+            "type" : "string",
+            "description" : "Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\""
+          },
+          "enableEncryptionOnNewKeysMessageType" : {
+            "$ref" : "#/$defs/EnableEncryptionOnNewKeysMessageType",
+            "description" : "Activates the encryption after receiving or sending the NewKeys message. BOTH -> Receive,Send | SEND -> Send only | Receive -> Receive only",
+            "default" : "BOTH"
+          },
+          "kexAlgorithm" : {
+            "$ref" : "#/$defs/KeyExchangeAlgorithm",
+            "description" : "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm",
+            "default" : "ECDH_SHA2_NISTP521"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Human-readable name of the target SSH server (i. e. SSH server implementation and version)",
+            "default" : "Unspecified SSH Server/Client"
+          },
+          "preLearnFingerprintAcceptance" : {
+            "type" : "boolean",
+            "description" : "This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process",
+            "default" : "true"
+          },
+          "protocolStage" : {
+            "$ref" : "#/$defs/ProtocolStage",
+            "description" : "The SSH protocol stage whose state machine is to be extracted",
+            "default" : "TRANSPORT"
+          },
+          "resetDelay" : {
+            "type" : "integer",
+            "description" : "Delay in milliseconds during reset of a SUL instance",
+            "default" : "0"
+          },
+          "stateNameAndSuccessorTransitions" : {
+            "description" : "Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition",
+              "default" : "[]"
+            }
+          },
+          "sulTyp" : {
+            "$ref" : "#/$defs/SULTyp",
+            "description" : "Type under test",
+            "default" : "CLIENT_IS_UNDER_TEST"
+          },
+          "timeout" : {
+            "type" : "integer",
+            "description" : "Timeout in milliseconds when executing a single symbol",
+            "default" : "50"
+          },
+          "type" : {
+            "const" : "configClientSul"
+          }
+        },
+        "required" : [ "type" ],
+        "description" : "Bundling of all Sul options",
+        "default" : "ConfigServerSul"
+      }, {
+        "type" : "object",
+        "properties" : {
+          "alphabet" : {
+            "description" : "A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/SshSymbol",
+              "default" : "[]"
+            }
+          },
+          "androidConnectionInfos" : {
+            "description" : "Information for controlling the Android clients and the connection with the SUL",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "type" : "object",
+              "properties" : {
+                "ipToAppium" : {
+                  "type" : "string",
+                  "description" : "IP to connect to Appium"
+                },
+                "ipToServer" : {
+                  "type" : "string",
+                  "description" : "IP to connect to the SUL"
+                },
+                "portToAppium" : {
+                  "type" : "integer",
+                  "description" : "Port to connect to Appium",
+                  "default" : "-1"
+                },
+                "portToServer" : {
+                  "type" : "integer",
+                  "description" : "Port to connect to the SUL",
+                  "default" : "-1"
+                },
+                "uuid" : {
+                  "type" : "string",
+                  "description" : "UDID of the device to be tested. Could be retrieved from adb devices -l output."
+                }
+              },
+              "default" : "[]"
+            }
+          },
+          "androidSshClientTyp" : {
+            "type" : "string",
+            "enum" : [ "INVALID", "JUICE_SSH", "CONNECT_BOT", "TERMIUS" ],
+            "description" : "Which Android SSH client should be started.",
+            "default" : "INVALID"
+          },
+          "customProtocolStageNameForGraph" : {
+            "type" : "string",
+            "description" : "Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\""
+          },
+          "enableEncryptionOnNewKeysMessageType" : {
+            "$ref" : "#/$defs/EnableEncryptionOnNewKeysMessageType",
+            "description" : "Activates the encryption after receiving or sending the NewKeys message. BOTH -> Receive,Send | SEND -> Send only | Receive -> Receive only",
+            "default" : "BOTH"
+          },
+          "kexAlgorithm" : {
+            "$ref" : "#/$defs/KeyExchangeAlgorithm",
+            "description" : "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm",
+            "default" : "ECDH_SHA2_NISTP521"
+          },
+          "name" : {
+            "type" : "string",
+            "description" : "Human-readable name of the target SSH server (i. e. SSH server implementation and version)",
+            "default" : "Unspecified SSH Server/Client"
+          },
+          "pathToApks" : {
+            "description" : "Path to an APK or multiple APKs if an app has more than one",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "type" : "string",
+              "default" : "[]"
+            }
+          },
+          "preLearnFingerprintAcceptance" : {
+            "type" : "boolean",
+            "description" : "This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process",
+            "default" : "true"
+          },
+          "protocolStage" : {
+            "$ref" : "#/$defs/ProtocolStage",
+            "description" : "The SSH protocol stage whose state machine is to be extracted",
+            "default" : "TRANSPORT"
+          },
+          "resetDelay" : {
+            "type" : "integer",
+            "description" : "Delay in milliseconds during reset of a SUL instance",
+            "default" : "0"
+          },
+          "stateNameAndSuccessorTransitions" : {
+            "description" : "Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN",
+            "default" : "[]",
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/$defs/StateNameAndSuccessorTransition",
+              "default" : "[]"
+            }
+          },
+          "sulTyp" : {
+            "$ref" : "#/$defs/SULTyp",
+            "description" : "Type under test",
+            "default" : "CLIENT_IS_UNDER_TEST"
+          },
+          "timeout" : {
+            "type" : "integer",
+            "description" : "Timeout in milliseconds when executing a single symbol",
+            "default" : "50"
+          },
+          "type" : {
+            "const" : "configAndroidClientSul"
+          }
+        },
+        "required" : [ "type" ],
+        "description" : "Bundling of all Sul options",
+        "default" : "ConfigServerSul"
+      } ]
+    }
+  }
+}

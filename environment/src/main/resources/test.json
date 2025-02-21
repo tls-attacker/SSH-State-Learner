@@ -1,0 +1,74 @@
+{
+  "alphabet" : [ "MSG_KEXINIT", "MSG_KEX_ECDH_REPLY", "MSG_NEWKEYS", "MSG_SERVICE_ACCEPT" ],
+  "extendedAlphabet" : [ "MSG_USERAUTH_FAILURE", "MSG_USERAUTH_SUCCESS", "MSG_USERAUTH_BANNER", "MSG_USERAUTH_REQUEST_PASSWD_INVALID", "MSG_USERAUTH_REQUEST_PASSWD_VALID" ],
+  "states" : [ {
+    "stateId" : 0,
+    "successorTransitions" : [ {
+      "inputSymbol" : "MSG_KEXINIT",
+      "successorState" : {
+        "stateId" : 1,
+        "successorTransitions" : [ {
+          "inputSymbol" : "MSG_KEXINIT",
+          "successorState" : 1
+        }, {
+          "inputSymbol" : "MSG_KEX_ECDH_REPLY",
+          "successorState" : {
+            "stateId" : 2,
+            "successorTransitions" : [ {
+              "inputSymbol" : "MSG_KEXINIT",
+              "successorState" : 2
+            }, {
+              "inputSymbol" : "MSG_NEWKEYS",
+              "successorState" : {
+                "stateId" : 3,
+                "successorTransitions" : [ {
+                  "inputSymbol" : "MSG_SERVICE_ACCEPT",
+                  "successorState" : {
+                    "stateId" : 4,
+                    "successorTransitions" : [ ],
+                    "acceptAllState" : false
+                  }
+                } ],
+                "acceptAllState" : false
+              }
+            } ],
+            "acceptAllState" : false
+          }
+        }, {
+          "inputSymbol" : "MSG_SERVICE_ACCEPT",
+          "successorState" : {
+            "stateId" : 5,
+            "successorTransitions" : [ {
+              "inputSymbol" : "MSG_KEXINIT",
+              "successorState" : 5
+            }, {
+              "inputSymbol" : "MSG_SERVICE_ACCEPT",
+              "successorState" : 5
+            }, {
+              "inputSymbol" : "MSG_NEWKEYS",
+              "successorState" : {
+                "stateId" : 6,
+                "successorTransitions" : [ {
+                  "inputSymbol" : "MSG_KEX_ECDH_REPLY",
+                  "successorState" : {
+                    "stateId" : 7,
+                    "successorTransitions" : [ ],
+                    "acceptAllState" : false
+                  }
+                } ],
+                "acceptAllState" : false
+              }
+            }, {
+              "inputSymbol" : "MSG_NEWKEYS",
+              "successorState" : 5
+            } ],
+            "acceptAllState" : false
+          }
+        } ],
+        "acceptAllState" : false
+      }
+    } ],
+    "acceptAllState" : false
+  }, 1, 2, 3, 4, 5, 6, 7 ],
+  "currentIdCounter" : 8
+}

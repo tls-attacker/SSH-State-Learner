@@ -1,0 +1,43 @@
+{
+  "outputDirectory" : "out/",
+  "executorType" : "NETWORK",
+  "learnerConfig" : {
+    "learningAlgorithmType" : "TTT",
+    "outputIntermediateHypothesis" : true,
+    "equivOracleChainTypes" : [ "CACHE_CONSISTENCY", "HAPPY_FLOW", "RANDOM_WORDS" ],
+    "equivHappyFlowSuffixLength" : 2,
+    "alternativeHappyFlowAlphabet" : [ ],
+    "equivCompleteExplorationMinDepth" : 3,
+    "equivCompleteExplorationMaxDepth" : 6,
+    "equivRandomWordsMinLength" : 5,
+    "equivRandomWordsMaxLength" : 15,
+    "equivRandomWordsMaxTests" : 1000,
+    "equivRandomWalkResetProbability" : 0.1,
+    "equivRandomWalkMaxSteps" : 10000,
+    "equivWMaxDepth" : 10,
+    "equivRandomWMinimalSize" : 3,
+    "equivRandomWRndLength" : 7,
+    "equivRandomWBound" : 1000,
+    "smlLimiterTyp" : "EMPTY_SML_LIMITER",
+    "smlLimiterFilePath" : "",
+    "batchSize" : 128,
+    "repeatedQueriesDuringLearningWithMajorityCount" : 1
+  },
+  "sulConfig" : {
+    "type" : "configAndroidClientSul",
+    "name" : "Unspecified SSH Server/Client",
+    "timeout" : 50,
+    "resetDelay" : 0,
+    "protocolStage" : "TRANSPORT",
+    "customProtocolStageNameForGraph" : "",
+    "stateNameAndSuccessorTransitions" : [ ],
+    "kexAlgorithm" : "ECDH_SHA2_NISTP521",
+    "alphabet" : [ ],
+    "sulTyp" : "CLIENT_IS_UNDER_TEST",
+    "preLearnFingerprintAcceptance" : true,
+    "enableEncryptionOnNewKeysMessageType" : "BOTH",
+    "androidConnectionInfos" : [ ],
+    "androidSshClientTyp" : "INVALID",
+    "pathToApks" : [ ]
+  }
+}

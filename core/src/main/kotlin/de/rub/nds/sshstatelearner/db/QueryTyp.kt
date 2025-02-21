@@ -1,0 +1,5 @@
+package de.rub.nds.sshstatelearner.db
+
+enum class QueryTyp {
+    USED_TO_LEARN, USED_TO_REFINE_HYPOTHESIS, USED_TO_FIND_A_COUNTER_EXAMPLE, USED_TO_FIND_MAJORITY_COUNTER_EXAMPLE
+}
