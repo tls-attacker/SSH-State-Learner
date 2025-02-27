@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonPropertyDescription
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import de.rub.nds.sshattacker.core.constants.EnableEncryptionOnNewKeysMessageType
+import de.rub.nds.sshattacker.core.constants.ConnectionDirection
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTransition
 import de.rub.nds.sshstatelearner.constants.SULTyp
@@ -79,6 +79,6 @@ abstract class ConfigSul(
 
     @field:JsonPropertyDescription("Activates the encryption after receiving or sending the NewKeys message. BOTH -> Receive,Send | SEND -> Send only | Receive -> Receive only")
     @field:JsonProperty(defaultValue = "BOTH")
-    var enableEncryptionOnNewKeysMessageType: EnableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.BOTH,
+    var enableEncryptionOnNewKeysMessage: ConnectionDirection = ConnectionDirection.BOTH,
 
     )

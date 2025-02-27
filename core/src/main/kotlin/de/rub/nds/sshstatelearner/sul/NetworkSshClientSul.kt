@@ -9,7 +9,7 @@
 package de.rub.nds.sshstatelearner.sul
 
 import de.learnlib.api.SUL
-import de.rub.nds.sshattacker.core.constants.EnableEncryptionOnNewKeysMessageType
+import de.rub.nds.sshattacker.core.constants.ConnectionDirection
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.PacketLayerType
 import de.rub.nds.sshattacker.core.exceptions.TransportHandlerConnectException
@@ -40,7 +40,7 @@ class NetworkSshClientSul(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
-    private val enableEncryptionOnNewKeysMessageType: EnableEncryptionOnNewKeysMessageType = EnableEncryptionOnNewKeysMessageType.BOTH,
+    private val enableEncryptionOnNewKeysMessage: ConnectionDirection = ConnectionDirection.BOTH,
     private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler(),
 ) : NetworkSshSul(name, timeout, resetDelay, stage, kex) {
 
@@ -63,7 +63,7 @@ class NetworkSshClientSul(
         var connectionIsReady = false
         // In case something goes wrong: while
         while (!serverIsReady || !connectionIsReady) {
-            config.enableEncryptionOnNewKeysMessageType = enableEncryptionOnNewKeysMessageType
+            config.enableEncryptionOnNewKeysMessage = enableEncryptionOnNewKeysMessage
             state = State(config)
 
             try {
@@ -160,7 +160,7 @@ class NetworkSshClientSul(
             resetDelay,
             stage,
             kex,
-            enableEncryptionOnNewKeysMessageType,
+            enableEncryptionOnNewKeysMessage,
             clientConnectionHandler
         )
     }

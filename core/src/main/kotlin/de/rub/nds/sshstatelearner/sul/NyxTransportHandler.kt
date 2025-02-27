@@ -23,23 +23,32 @@ class NyxTransportHandler(
 ) : TransportHandler(timeout, type) {
 
     private var closed = false
+    private var pushbackInputStream: PushbackInputStream? = null
 
     override fun preInitialize() { }
 
     override fun initialize() {
         cachedSocketState = null
-        setStreams(PushbackInputStream(inputStream), outputStream)
+        pushbackInputStream = PushbackInputStream(inputStream)
+    }
+
+    override fun sendData(data: ByteArray?) {
+        if (data != null) {
+            outputStream.write(data)
+        }
     }
 
     @Throws(IOException::class)
     override fun fetchData(): ByteArray {
-        return if (inStream.available() > 0) {
-            val data = ByteArray(inStream.available())
-            inStream.read(data)
-            data
+        return if (pushbackInputStream!!.available() > 0) {
+            pushbackInputStream?.readAllBytes() ?: throw IOException("PushbackInputStream is null")
         } else {
             ByteArray(0)
         }
+    }
+
+    override fun fetchData(amountOfData: Int): ByteArray {
+        return pushbackInputStream?.readNBytes(amountOfData) ?: throw IOException("PushbackInputStream is null")
     }
 
     override fun closeConnection() {
@@ -48,9 +57,7 @@ class NyxTransportHandler(
         closed = true
     }
 
-    override fun closeClientConnection() {
-        TODO("Not yet implemented")
-    }
+    override fun closeClientConnection() { }
 
     override fun isClosed() = closed
 
