@@ -60,7 +60,6 @@
 
     <dependencyManagement>
         <dependencies>
-
             <dependency>
                 <groupId>de.rub.nds.ssh.attacker</groupId>
                 <artifactId>ssh-core</artifactId>
@@ -68,22 +67,22 @@
             </dependency>
             <dependency>
                 <groupId>de.rub.nds.ssh.statelearner</groupId>
-                <artifactId>ssh-state-learner-android</artifactId>
+                <artifactId>android</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.rub.nds.ssh.statelearner</groupId>
-                <artifactId>ssh-state-learner-config</artifactId>
+                <artifactId>config</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.rub.nds.ssh.statelearner</groupId>
-                <artifactId>ssh-state-learner-core</artifactId>
+                <artifactId>core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>de.rub.nds.ssh.statelearner</groupId>
-                <artifactId>ssh-state-learner-environment</artifactId>
+                <artifactId>environment</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
