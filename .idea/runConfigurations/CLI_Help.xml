@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="CLI Help" type="Application" factoryName="Application">
+    <option name="ALTERNATIVE_JRE_PATH" value="Kotlin SDK" />
+    <option name="MAIN_CLASS_NAME" value="de.rub.nds.sshstatelearner.cli.MainKt" />
+    <module name="core" />
+    <option name="PROGRAM_PARAMETERS" value="--help" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
