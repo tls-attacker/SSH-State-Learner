@@ -50,6 +50,7 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.RsaKeyExchangeSecr
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceAcceptMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.ServiceRequestMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.UnimplementedMessage
+import de.rub.nds.sshattacker.core.protocol.transport.message.UnknownMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.SshContext
 
@@ -78,6 +79,8 @@ enum class SshSymbol(
         }
     }),
     MSG_SERVICE_ACCEPT({ ServiceAcceptMessage() }),
+    MSG_EXT_INFO({ ExtensionInfoMessage() }),
+    MSG_NEWCOMPRESS({ NewCompressMessage() }),
     MSG_KEXINIT({ KeyExchangeInitMessage() }),
     MSG_KEXINIT_EMPTY({ KeyExchangeInitMessage() },
         { message, _ -> (message as KeyExchangeInitMessage).apply { setKeyExchangeAlgorithms(arrayOf(), true) } }),
@@ -96,8 +99,6 @@ enum class SshSymbol(
     MSG_KEX_RSA_DONE({ RsaKeyExchangeDoneMessage() }),
     MSG_KEX_HBR_INIT({ HybridKeyExchangeInitMessage() }),
     MSG_KEX_HBR_REPLY({ HybridKeyExchangeReplyMessage() }),
-    MSG_EXT_INFO({ ExtensionInfoMessage() }),
-    MSG_NEWCOMPRESS({ NewCompressMessage() }),
     /*
      * SSH authentication protocol symbols
      */
@@ -136,7 +137,32 @@ enum class SshSymbol(
     MSG_CHANNEL_CLOSE({ ChannelCloseMessage() }),
     MSG_CHANNEL_REQUEST_EXEC({ ChannelRequestExecMessage() }),
     MSG_CHANNEL_SUCCESS({ ChannelSuccessMessage() }),
-    MSG_CHANNEL_FAILURE({ ChannelFailureMessage() });
+    MSG_CHANNEL_FAILURE({ ChannelFailureMessage() }),
+
+    /*
+     * Unknown SSH message IDs
+     */
+    MSG_UNKNOWN_ID_RESERVED_0({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(0.toByte()) } }),
+    MSG_UNKNOWN_ID_TRANSPORT_GENERIC({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(9.toByte()) } }),
+    MSG_UNKNOWN_ID_ALGORITHM_NEGOTIATION({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(22.toByte()) } }),
+    MSG_UNKNOWN_ID_KEY_EXCHANGE_SPECIFIC({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(49.toByte()) } }),
+    MSG_UNKNOWN_ID_USERAUTH_GENERIC({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(54.toByte()) } }),
+    MSG_UNKNOWN_ID_USERAUTH_SPECIFIC({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(79.toByte()) } }),
+    MSG_UNKNOWN_ID_CONNECTION_GENERIC({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(83.toByte()) } }),
+    MSG_UNKNOWN_ID_CHANNEL_RELATED({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(101.toByte()) } }),
+    MSG_UNKNOWN_ID_RESERVED_CLIENT({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit((-128).toByte()) } }),
+    MSG_UNKNOWN_ID_RESERVED_PRIVATE({ UnknownMessage() },
+        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit((-64).toByte()) } });
+
 
     private fun createAndPrepare(context: SshContext): ProtocolMessage<*> = this.messageCreator().apply {
         getHandler(context).preparator.prepare()

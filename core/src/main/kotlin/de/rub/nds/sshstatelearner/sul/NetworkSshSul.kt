@@ -28,7 +28,8 @@ abstract class NetworkSshSul(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
-) : SshSul(name, timeout, resetDelay, stage, kex) {
+    strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+) : SshSul(name, timeout, resetDelay, stage, kex, strictKex) {
 
     /**
      * Indicates whether the underlying network connection is available or closed.

@@ -1,7 +1,7 @@
 package de.rub.nds.sshstatelearner.analysis.classifier
 
 import de.rub.nds.sshstatelearner.StateMachine
-import de.rub.nds.sshstatelearner.analysis.data.SshManuallyGraphDetails
+import de.rub.nds.sshstatelearner.analysis.data.SshManualGraphDetails
 import de.rub.nds.sshstatelearner.exceptions.ClassificationException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -12,7 +12,7 @@ import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 class ManuallyClassifier<S, T>(private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>) :
     Classifier<S, SshSymbol, T, ResponseFingerprint>() {
     override fun performClassification(stateMachine: StateMachine<S, SshSymbol, T, ResponseFingerprint>) {
-        val graphDetails = stateMachine.graphDetails as SshManuallyGraphDetails
+        val graphDetails = stateMachine.graphDetails as SshManualGraphDetails
         var currentState = stateMachine.mealyMachine.initialState ?: throw ClassificationException()
         val happyFlow = mutableListOf(currentState)
         for (stateNameSuccessorTransition in stateNameAndSuccessorTransitions) {

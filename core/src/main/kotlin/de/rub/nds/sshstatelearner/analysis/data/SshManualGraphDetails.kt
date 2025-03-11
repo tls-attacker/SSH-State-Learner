@@ -2,7 +2,7 @@ package de.rub.nds.sshstatelearner.analysis.data
 
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 
-class SshManuallyGraphDetails<S, T> : GraphDetails<S, SshSymbol, T>() {
+class SshManualGraphDetails<S, T> : GraphDetails<S, SshSymbol, T>() {
     val stateToNameMap = mutableMapOf<S, String>()
 
     override fun extractStateNames(): Map<S?, String> {

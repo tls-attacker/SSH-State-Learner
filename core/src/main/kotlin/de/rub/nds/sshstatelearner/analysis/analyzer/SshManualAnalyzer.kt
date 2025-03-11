@@ -7,7 +7,7 @@ import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTrans
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
-class SshManuallyAnalyzer<S, T>(private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>) :
+class SshManualAnalyzer<S, T>(private val stateNameAndSuccessorTransitions: List<StateNameAndSuccessorTransition>) :
     Analyzer<S, SshSymbol, T, ResponseFingerprint>() {
     init {
         classifiers.add(CommonClassifier())

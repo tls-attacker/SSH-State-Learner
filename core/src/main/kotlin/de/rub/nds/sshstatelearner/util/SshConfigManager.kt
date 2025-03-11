@@ -66,9 +66,16 @@ object SshConfigManager {
     /**
      * Creates a Config for Server.
      */
-    fun getServerConfig(kex: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM): Config =
+    fun getServerConfig(
+        kex: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM,
+        strictKex: Boolean = SshSul.DEFAULT_STRICT_KEX_ENABLED
+    ): Config =
         getDefaultConfig().apply {
-            serverSupportedKeyExchangeAlgorithms = listOf(kex)
+            serverSupportedKeyExchangeAlgorithms = if (strictKex) {
+                listOf(kex, KeyExchangeAlgorithm.KEX_STRICT_S_V00_OPENSSH_COM)
+            } else {
+                listOf(kex)
+            }
             defaultRunningMode = RunningModeType.SERVER
             serverSupportedHostKeyAlgorithms = listOf(PublicKeyAlgorithm.ECDSA_SHA2_NISTP521)
             clientSupportedHostKeyAlgorithms = listOf(PublicKeyAlgorithm.ECDSA_SHA2_NISTP521)
@@ -82,9 +89,16 @@ object SshConfigManager {
     /**
      * Creates a Config for Client.
      */
-    fun getClientConfig(kex: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM): Config =
+    fun getClientConfig(
+        kex: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM,
+        strictKex: Boolean = SshSul.DEFAULT_STRICT_KEX_ENABLED
+    ): Config =
         getDefaultConfig().apply {
-            clientSupportedKeyExchangeAlgorithms = listOf(kex)
+            clientSupportedKeyExchangeAlgorithms = if (strictKex) {
+                listOf(kex, KeyExchangeAlgorithm.KEX_STRICT_C_V00_OPENSSH_COM)
+            } else {
+                listOf(kex)
+            }
             userKeys = listOf(
                 getSshPublicKey()
             )

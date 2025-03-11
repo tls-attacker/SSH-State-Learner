@@ -60,4 +60,8 @@ object ArgsSul {
     )
     var sulTyp: SULTyp = SULTyp.CLIENT_IS_UNDER_TEST
         private set
+
+    @Parameter(names = ["--strict-kex"], description = "If set to true, the SUL will offer the strict key exchange protocol extension.", order = 19)
+    var strictKex: Boolean = SshSul.DEFAULT_STRICT_KEX_ENABLED
+        private set
 }

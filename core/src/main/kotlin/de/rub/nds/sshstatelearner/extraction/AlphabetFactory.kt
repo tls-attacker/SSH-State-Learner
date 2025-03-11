@@ -184,10 +184,11 @@ object AlphabetFactory {
      * @return An alphabet with valid SSH symbols to use within the given protocol stage and key exchange algorithm.
      */
     fun construct(stage: ProtocolStage, kex: KeyExchangeAlgorithm, isClientAlphabet: Boolean): Alphabet<SshSymbol> {
-        return if (isClientAlphabet) {
+        return ListAlphabet(SshSymbol.entries)
+        /*return if (isClientAlphabet) {
             getProtocolStageAndKexSymbolsForClient(stage, kex)
         } else {
             getProtocolStageAndKexSymbolsForServer(stage, kex)
-        }
+        }*/
     }
 }

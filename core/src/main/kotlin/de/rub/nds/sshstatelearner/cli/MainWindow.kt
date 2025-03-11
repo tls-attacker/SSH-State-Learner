@@ -30,6 +30,7 @@ object MainWindow : BasicWindow("SSH State Learner") {
     val infoTarget = Label("[unknown]")
     val infoStage = Label("[unknown]")
     val infoKex = Label("[unknown]")
+    val infoStrictKex = Label("[unknown]")
     val infoAlphabetSize = Label("[unknown]")
     private val infoPanel = Panel(GridLayout(2)).apply {
         addComponent(
@@ -52,6 +53,8 @@ object MainWindow : BasicWindow("SSH State Learner") {
         addComponent(infoStage)
         addComponent(Label("Key Exchange Algorithm:"))
         addComponent(infoKex)
+        addComponent(Label("Strict KEX:"))
+        addComponent(infoStrictKex)
         addComponent(Label("Alphabet size:"))
         addComponent(infoAlphabetSize)
 

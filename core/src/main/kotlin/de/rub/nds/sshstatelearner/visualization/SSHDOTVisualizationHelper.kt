@@ -21,6 +21,7 @@ class SSHDOTVisualizationHelper<N, E>(
     private val alphabet: Alphabet<SshSymbol>,
     private val stage: ProtocolStage,
     private val kexAlgorithm: KeyExchangeAlgorithm,
+    private val strictKex: Boolean,
     private val customProtocolStageNameForGraph: String = ""
 ) : DefaultDOTVisualizationHelper<N, E>(delegate) {
 
@@ -36,6 +37,7 @@ class SSHDOTVisualizationHelper<N, E>(
         }
         if (stage == ProtocolStage.TRANSPORT) {
             a.append("\nKEX Algorithm: $kexAlgorithm")
+            a.append("\nStrict KEX enabled: ${strictKex}")
         }
         a.append("\n\n Messages used during testing: \n")
         for (symbol in alphabet) {

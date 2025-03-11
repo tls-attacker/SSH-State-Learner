@@ -161,7 +161,7 @@ class Extractor(
         do {
             hypothesis = learningAlgorithm.hypothesisModel
             val stateMachine =
-                SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
+                SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex, sul.nestedSul.strictKex)
             extractorResult.addHypothesis(stateMachine)
 
             if (storeIntermediateHypotheses) {
@@ -191,7 +191,7 @@ class Extractor(
         guiUpdateTimer.cancel()
 
         val stateMachine =
-            SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex)
+            SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex, sul.nestedSul.strictKex)
         val statistics = Statistics(
             states = stateMachine.mealyMachine.size(),
             counterExampleCount = rounds - 1,

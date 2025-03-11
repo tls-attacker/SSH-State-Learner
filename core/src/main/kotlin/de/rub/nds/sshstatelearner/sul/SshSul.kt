@@ -25,7 +25,8 @@ abstract class SshSul(
     val timeout: Long = DEFAULT_SUL_TIMEOUT,
     val resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
-    val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
+    val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
+    val strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED
 ) : SUL<SshSymbol, ResponseFingerprint>, AutoCloseable {
 
     /**
@@ -75,6 +76,11 @@ abstract class SshSul(
          * The default key exchange algorithm
          */
         val DEFAULT_KEX_ALGORITHM: KeyExchangeAlgorithm = KeyExchangeAlgorithm.ECDH_SHA2_NISTP521
+
+        /**
+         * The default value for the strict key exchange protocol extension
+         */
+        const val DEFAULT_STRICT_KEX_ENABLED: Boolean = false
     }
 
     /**
@@ -104,10 +110,6 @@ abstract class SshSul(
         }
         return preamble
     }
-
-    /**
-     * Set up the SSH SUL by instantiating a new SSH-Attacker config and state.
-     */
 
     /**
      * Tear down all stateful components of this SUL.

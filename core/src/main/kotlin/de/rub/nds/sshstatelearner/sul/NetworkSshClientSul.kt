@@ -40,9 +40,10 @@ class NetworkSshClientSul(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
+    strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
     private val enableEncryptionOnNewKeysMessage: ConnectionDirection = ConnectionDirection.BOTH,
     private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler(),
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex) {
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex) {
 
     override var connectionAlias = "server"
 
@@ -57,7 +58,7 @@ class NetworkSshClientSul(
      * Set up the network-based SSH for Clients under Test by instantiating a new SSH-Attacker state and connection to the peer.
      */
     override fun pre() {
-        config = SshConfigManager.getServerConfig(kex)
+        config = SshConfigManager.getServerConfig(kex, strictKex)
         // Initialize transport handler
         var serverIsReady = false
         var connectionIsReady = false
@@ -160,6 +161,7 @@ class NetworkSshClientSul(
             resetDelay,
             stage,
             kex,
+            strictKex,
             enableEncryptionOnNewKeysMessage,
             clientConnectionHandler
         )

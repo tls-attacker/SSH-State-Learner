@@ -15,6 +15,7 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.SeparateTextGUIThread
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
+import de.rub.nds.sshattacker.core.exceptions.NotImplementedException
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
@@ -103,18 +104,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
     )
     MainWindow.infoAlphabetSize.text = alphabet.size.toString()
     when (ArgsGeneral.executor) {
-//        ExecutorType.NYX -> NyxSshSul(
-//            ArgsSul.name,
-//            "/home/fabian/Workspace/targets/packed_targets/nyx_openssh",
-//            "/tmp/nyx",
-//            0,
-//            ArgsSul.timeout,
-//            ArgsSul.resetDelay,
-//            ArgsSul.protocolStage,
-//            ArgsSul.kexAlgorithm
-//        )
-
-        ExecutorType.NYX, ExecutorType.NETWORK ->
+        ExecutorType.NYX -> throw NotImplementedException("NYX executor is not yet implemented")
+        ExecutorType.NETWORK ->
             when (ArgsSul.sulTyp) {
                 SULTyp.CLIENT_IS_UNDER_TEST -> NetworkSshClientSul(
                     ArgsSul.name,
@@ -123,6 +114,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                     ArgsSul.resetDelay,
                     ArgsSul.protocolStage,
                     ArgsSul.kexAlgorithm,
+                    ArgsSul.strictKex
                 )
 
                 SULTyp.SERVER_IS_UNDER_TEST -> NetworkSshServerSul(
@@ -132,7 +124,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                     ArgsSul.timeout,
                     ArgsSul.resetDelay,
                     ArgsSul.protocolStage,
-                    ArgsSul.kexAlgorithm
+                    ArgsSul.kexAlgorithm,
+                    ArgsSul.strictKex
                 )
             }
 
@@ -190,6 +183,7 @@ private fun updateMainWindowInfoPanel() {
     }
     MainWindow.infoStage.text = ArgsSul.protocolStage.toString()
     MainWindow.infoKex.text = ArgsSul.kexAlgorithm.toString()
+    MainWindow.infoStrictKex.text = ArgsSul.strictKex.toString()
     // Alphabet size is updated just in time (required if the alphabet has not been specified)
 }
 

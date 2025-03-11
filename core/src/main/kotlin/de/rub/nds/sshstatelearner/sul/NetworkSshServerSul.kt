@@ -31,8 +31,9 @@ class NetworkSshServerSul(
     timeout: Long = DEFAULT_SUL_TIMEOUT,
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
-    kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex) {
+    kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
+    strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex) {
 
     override var connectionAlias = "client"
 
@@ -47,7 +48,7 @@ class NetworkSshServerSul(
      * Set up the network-based SSH for Servers under Test by instantiating a new SSH-Attacker state and connection to the peer.
      */
     override fun pre() {
-        config = SshConfigManager.getClientConfig(kex)
+        config = SshConfigManager.getClientConfig(kex, strictKex)
         // Initialize transport handler
         state = State(config).apply {
             sshContext.transportHandler = ClientTcpTransportHandler(timeout, timeout, hostname, port)
@@ -102,7 +103,7 @@ class NetworkSshServerSul(
      * Returns a new SUL instance that must behave exactly as the original SUL.
      */
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        return NetworkSshServerSul(name, hostname, port, timeout, resetDelay)
+        return NetworkSshServerSul(name, hostname, port, timeout, resetDelay, stage, kex, strictKex)
     }
 
     override fun toString(): String {

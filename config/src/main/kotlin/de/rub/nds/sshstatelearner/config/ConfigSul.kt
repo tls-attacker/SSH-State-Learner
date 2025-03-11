@@ -50,9 +50,11 @@ abstract class ConfigSul(
     @field:JsonProperty(defaultValue = "TRANSPORT")
     var protocolStage: ProtocolStage = SshSul.DEFAULT_PROTOCOL_STAGE,
 
+
     @field:JsonPropertyDescription("Changes stage names in the graph. It is only used if protocolStage==UNKNOWN\"")
     @field:JsonProperty(defaultValue = "")
     var customProtocolStageNameForGraph: String = "",
+
 
     @field:JsonPropertyDescription("Possibility to mark a different happy flow in the graph. It is only used if protocolStage==UNKNOWN")
     @field:JsonProperty(defaultValue = "[]")
@@ -64,6 +66,11 @@ abstract class ConfigSul(
     var kexAlgorithm: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM,
 
 
+    @field:JsonPropertyDescription("If set to true, the SUL will offer the strict key exchange protocol extension.")
+    @field:JsonProperty(defaultValue = "false")
+    var strictKex: Boolean = SshSul.DEFAULT_STRICT_KEX_ENABLED,
+
+
     @field:JsonPropertyDescription("A comma-separated list of SshSymbol names to use as the alphabet. It is only used if protocolStage==UNKNOWN")
     @field:JsonProperty(defaultValue = "[]")
     var alphabet: List<SshSymbol> = emptyList(),
@@ -73,12 +80,13 @@ abstract class ConfigSul(
     @field:JsonProperty(defaultValue = "CLIENT_IS_UNDER_TEST")
     var sulTyp: SULTyp = SULTyp.CLIENT_IS_UNDER_TEST,
 
+
     @field:JsonPropertyDescription("This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process")
     @field:JsonProperty(defaultValue = "true")
     var preLearnFingerprintAcceptance: Boolean = true,
 
+
     @field:JsonPropertyDescription("Activates the encryption after receiving or sending the NewKeys message. BOTH -> Receive,Send | SEND -> Send only | Receive -> Receive only")
     @field:JsonProperty(defaultValue = "BOTH")
     var enableEncryptionOnNewKeysMessage: ConnectionDirection = ConnectionDirection.BOTH,
-
-    )
+)

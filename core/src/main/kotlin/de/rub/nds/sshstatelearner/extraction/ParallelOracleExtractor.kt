@@ -216,6 +216,7 @@ class ParallelOracleExtractor(
                     sul.nestedSul.name,
                     sul.nestedSul.stage,
                     sul.nestedSul.kex,
+                    sul.nestedSul.strictKex,
                     stateNameAndSuccessorTransitions,
                     customProtocolStageNameForGraph
                 )
@@ -255,6 +256,7 @@ class ParallelOracleExtractor(
                 sul.nestedSul.name,
                 sul.nestedSul.stage,
                 sul.nestedSul.kex,
+                sul.nestedSul.strictKex,
                 stateNameAndSuccessorTransitions,
                 customProtocolStageNameForGraph
             )
