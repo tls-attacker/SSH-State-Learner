@@ -82,8 +82,6 @@ enum class SshSymbol(
     MSG_EXT_INFO({ ExtensionInfoMessage() }),
     MSG_NEWCOMPRESS({ NewCompressMessage() }),
     MSG_KEXINIT({ KeyExchangeInitMessage() }),
-    MSG_KEXINIT_EMPTY({ KeyExchangeInitMessage() },
-        { message, _ -> (message as KeyExchangeInitMessage).apply { setKeyExchangeAlgorithms(arrayOf(), true) } }),
     MSG_NEWKEYS({ NewKeysMessage() }),
     MSG_KEX_DH_GEX_REQUEST({ DhGexKeyExchangeRequestMessage() }),
     MSG_KEX_DH_GEX_REQUEST_OLD({ DhGexKeyExchangeOldRequestMessage() }),
@@ -102,16 +100,16 @@ enum class SshSymbol(
     /*
      * SSH authentication protocol symbols
      */
-    MSG_USERAUTH_REQUEST_PASSWD_VALID({ UserAuthPasswordMessage() }),
-    MSG_USERAUTH_REQUEST_PASSWD_INVALID({
+    MSG_USERAUTH_REQUEST_PASSWD({ UserAuthPasswordMessage() }),
+    /*MSG_USERAUTH_REQUEST_PASSWD_INVALID({
         UserAuthPasswordMessage()
     }, { message, _ ->
         (message as UserAuthPasswordMessage).apply {
             passwordLength = Modifiable.explicit(14)
             password = Modifiable.explicit("Wrong password")
         }
-    }),
-    MSG_USERAUTH_REQUEST_PUBKEY_VALID({ UserAuthPubkeyMessage() }),
+    }),*/
+    MSG_USERAUTH_REQUEST_PUBKEY({ UserAuthPubkeyMessage() }),
     MSG_USERAUTH_SUCCESS({ UserAuthSuccessMessage() }),
     MSG_USERAUTH_FAILURE({ UserAuthFailureMessage() }),
     MSG_USERAUTH_BANNER({ UserAuthBannerMessage() }),

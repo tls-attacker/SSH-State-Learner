@@ -35,9 +35,9 @@ class SSHDOTVisualizationHelper<N, E>(
             ProtocolStage.UNKNOWN -> a.append("    Protocol Stage: $customProtocolStageNameForGraph")
             else -> a.append("    Protocol Stage: $stage")
         }
-        if (stage == ProtocolStage.TRANSPORT) {
+        if (stage == ProtocolStage.TRANSPORT || stage == ProtocolStage.TRANSPORT_KEX) {
             a.append("\nKEX Algorithm: $kexAlgorithm")
-            a.append("\nStrict KEX enabled: ${strictKex}")
+            a.append("\nStrict KEX enabled: $strictKex")
         }
         a.append("\n\n Messages used during testing: \n")
         for (symbol in alphabet) {

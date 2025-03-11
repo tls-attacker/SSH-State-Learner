@@ -110,6 +110,11 @@ class Extractor(
         )
     }
 
+    /**
+     * Extracts a state machine from the provided SUL.
+     *
+     * @return The extracted state machine.
+     */
     fun extractStateMachine(): ExtractorResult {
         constructOracles()
         var extractorResult: ExtractorResult? = null
@@ -130,6 +135,9 @@ class Extractor(
         return extractorResult
     }
 
+    /**
+     * Creates a timer that updates the GUI with the current learning statistics at a fixed rate.
+     */
     private fun createGUIUpdateTimer() {
         val task = object : TimerTask() {
             override fun run() {
@@ -145,6 +153,11 @@ class Extractor(
         guiUpdateTimer.scheduleAtFixedRate(task, 0, 250)
     }
 
+    /**
+     * Conducts the learning process and returns the learned state machine.
+     *
+     * @return The learned state machine.
+     */
     private fun provideResult(): ExtractorResult {
         clearOutput()
         createGUIUpdateTimer()
@@ -210,12 +223,21 @@ class Extractor(
         return extractorResult
     }
 
+    /**
+     * Serializes the hypothesis to a dot file and a PDF file.
+     *
+     * @param hypothesis The hypothesis to serialize.
+     * @param name The name of the file to serialize the hypothesis to.
+     */
     private fun serializeHypothesis(hypothesis: SshStateMachine<*, *>, name: String) {
         val folder = File(outputDirectory).also { it.mkdirs() }
         val graphFile = File(folder, name)
         hypothesis.exportToDotAndPDF(graphFile, VisualizationDetail.MEDIUM)
     }
 
+    /**
+     * Clears the output directory.
+     */
     private fun clearOutput() {
         val folder = File(outputDirectory).also { it.mkdirs() }
         for (file in folder.listFiles() ?: emptyArray()) {

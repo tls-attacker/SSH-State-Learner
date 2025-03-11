@@ -12,7 +12,7 @@ import de.learnlib.api.SUL
 import de.learnlib.filter.statistic.Counter
 import java.util.concurrent.atomic.AtomicBoolean
 
-class AdvancedStatisticSul<S : SUL<I, O>, I, O> constructor(
+class AdvancedStatisticSul<S : SUL<I, O>, I, O>(
     val nestedSul: S,
 ) : SUL<I, O> {
 

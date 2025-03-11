@@ -59,8 +59,6 @@ object SshConfigManager {
         stopActionsAfterDisconnect = false
         stopActionsAfterIOException = false
         serviceName = "ssh-userauth"
-        clientSupportedEncryptionAlgorithmsClientToServer = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
-        clientSupportedEncryptionAlgorithmsServerToClient = listOf(EncryptionAlgorithm.AES128_GCM_OPENSSH_COM)
     }
 
     /**

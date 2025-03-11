@@ -18,6 +18,11 @@ enum class ProtocolStage {
     TRANSPORT,
 
     /**
+     * The SSH transport layer protocol stage (RFC 4253) with completed version exchange and without service request.
+     */
+    TRANSPORT_KEX,
+
+    /**
      * The SSH authentication layer protocol stage (RFC 4252)
      */
     AUTHENTICATION,

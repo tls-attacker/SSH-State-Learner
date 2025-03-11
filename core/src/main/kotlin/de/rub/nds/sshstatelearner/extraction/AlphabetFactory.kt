@@ -104,11 +104,19 @@ object AlphabetFactory {
                 )
             )
 
+            ProtocolStage.TRANSPORT_KEX -> ListAlphabet(
+                listOf(
+                    SshSymbol.MSG_KEXINIT,
+                    *getKexSymbolsForClient(kex).toTypedArray(),
+                    SshSymbol.MSG_NEWKEYS
+                )
+            )
+
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
-                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID,
-                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
-                    SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
+                    //SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER
@@ -147,11 +155,19 @@ object AlphabetFactory {
                 )
             )
 
+            ProtocolStage.TRANSPORT_KEX -> ListAlphabet(
+                listOf(
+                    SshSymbol.MSG_KEXINIT,
+                    *getKexSymbolsForServer(kex).toTypedArray(),
+                    SshSymbol.MSG_NEWKEYS
+                )
+            )
+
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
-                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_VALID,
-                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
-                    SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY_VALID,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
+                    //SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER
@@ -184,11 +200,7 @@ object AlphabetFactory {
      * @return An alphabet with valid SSH symbols to use within the given protocol stage and key exchange algorithm.
      */
     fun construct(stage: ProtocolStage, kex: KeyExchangeAlgorithm, isClientAlphabet: Boolean): Alphabet<SshSymbol> {
+        // TODO: For now, we always return the entire alphabet. This should be changed to return only the relevant symbols.
         return ListAlphabet(SshSymbol.entries)
-        /*return if (isClientAlphabet) {
-            getProtocolStageAndKexSymbolsForClient(stage, kex)
-        } else {
-            getProtocolStageAndKexSymbolsForServer(stage, kex)
-        }*/
     }
 }

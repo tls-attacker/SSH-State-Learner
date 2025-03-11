@@ -49,6 +49,9 @@ abstract class SshSul(
      */
     protected val executedSteps = mutableListOf<SshSymbol>()
 
+    /**
+     * Whether the SUL is a client or a server.
+      */
     protected abstract val isClient: Boolean
 
     companion object {
@@ -93,18 +96,18 @@ abstract class SshSul(
         if (stage == ProtocolStage.AUTHENTICATION || stage == ProtocolStage.CONNECTION) {
             preamble = preamble.concat(
                 HappyFlowFactory.constructHappyFlow(
+                    isClient,
                     ProtocolStage.TRANSPORT,
-                    kex,
-                    isClient
+                    kex
                 )
             )
         }
         if (stage == ProtocolStage.CONNECTION) {
             preamble = preamble.concat(
                 HappyFlowFactory.constructHappyFlow(
+                    isClient,
                     ProtocolStage.AUTHENTICATION,
                     kex,
-                    isClient
                 )
             )
         }
@@ -118,8 +121,19 @@ abstract class SshSul(
         executedSteps.clear()
     }
 
+    /**
+     * Close the SUL and release all resources.
+     */
     override fun close() {}
 
+    /**
+     * Performs a majority vote on the given prefix and suffix to determine the majority element.
+     *
+     * @param prefix The prefix to execute before
+     * @param suffix The suffix to execute after
+     * @param count The number of votes to perform
+     * @return The majority element of the votes
+     */
     fun majorityVote(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, count: Int): Word<ResponseFingerprint> {
         val voteList = mutableListOf<Word<ResponseFingerprint>>()
         for (i in 0 until count) {
@@ -137,6 +151,12 @@ abstract class SshSul(
         return majorityElement(voteList)
     }
 
+    /**
+     * Returns the majority element of a list of words.
+     *
+     * @param words The list of words to determine the majority element from.
+     * @return The majority element of the list.
+     */
     private fun majorityElement(words: List<Word<ResponseFingerprint>>): Word<ResponseFingerprint> {
         val allPossibilities = HashSet(words)
         val iterator = allPossibilities.iterator()

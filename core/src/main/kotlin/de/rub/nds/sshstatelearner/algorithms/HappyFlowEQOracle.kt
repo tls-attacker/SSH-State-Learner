@@ -40,10 +40,10 @@ class HappyFlowEQOracle(
 ) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
     private val happyFlowPrefixes: List<Word<SshSymbol>> =
         when (stage) {
-            ProtocolStage.TRANSPORT, ProtocolStage.AUTHENTICATION, ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(
+            ProtocolStage.TRANSPORT, ProtocolStage.TRANSPORT_KEX, ProtocolStage.AUTHENTICATION, ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(
+                useClientAlphabet,
                 stage,
-                kex,
-                useClientAlphabet
+                kex
             ).prefixes(true)
 
             ProtocolStage.UNKNOWN -> Word.fromList(alternativeHappyFlowAlphabet).prefixes(true)
