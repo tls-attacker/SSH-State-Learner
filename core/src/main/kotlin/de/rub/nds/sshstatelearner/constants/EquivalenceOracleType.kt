@@ -18,7 +18,7 @@ enum class EquivalenceOracleType {
     CACHE_CONSISTENCY,
 
     /**
-     * Performs an equivalence check by using a defined happy flow with optional suffixes.
+     * Performs an equivalence check by using a defined happy flow with message insertions.
      */
     HAPPY_FLOW,
 

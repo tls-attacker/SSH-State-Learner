@@ -13,11 +13,11 @@ import de.rub.nds.sshstatelearner.analysis.limiter.message.NotInStateMachineLear
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import net.automatalib.automata.graphs.TransitionEdge
-import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.automata.visualization.AutomatonVisualizationHelper
+import net.automatalib.automaton.graph.TransitionEdge
+import net.automatalib.automaton.transducer.MealyMachine
+import net.automatalib.automaton.visualization.AutomatonVisualizationHelper
 import net.automatalib.visualization.VisualizationHelper
-import net.automatalib.words.Alphabet
+import net.automatalib.alphabet.Alphabet
 
 class ShortMealyVisualizationHelper<S, T>(
     automaton: MealyMachine<S, SshSymbol, T, ResponseFingerprint>,

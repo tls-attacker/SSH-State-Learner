@@ -10,7 +10,7 @@ package de.rub.nds.sshstatelearner.exceptions
 
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import net.automatalib.words.Word
+import net.automatalib.word.Word
 
 class CacheConflictException(
     message: String,

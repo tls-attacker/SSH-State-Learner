@@ -18,11 +18,6 @@ enum class LearningAlgorithmType {
     DHC,
 
     /**
-     * Discrimination tree
-     */
-    DT,
-
-    /**
      * Kearns Vazirani
      */
     KV,

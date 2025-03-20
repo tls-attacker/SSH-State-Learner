@@ -8,10 +8,10 @@
  */
 package de.rub.nds.sshstatelearner.algorithms
 
-import de.learnlib.api.oracle.EquivalenceOracle
-import de.learnlib.api.oracle.MembershipOracle
-import de.learnlib.api.query.DefaultQuery
-import de.learnlib.api.query.Query
+import de.learnlib.oracle.EquivalenceOracle
+import de.learnlib.oracle.MembershipOracle
+import de.learnlib.query.DefaultQuery
+import de.learnlib.query.Query
 import de.learnlib.filter.cache.LearningCacheOracle
 import de.rub.nds.sshstatelearner.analysis.limiter.EmptySMLLimiter
 import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiter
@@ -29,9 +29,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.words.Word
-import net.automatalib.words.WordBuilder
+import net.automatalib.automaton.transducer.MealyMachine
+import net.automatalib.word.Word
+import net.automatalib.word.WordBuilder
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 

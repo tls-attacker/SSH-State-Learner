@@ -27,8 +27,9 @@ import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
 import de.rub.nds.sshstatelearner.sul.NetworkSshServerSul
-import net.automatalib.words.impl.ListAlphabet
+import net.automatalib.alphabet.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
 import java.io.File
 import java.io.FileWriter
 import java.security.Security
@@ -39,6 +40,7 @@ import kotlin.system.exitProcess
  */
 private fun prepareJCE() {
     Security.addProvider(BouncyCastleProvider())
+    Security.addProvider(BouncyCastlePQCProvider())
 }
 
 /**
@@ -66,7 +68,7 @@ private fun setEquivalenceOracleDefaults() {
     EquivalenceOracleFactory.setHappyFlowDefaults(
         ArgsSul.protocolStage,
         ArgsSul.kexAlgorithm,
-        ArgsLearner.equivHappyFlowSuffixLength
+        ArgsLearner.equivHappyFlowMaximumInsertions
     )
     EquivalenceOracleFactory.setCompleteExplorationDefaults(
         ArgsLearner.equivCompleteExplorationMinDepth,
@@ -100,7 +102,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
     val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(
         ArgsSul.protocolStage,
         ArgsSul.kexAlgorithm,
-        ArgsSul.sulTyp.isClientAlphabet
+        ArgsSul.sulTyp.isClient
     )
     MainWindow.infoAlphabetSize.text = alphabet.size.toString()
     when (ArgsGeneral.executor) {
@@ -137,7 +139,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
             ArgsLearner.equivOracleChainTypes,
             ArgsLearner.outputIntermediateHypothesis,
             ArgsGeneral.output,
-            ArgsSul.sulTyp.isClientAlphabet
+            ArgsSul.sulTyp.isClient
         )
         return learner.extractStateMachine()
     }

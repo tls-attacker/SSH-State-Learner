@@ -8,50 +8,47 @@
  */
 package de.rub.nds.sshstatelearner.algorithms
 
-import de.learnlib.api.oracle.EquivalenceOracle
-import de.learnlib.api.oracle.MembershipOracle
-import de.learnlib.api.query.DefaultQuery
+import de.learnlib.oracle.EquivalenceOracle
+import de.learnlib.oracle.MembershipOracle
+import de.learnlib.query.DefaultQuery
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.combinations
-import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.words.Word
+import de.rub.nds.sshstatelearner.util.combinationsIgnoreOrder
+import net.automatalib.automaton.transducer.MealyMachine
+import net.automatalib.word.Word
 
 /**
  * A simple equivalence oracle that checks if equivalence holds for a predefined happy flow (and each of its prefixes)
- * with random suffixes of configurable length. The happy flow is constructed using the HappyFlowFactory.
+ * with random insertions up to a configurable limit. The happy flow, if null, is constructed using the HappyFlowFactory.
  *
  * @param membershipOracle The membership oracle representing the SUL to learn.
  * @param stage The protocol stage to check equivalence for.
  * @param kex The key exchange algorithm to check equivalence for.
- * @param suffixLength The length of the randomly generated suffix.
+ * @param insertions The maximum number of symbol insertions to check equivalence for.
+ * @param isClient True if the oracle is used for a client, false otherwise.
+ * @param batchSize The number of queries to process at once by the membership oracle.
+ * @param happyFlow The happy flow to check equivalence for. If null, the happy flow is constructed using the HappyFlowFactory.
  */
 class HappyFlowEQOracle(
     private val membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
     private val stage: ProtocolStage,
     private val kex: KeyExchangeAlgorithm,
-    private val suffixLength: Int,
-    useClientAlphabet: Boolean,
+    private val insertions: Int,
+    isClient: Boolean,
     private val batchSize: Int = 1,
-    alternativeHappyFlowAlphabet: List<SshSymbol>
+    happyFlow: Word<SshSymbol>? = null
 ) : EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
-    private val happyFlowPrefixes: List<Word<SshSymbol>> =
-        when (stage) {
-            ProtocolStage.TRANSPORT, ProtocolStage.TRANSPORT_KEX, ProtocolStage.AUTHENTICATION, ProtocolStage.CONNECTION -> HappyFlowFactory.constructHappyFlow(
-                useClientAlphabet,
-                stage,
-                kex
-            ).prefixes(true)
 
-            ProtocolStage.UNKNOWN -> Word.fromList(alternativeHappyFlowAlphabet).prefixes(true)
-        }
+    private val happyFlow: Word<SshSymbol> =
+        happyFlow ?: HappyFlowFactory.constructHappyFlow(isClient, stage, kex)
 
     /**
-     * Searches for a counter example to disprove the hypothesis by iterating all prefixes of the happy flow
-     * and combining it with random suffixes.
+     * Searches for a counter example to disprove the hypothesis by iterating all possible symbol insertions
+     * into a defined happy flow.
      *
      * @param hypothesis The hypothesis to check equivalence with the provided membership oracle.
      * @param alphabet The alphabet to check equivalence for.
@@ -60,54 +57,44 @@ class HappyFlowEQOracle(
     override fun findCounterExample(
         hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
         alphabet: MutableCollection<out SshSymbol>
-    ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? =
-        if (batchSize == 1) findCounterExampleSequentially(hypothesis, alphabet) else findCounterExampleParallel(
-            hypothesis,
-            alphabet
-        )
-
-    private fun findCounterExampleSequentially(
-        hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
-        alphabet: MutableCollection<out SshSymbol>
     ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
-        for (prefix in happyFlowPrefixes) {
-            val suffixes = alphabet.combinations(suffixLength).map { Word.fromList(it) }
-            for (suffix in suffixes) {
-                val input = Word.fromWords(prefix, suffix)
-                val sulOutput = membershipOracle.answerQuery(input)
-                val hypothesisOutput = hypothesis.computeOutput(input)
-                sulOutput.zip(hypothesisOutput).forEach {
-                    if (it.first != it.second) {
-                        return DefaultQuery(input, sulOutput)
+        for (insertPositions in (-1 until happyFlow.length() + 1).combinationsIgnoreOrder(insertions)) {
+            val inputs = alphabet.combinations(insertions).map {
+                var input = happyFlow.subWord(0)
+                // Iterate over the insert positions in reverse order to insert the symbols at the correct positions
+                // Insert positions are ordered in ascending order, so we need to reverse the list
+                insertPositions.reversed().forEachIndexed { index, position ->
+                    input = if (position >= 0 && position < happyFlow.length())
+                        // Insert at position: prefix + symbol + suffix
+                        input.subWord(0, position).concat(Word.fromSymbols(it[index])).concat(happyFlow.subWord(position))
+                    else if (position >= happyFlow.length())
+                        // Insert at the end: input + symbol
+                        input.concat(Word.fromSymbols(it[index]))
+                    else
+                        // Do not insert the symbol
+                        input
+                }
+                return@map input
+            }
+            if (batchSize > 1) {
+                // Chunk inputs into batches and process them at once by the membership oracle
+                val chunks = inputs.map { DefaultQuery<SshSymbol, Word<ResponseFingerprint>>(it) }.chunked(batchSize)
+                for (chunk in chunks) {
+                    membershipOracle.processBatch(chunk)
+                    chunk.forEach {
+                        val hypothesisOutput = hypothesis.computeOutput(it.input)
+                        if (!it.output.equals(hypothesisOutput)) {
+                            return it
+                        }
                     }
                 }
-            }
-        }
-        return null
-    }
-
-    private fun findCounterExampleParallel(
-        hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>,
-        alphabet: MutableCollection<out SshSymbol>
-    ): DefaultQuery<SshSymbol, Word<ResponseFingerprint>>? {
-        for (prefix in happyFlowPrefixes) {
-            val inputs = alphabet.combinations(suffixLength)
-                .map {
-                    DefaultQuery<SshSymbol, Word<ResponseFingerprint>>(
-                        prefix.concat(Word.fromList(it))
-                    )
-                }
-            val inputsChunks = inputs.chunked(batchSize)
-            for (inputsChunk in inputsChunks) {
-                membershipOracle.processBatch(inputsChunk)
-                inputsChunk.forEach { itOuter ->
-                    val input = itOuter.input
-                    val sulOutput = itOuter.output
+            } else {
+                // Process inputs sequentially by the membership oracle
+                for (input in inputs) {
+                    val output = membershipOracle.answerQuery(input)
                     val hypothesisOutput = hypothesis.computeOutput(input)
-                    if (!sulOutput.zip(hypothesisOutput).none { itInner ->
-                            itInner.first != itInner.second
-                        }) {
-                        return DefaultQuery(input, sulOutput)
+                    if (!output.equals(hypothesisOutput)) {
+                        return DefaultQuery(input, output)
                     }
                 }
             }

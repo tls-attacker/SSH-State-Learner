@@ -12,7 +12,7 @@ import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
 import de.rub.nds.sshattacker.core.exceptions.NotImplementedException
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
-import net.automatalib.words.Word
+import net.automatalib.word.Word
 
 /**
  * This object is capable of constructing happy flows for different SSH protocol stages. A happy flow is considered any
@@ -86,7 +86,7 @@ object HappyFlowFactory {
                 SshSymbol.MSG_NEWKEYS
             )
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
-                SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY
+                SshSymbol.MSG_USERAUTH_REQUEST_PASSWD
             )
             ProtocolStage.CONNECTION -> Word.fromSymbols(
                 SshSymbol.MSG_CHANNEL_OPEN_SESSION,

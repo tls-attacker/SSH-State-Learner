@@ -7,6 +7,7 @@ import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiterTyp
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
+import net.automatalib.words.Word
 
 /**
  * This class bundles all configuration options for state learning.
@@ -32,13 +33,13 @@ class ConfigLearner {
     )
 
 
-    @JsonPropertyDescription("[HAPPY_FLOW only] The length of the suffix to append to each possible happy flow prefix")
+    @JsonPropertyDescription("[HAPPY_FLOW only] The maximum number of insertions into the happy flow")
     @JsonProperty(defaultValue = "2")
-    var equivHappyFlowSuffixLength: Int = EquivalenceOracleFactory.happyFlowSuffixLength
+    var equivHappyFlowMaximumInsertions: Int = EquivalenceOracleFactory.happyFlowMaximumInsertions
 
     @JsonPropertyDescription("[HAPPY_FLOW only] An Alternative Happy Flow to use. It is only used if protocolStage==UNKNOWN")
-    @JsonProperty(defaultValue = "[]")
-    var alternativeHappyFlowAlphabet: List<SshSymbol> = emptyList()
+    @JsonProperty(defaultValue = "null")
+    var alternativeHappyFlowAlphabet: Word<SshSymbol>? = null
 
 
     @JsonPropertyDescription("[COMPLETE_EXPLORATION only] The minimum depth to explore (i. e. the minimum length of words tested)")

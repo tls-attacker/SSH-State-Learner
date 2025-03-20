@@ -12,7 +12,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import net.automatalib.words.Word
+import net.automatalib.word.Word
 import org.apache.logging.log4j.LogManager
 import java.time.Instant
 import kotlin.time.DurationUnit

@@ -109,7 +109,7 @@ enum class SshSymbol(
             password = Modifiable.explicit("Wrong password")
         }
     }),*/
-    MSG_USERAUTH_REQUEST_PUBKEY({ UserAuthPubkeyMessage() }),
+    //MSG_USERAUTH_REQUEST_PUBKEY({ UserAuthPubkeyMessage() }),
     MSG_USERAUTH_SUCCESS({ UserAuthSuccessMessage() }),
     MSG_USERAUTH_FAILURE({ UserAuthFailureMessage() }),
     MSG_USERAUTH_BANNER({ UserAuthBannerMessage() }),

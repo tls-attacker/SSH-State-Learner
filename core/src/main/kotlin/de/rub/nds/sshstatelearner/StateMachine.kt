@@ -10,11 +10,11 @@ package de.rub.nds.sshstatelearner
 
 import de.rub.nds.sshstatelearner.analysis.data.GraphDetails
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
-import net.automatalib.automata.graphs.TransitionEdge
-import net.automatalib.automata.transducers.MealyMachine
+import net.automatalib.automaton.graph.TransitionEdge
+import net.automatalib.automaton.transducer.MealyMachine
 import net.automatalib.serialization.dot.DOTVisualizationHelper
 import net.automatalib.serialization.dot.GraphDOT
-import net.automatalib.words.Alphabet
+import net.automatalib.alphabet.Alphabet
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.File

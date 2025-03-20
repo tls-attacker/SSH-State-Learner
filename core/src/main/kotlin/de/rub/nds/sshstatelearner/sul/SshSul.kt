@@ -8,15 +8,15 @@
  */
 package de.rub.nds.sshstatelearner.sul
 
-import de.learnlib.api.SUL
+import de.learnlib.sul.SUL
 import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import net.automatalib.words.Word
-import net.automatalib.words.WordBuilder
+import net.automatalib.word.Word
+import net.automatalib.word.WordBuilder
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 

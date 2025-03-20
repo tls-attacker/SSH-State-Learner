@@ -1,12 +1,12 @@
 package de.rub.nds.sshstatelearner.algorithms
 
-import de.learnlib.api.oracle.EquivalenceOracle
-import de.learnlib.api.query.Query
+import de.learnlib.oracle.EquivalenceOracle
+import de.learnlib.query.Query
 import de.learnlib.filter.cache.LearningCacheOracle
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.words.Word
+import net.automatalib.automaton.transducer.MealyMachine
+import net.automatalib.word.Word
 
 /**
  *This class helps to answer the queries posed by the SML algorithm using majority vote.

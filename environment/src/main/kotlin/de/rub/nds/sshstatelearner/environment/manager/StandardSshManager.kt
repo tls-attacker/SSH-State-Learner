@@ -11,7 +11,7 @@ import de.rub.nds.sshstatelearner.extraction.ParallelOracleExtractor
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
-import net.automatalib.words.Alphabet
+import net.automatalib.alphabet.Alphabet
 import net.automatalib.words.impl.ListAlphabet
 import java.io.File
 import java.io.FileWriter
@@ -42,7 +42,7 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.learnerConfig.equivOracleChainTypes,
             configGeneral.learnerConfig.outputIntermediateHypothesis,
             configGeneral.outputDirectory,
-            configGeneral.sulConfig.sulTyp.isClientAlphabet,
+            configGeneral.sulConfig.sulTyp.isClient,
             configGeneral.learnerConfig.smlLimiterTyp,
             configGeneral.learnerConfig.smlLimiterFilePath,
             configGeneral.learnerConfig.batchSize,
@@ -71,13 +71,13 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
     protected fun getInputAlphabet(): Alphabet<SshSymbol> {
         val alphabet =
             when (configGeneral.sulConfig.protocolStage) {
-                ProtocolStage.CONNECTION, ProtocolStage.TRANSPORT, ProtocolStage.AUTHENTICATION -> AlphabetFactory.construct(
+                ProtocolStage.UNKNOWN -> ListAlphabet(configGeneral.sulConfig.alphabet)
+
+                else -> AlphabetFactory.construct(
                     configGeneral.sulConfig.protocolStage,
                     configGeneral.sulConfig.kexAlgorithm,
-                    configGeneral.sulConfig.sulTyp.isClientAlphabet
+                    configGeneral.sulConfig.sulTyp.isClient
                 )
-
-                ProtocolStage.UNKNOWN -> ListAlphabet(configGeneral.sulConfig.alphabet)
             }
         return alphabet
     }
@@ -123,7 +123,7 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
         EquivalenceOracleFactory.setHappyFlowDefaults(
             configGeneral.sulConfig.protocolStage,
             configGeneral.sulConfig.kexAlgorithm,
-            configGeneral.learnerConfig.equivHappyFlowSuffixLength,
+            configGeneral.learnerConfig.equivHappyFlowMaximumInsertions,
             configGeneral.learnerConfig.alternativeHappyFlowAlphabet
         )
         EquivalenceOracleFactory.setCompleteExplorationDefaults(

@@ -12,8 +12,8 @@ import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
 import de.rub.nds.sshstatelearner.exceptions.IllegalKeyExchangeException
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
-import net.automatalib.words.Alphabet
-import net.automatalib.words.impl.ListAlphabet
+import net.automatalib.alphabet.Alphabet
+import net.automatalib.alphabet.impl.ListAlphabet
 
 /**
  * This object is capable of constructing the SSH alphabet given a protocol stage as well as a key exchange algorithm to use.
@@ -116,7 +116,7 @@ object AlphabetFactory {
                 listOf(
                     SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
                     //SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
-                    SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
+                    //SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER
@@ -167,7 +167,7 @@ object AlphabetFactory {
                 listOf(
                     SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
                     //SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
-                    SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
+                    //SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER

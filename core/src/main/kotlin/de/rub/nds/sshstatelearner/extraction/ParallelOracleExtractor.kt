@@ -8,8 +8,8 @@
  */
 package de.rub.nds.sshstatelearner.extraction
 
-import de.learnlib.api.oracle.EquivalenceOracle
-import de.learnlib.api.query.DefaultQuery
+import de.learnlib.oracle.EquivalenceOracle
+import de.learnlib.query.DefaultQuery
 import de.learnlib.oracle.membership.SULOracle
 import de.rub.nds.sshstatelearner.SshStateMachine
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
@@ -32,9 +32,9 @@ import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.sul.AdvancedStatisticSul
 import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.words.Alphabet
-import net.automatalib.words.Word
+import net.automatalib.automaton.transducer.MealyMachine
+import net.automatalib.alphabet.Alphabet
+import net.automatalib.word.Word
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.File
@@ -58,7 +58,7 @@ class ParallelOracleExtractor(
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
     private val storeIntermediateHypotheses: Boolean,
     private val outputDirectory: String,
-    private val useClientAlphabet: Boolean,
+    private val isClient: Boolean,
     private val smlLimiterTyp: SMLLimiterTyp,
     private val pathToSmlLimiterFile: String,
     private val batchSize: Int,
@@ -141,7 +141,7 @@ class ParallelOracleExtractor(
             membershipOracle,
             sul,
             membershipOracle,
-            useClientAlphabet,
+            isClient,
             batchSize,
         )
     }

@@ -13,7 +13,7 @@ import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import net.automatalib.serialization.dot.DefaultDOTVisualizationHelper
 import net.automatalib.visualization.VisualizationHelper
-import net.automatalib.words.Alphabet
+import net.automatalib.alphabet.Alphabet
 
 class SSHDOTVisualizationHelper<N, E>(
     delegate: VisualizationHelper<N, in E>,

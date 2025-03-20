@@ -1,6 +1,6 @@
 package de.rub.nds.sshstatelearner.sul
 
-import de.learnlib.api.SUL
+import de.learnlib.sul.SUL
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.constants.SULTyp
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
@@ -24,7 +24,7 @@ class NetworkSshClientSulProxy(
     }
 
     override val isClient: Boolean
-        get() = SULTyp.CLIENT_IS_UNDER_TEST.isClientAlphabet
+        get() = SULTyp.CLIENT_IS_UNDER_TEST.isClient
 
 
     override fun post() {

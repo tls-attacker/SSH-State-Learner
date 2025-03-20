@@ -30,8 +30,8 @@ object ArgsLearner {
     var equivOracleChainTypes: List<EquivalenceOracleType> = listOf(EquivalenceOracleType.CACHE_CONSISTENCY, EquivalenceOracleType.HAPPY_FLOW, EquivalenceOracleType.RANDOM_WORDS)
         private set
 
-    @Parameter(names = ["--equiv-happy-flow-suffix-length"], description = "[HAPPY_FLOW only] The length of the suffix to append to each possible happy flow prefix", order = 101)
-    var equivHappyFlowSuffixLength = EquivalenceOracleFactory.happyFlowSuffixLength
+    @Parameter(names = ["--equiv-happy-flow-max-insertions"], description = "[HAPPY_FLOW only] The maximum number of insertions into the happy flow", order = 101)
+    var equivHappyFlowMaximumInsertions = EquivalenceOracleFactory.happyFlowMaximumInsertions
         private set
 
     @Parameter(names = ["--equiv-complete-exploration-min-depth"], description = "[COMPLETE_EXPLORATION only] The minimum depth to explore (i. e. the minimum length of words tested)", order = 102)

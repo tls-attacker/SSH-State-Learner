@@ -8,15 +8,15 @@
  */
 package de.rub.nds.sshstatelearner.algorithms
 
-import de.learnlib.algorithms.dhc.mealy.MealyDHCBuilder
-import de.learnlib.algorithms.discriminationtree.mealy.DTLearnerMealyBuilder
-import de.learnlib.algorithms.kv.mealy.KearnsVaziraniMealyBuilder
-import de.learnlib.algorithms.lstar.mealy.ExtensibleLStarMealyBuilder
-import de.learnlib.algorithms.ttt.mealy.TTTLearnerMealyBuilder
-import de.learnlib.api.algorithm.LearningAlgorithm
-import de.learnlib.api.oracle.MembershipOracle
+import de.learnlib.algorithm.dhc.mealy.MealyDHCBuilder
+import de.learnlib.algorithm.kv.mealy.KearnsVaziraniMealyBuilder
+import de.learnlib.algorithm.lstar.mealy.ExtensibleLStarMealyBuilder
+import de.learnlib.algorithm.ttt.mealy.TTTLearnerMealyBuilder
+import de.learnlib.algorithm.LearningAlgorithm
+import de.learnlib.algorithm.adt.learner.ADTLearnerBuilder
+import de.learnlib.oracle.MembershipOracle
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
-import net.automatalib.words.Alphabet
+import net.automatalib.alphabet.Alphabet
 
 /**
  * This object is capable of creating learning algorithm instances via the create method.
@@ -38,10 +38,6 @@ object LearningAlgorithmFactory {
     ): LearningAlgorithm.MealyLearner<I, O> {
         return when (algorithm) {
             LearningAlgorithmType.DHC -> MealyDHCBuilder<I, O>()
-                .withAlphabet(alphabet)
-                .withOracle(membershipOracle)
-                .create()
-            LearningAlgorithmType.DT -> DTLearnerMealyBuilder<I, O>()
                 .withAlphabet(alphabet)
                 .withOracle(membershipOracle)
                 .create()

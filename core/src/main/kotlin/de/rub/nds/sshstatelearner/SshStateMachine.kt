@@ -25,10 +25,10 @@ import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.visualization.SSHDOTVisualizationHelper
 import de.rub.nds.sshstatelearner.visualization.ShortMealyVisualizationHelper
-import net.automatalib.automata.graphs.TransitionEdge
-import net.automatalib.automata.transducers.MealyMachine
+import net.automatalib.automaton.graph.TransitionEdge
+import net.automatalib.automaton.transducer.MealyMachine
 import net.automatalib.serialization.dot.DOTVisualizationHelper
-import net.automatalib.words.Alphabet
+import net.automatalib.alphabet.Alphabet
 
 class SshStateMachine<S, T>(
     mealyMachine: MealyMachine<S, SshSymbol, T, ResponseFingerprint>,

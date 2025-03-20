@@ -38,14 +38,14 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
         val kexHappyFlow = classifyKexHappyFlow(stateMachine, kexInitState) ?: throw ClassificationException()
         happyFlow.addAll(kexHappyFlow.first)
         happyFlowTransitions.addAll(kexHappyFlow.second)
-        val kexDoneState = happyFlow.last()
+        val keysDerivedState = happyFlow.last()
 
-        val encryptionTransition = machine.getTransition(kexDoneState, SshSymbol.MSG_NEWKEYS) ?: throw ClassificationException()
-        val encryptionState = machine.getSuccessor(encryptionTransition)
-        happyFlowTransitions.add(encryptionTransition)
-        happyFlow.add(encryptionState)
+        val kexDoneTransition = machine.getTransition(keysDerivedState, SshSymbol.MSG_NEWKEYS) ?: throw ClassificationException()
+        val kexDoneState = machine.getSuccessor(kexDoneTransition)
+        happyFlowTransitions.add(kexDoneTransition)
+        happyFlow.add(kexDoneState)
 
-        val serviceTransition = machine.getTransition(encryptionState, SshSymbol.MSG_SERVICE_REQUEST_USERAUTH) ?: throw ClassificationException()
+        val serviceTransition = machine.getTransition(kexDoneState, SshSymbol.MSG_SERVICE_REQUEST_USERAUTH) ?: throw ClassificationException()
         val serviceState = machine.getSuccessor(serviceTransition)
         happyFlowTransitions.add(serviceTransition)
         happyFlow.add(serviceState)
@@ -57,8 +57,9 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
         if (stateMachine.kexAlgorithm.flowType == KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE) {
             graphDetails.groupNegotiatedState = kexHappyFlow.first.first()
         }
-        graphDetails.kexDoneState = kexHappyFlow.first.last()
-        graphDetails.finState = encryptionState
+        graphDetails.keysDerivedState = kexHappyFlow.first.last()
+        graphDetails.kexDoneState = kexDoneState
+        graphDetails.finState = serviceState
     }
 
     private fun classifyKexHappyFlow(stateMachine: SshStateMachine<S, T>, kexInitState: S): Pair<List<S>, List<T>>? {
@@ -66,25 +67,25 @@ class TransportHappyFlowClassifier<S, T> : Classifier<S, SshSymbol, T, ResponseF
         when (stateMachine.kexAlgorithm.flowType) {
             KeyExchangeFlowType.ECDH -> {
                 val kexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEX_ECDH_INIT) ?: throw ClassificationException()
-                val kexDoneState = machine.getSuccessor(kexTransition)
-                return listOf(kexDoneState) to listOf(kexTransition)
+                val keysDerivedState = machine.getSuccessor(kexTransition)
+                return listOf(keysDerivedState) to listOf(kexTransition)
             }
             KeyExchangeFlowType.DIFFIE_HELLMAN -> {
                 val kexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEXDH_INIT) ?: throw ClassificationException()
-                val kexDoneState = machine.getSuccessor(kexTransition)
-                return listOf(kexDoneState) to listOf(kexTransition)
+                val keysDerivedState = machine.getSuccessor(kexTransition)
+                return listOf(keysDerivedState) to listOf(kexTransition)
             }
             KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> {
                 val gexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEX_DH_GEX_REQUEST) ?: throw ClassificationException()
                 val gexDoneState = machine.getSuccessor(gexTransition)
                 val kexTransition = machine.getTransition(gexDoneState, SshSymbol.MSG_KEX_DH_GEX_INIT) ?: throw ClassificationException()
-                val kexDoneState = machine.getSuccessor(kexTransition)
-                return listOf(gexDoneState, kexDoneState) to listOf(gexTransition, kexTransition)
+                val keysDerivedState = machine.getSuccessor(kexTransition)
+                return listOf(gexDoneState, keysDerivedState) to listOf(gexTransition, kexTransition)
             }
             KeyExchangeFlowType.HYBRID -> {
                 val kexTransition = machine.getTransition(kexInitState, SshSymbol.MSG_KEX_HBR_INIT) ?: throw ClassificationException()
-                val kexDoneState = machine.getSuccessor(kexTransition)
-                return listOf(kexDoneState) to listOf(kexTransition)
+                val keysDerivedState = machine.getSuccessor(kexTransition)
+                return listOf(keysDerivedState) to listOf(kexTransition)
             }
             else -> return null
         }

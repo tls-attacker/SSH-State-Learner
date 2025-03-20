@@ -8,7 +8,7 @@
  */
 package de.rub.nds.sshstatelearner.sul
 
-import de.learnlib.api.SUL
+import de.learnlib.sul.SUL
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.PacketLayerType
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
@@ -90,7 +90,7 @@ class NetworkSshServerSul(
     }
 
     override val isClient: Boolean
-        get() = SULTyp.SERVER_IS_UNDER_TEST.isClientAlphabet
+        get() = SULTyp.SERVER_IS_UNDER_TEST.isClient
 
     /**
      * Indicates whether this SUL can be forked for parallel queries.

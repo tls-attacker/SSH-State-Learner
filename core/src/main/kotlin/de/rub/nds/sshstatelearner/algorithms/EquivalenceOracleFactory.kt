@@ -8,9 +8,9 @@
  */
 package de.rub.nds.sshstatelearner.algorithms
 
-import de.learnlib.api.SUL
-import de.learnlib.api.oracle.EquivalenceOracle
-import de.learnlib.api.oracle.MembershipOracle
+import de.learnlib.sul.SUL
+import de.learnlib.oracle.EquivalenceOracle
+import de.learnlib.oracle.MembershipOracle
 import de.learnlib.filter.cache.LearningCache
 import de.learnlib.oracle.equivalence.CompleteExplorationEQOracle
 import de.learnlib.oracle.equivalence.EQOracleChain
@@ -26,8 +26,8 @@ import de.rub.nds.sshstatelearner.exceptions.IllegalKeyExchangeException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
-import net.automatalib.automata.transducers.MealyMachine
-import net.automatalib.words.Word
+import net.automatalib.automaton.transducer.MealyMachine
+import net.automatalib.word.Word
 import java.util.*
 
 /**
@@ -51,15 +51,15 @@ object EquivalenceOracleFactory {
         private set
 
     /**
-     * The length of the suffix to append to each possible happy flow prefix.
+     * The maximum number of symbol insertions to check equivalence for in a happy flow equivalence oracle.
      */
-    var happyFlowSuffixLength: Int = 2
+    var happyFlowMaximumInsertions: Int = 2
         private set
 
     /**
-     * An alternative Alphabet to use.
+     * An alternative alphabet to use for the happy flow equivalence oracle. If empty, the default alphabet is used.
      */
-    var alternativeHappyFlowAlphabet: List<SshSymbol> = emptyList()
+    var happyFlow: Word<SshSymbol>? = null
 
     /**
      * Minimum exploration depth for complete exploration oracles. The oracle effectively generates all words with
@@ -136,24 +136,24 @@ object EquivalenceOracleFactory {
     /**
      * Sets the factory defaults for a happy flow equivalence oracle.
      *
-     * @param suffixLength The length of the suffix to append to each possible happy flow prefix
+     * @param maximumInsertions The maximum number of message insertions to check equivalence for.
      */
     fun setHappyFlowDefaults(
         stage: ProtocolStage,
         kex: KeyExchangeAlgorithm,
-        suffixLength: Int,
-        alternativeHappyFlowAlphabet: List<SshSymbol> = emptyList()
+        maximumInsertions: Int,
+        happyFlow: Word<SshSymbol>? = null
     ) {
-        if (suffixLength < 0) {
-            throw IllegalArgumentException("Unable to set default values for a happy flow equivalence oracle. The suffix length (value: $suffixLength) is negative.")
+        if (maximumInsertions < 0) {
+            throw IllegalArgumentException("Unable to set default values for a happy flow equivalence oracle. The maximum number of insertions (value: $maximumInsertions) is negative.")
         }
         if (kex.flowType == null) {
             throw IllegalKeyExchangeException("Unable to set default values for a happy flow equivalence oracle. ext-info-s and ext-info-c are no valid kex algorithms.")
         }
         happyFlowProtocolStage = stage
         happyFlowKex = kex
-        happyFlowSuffixLength = suffixLength
-        this.alternativeHappyFlowAlphabet = alternativeHappyFlowAlphabet
+        happyFlowMaximumInsertions = maximumInsertions
+        this.happyFlow = happyFlow
     }
 
     /**
@@ -258,7 +258,7 @@ object EquivalenceOracleFactory {
         membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
         sul: SUL<SshSymbol, ResponseFingerprint>,
         learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>,
-        useClientAlphabet: Boolean,
+        isClient: Boolean,
         batchSize: Int
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
@@ -268,19 +268,16 @@ object EquivalenceOracleFactory {
             EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache.createCacheConsistencyTest()
                 ?: throw IllegalArgumentException("Unable to create CACHE_CONSISTENCY equivalence oracle without a learning cache")
 
-            //HAPPY_FLOW count of generated queries
-            // var generatedQueries = 0L; repeat(happyFlowAlphabet.count()){ generatedQueries += input.count().toDouble().pow(happyFlowSuffixLength).toLong() }
             EquivalenceOracleType.HAPPY_FLOW -> HappyFlowEQOracle(
                 membershipOracle,
                 happyFlowProtocolStage,
                 happyFlowKex,
-                happyFlowSuffixLength,
-                useClientAlphabet,
+                happyFlowMaximumInsertions,
+                isClient,
                 batchSize,
-                alternativeHappyFlowAlphabet
+                happyFlow
             )
-            // COMPLETE_EXPLORATION count of generated queries
-            // var generatedQueries = 0L; for(x in min .. max){ generatedQueries += input.count().toDouble().pow(x).toLong() }
+
             EquivalenceOracleType.COMPLETE_EXPLORATION -> CompleteExplorationEQOracle(
                 membershipOracle,
                 completeExplorationMinDepth,

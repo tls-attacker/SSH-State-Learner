@@ -8,7 +8,7 @@
  */
 package de.rub.nds.sshstatelearner.sul
 
-import de.learnlib.api.exception.SULException
+import de.learnlib.exception.SULException
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.exceptions.AdjustmentException
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage

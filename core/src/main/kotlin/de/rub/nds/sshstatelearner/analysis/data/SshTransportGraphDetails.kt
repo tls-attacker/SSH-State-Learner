@@ -14,6 +14,7 @@ class SshTransportGraphDetails<S, T> : GraphDetails<S, SshSymbol, T>() {
     var vexDoneState: S? = null
     var kexInitDoneState: S? = null
     var groupNegotiatedState: S? = null
+    var keysDerivedState: S? = null
     var kexDoneState: S? = null
     var finState: S? = null
 
@@ -22,7 +23,8 @@ class SshTransportGraphDetails<S, T> : GraphDetails<S, SshSymbol, T>() {
         stateNames[vexDoneState] = "Protocol Version Exchanged"
         stateNames[kexInitDoneState] = "KEX: Algorithms Negotiated"
         stateNames[groupNegotiatedState] = "KEX: DH Group Negotiated"
-        stateNames[kexDoneState] = "KEX: Keys Derived"
+        stateNames[keysDerivedState] = "KEX: Keys Derived"
+        stateNames[kexDoneState] = "KEX Completed"
         stateNames[finState] = "Protocol Completed"
         return stateNames
     }

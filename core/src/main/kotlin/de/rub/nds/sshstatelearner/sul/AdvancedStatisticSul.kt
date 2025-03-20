@@ -8,7 +8,7 @@
  */
 package de.rub.nds.sshstatelearner.sul
 
-import de.learnlib.api.SUL
+import de.learnlib.sul.SUL
 import de.learnlib.filter.statistic.Counter
 import java.util.concurrent.atomic.AtomicBoolean
 
