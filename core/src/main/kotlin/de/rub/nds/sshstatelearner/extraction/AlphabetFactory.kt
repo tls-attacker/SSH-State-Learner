@@ -115,8 +115,6 @@ object AlphabetFactory {
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
                     SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
-                    //SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
-                    //SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER
@@ -166,8 +164,6 @@ object AlphabetFactory {
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
                     SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
-                    //SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID,
-                    //SshSymbol.MSG_USERAUTH_REQUEST_PUBKEY,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER

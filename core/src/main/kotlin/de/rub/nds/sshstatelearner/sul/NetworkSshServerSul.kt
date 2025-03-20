@@ -84,7 +84,6 @@ class NetworkSshServerSul(
         protocolMessage.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         sendMessage(protocolMessage)
-        //val retrieveDelay = if (symbol == SshSymbol.MSG_USERAUTH_REQUEST_PASSWD_INVALID) 2500L else 50L
         Thread.sleep(50L)
         return retrieveMessages()
     }

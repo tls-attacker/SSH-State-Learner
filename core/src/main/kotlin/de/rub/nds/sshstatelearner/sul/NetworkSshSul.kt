@@ -11,6 +11,7 @@ package de.rub.nds.sshstatelearner.sul
 import de.learnlib.exception.SULException
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.exceptions.AdjustmentException
+import de.rub.nds.sshattacker.core.exceptions.CryptoException
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.executor.SendMessageHelper
@@ -56,7 +57,7 @@ abstract class NetworkSshSul(
             }
             // If the connection is closed, we do not expect any response from the server and therefore can respond without execution
             if (connectionClosed) {
-                return ResponseFingerprint(emptyList(), SocketState.CLOSED)
+                return ResponseFingerprint(emptyList(), SocketState.CLOSED, false)
             }
             val response = executeSymbol(p0)
             executedSteps.add(p0)
@@ -141,7 +142,7 @@ abstract class NetworkSshSul(
     protected fun retrieveMessages(retrieveDelay: Long = 0): ResponseFingerprint {
         try {
             if (state.sshContext.transportHandler.isClosed) {
-                return ResponseFingerprint(listOf(), SocketState.CLOSED)
+                return ResponseFingerprint(listOf(), SocketState.CLOSED, false)
             }
         } catch (e: IOException) {
             throw SULException(e)
@@ -155,6 +156,11 @@ abstract class NetworkSshSul(
             }
             return ResponseExtractor.getFingerprint(state, action)
         } catch (e: IOException) {
+            throw SULException(e)
+        } catch (e: RuntimeException) {
+            if (e.cause is CryptoException) {
+                return ResponseFingerprint(listOf(), SocketState.CLOSED, true)
+            }
             throw SULException(e)
         }
     }

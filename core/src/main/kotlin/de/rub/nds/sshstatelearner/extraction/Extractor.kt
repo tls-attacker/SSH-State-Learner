@@ -16,6 +16,7 @@ import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCache
 import de.rub.nds.sshstatelearner.algorithms.Statistics
+import de.rub.nds.sshstatelearner.analysis.limiter.EmptySMLLimiter
 import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
@@ -49,7 +50,8 @@ class Extractor(
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
     private val storeIntermediateHypotheses: Boolean,
     private val outputDirectory: String,
-    private val useClientAlphabet: Boolean
+    private val isClient: Boolean,
+    private val forkCount: Int = 1
 ) {
 
     /**
@@ -99,14 +101,19 @@ class Extractor(
      * Constructs the membership and equivalence oracle to use within the learning process.
      */
     private fun constructOracles() {
-        membershipOracle = ResponseTreeCache(SULOracle(sul))
+        // Forks the SUL and then stores it in the cache
+        val suls = mutableListOf<SULOracle<SshSymbol, ResponseFingerprint>>()
+        repeat(forkCount) {
+            suls.add(SULOracle(sul.fork()))
+        }
+        membershipOracle = ResponseTreeCache(suls, EmptySMLLimiter(), 1)
         equivalenceOracle = EquivalenceOracleFactory.createChain(
             equivalenceOracleChainTypes,
             membershipOracle.asOracle(),
             sul,
             membershipOracle,
-            useClientAlphabet,
-            128
+            isClient,
+            4 * forkCount
         )
     }
 

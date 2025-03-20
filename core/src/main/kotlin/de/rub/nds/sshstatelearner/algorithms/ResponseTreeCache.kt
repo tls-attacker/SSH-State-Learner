@@ -71,13 +71,13 @@ class ResponseTreeCache(
      * Avoids querying the SUL on known to close connection prefixes.
      */
     private val emptyResponseClosedConnectionFingerprint: ResponseFingerprint =
-        ResponseFingerprint(emptyList(), SocketState.CLOSED)
+        ResponseFingerprint(emptyList(), SocketState.CLOSED, false)
 
     /**
      * The fingerprint is used if the DFA limits the input alphabet.
      */
     private val notInStateMachineLearningFocusWithSocketClosed =
-        ResponseFingerprint(listOf(NotInStateMachineLearningFocusMessage()), SocketState.CLOSED)
+        ResponseFingerprint(listOf(NotInStateMachineLearningFocusMessage()), SocketState.CLOSED, false)
 
     /**
      * Processes a collection of queries by iterating through the collection and calling answerQuery for each query.

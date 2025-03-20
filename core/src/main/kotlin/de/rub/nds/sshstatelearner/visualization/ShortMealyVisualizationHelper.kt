@@ -96,6 +96,8 @@ class ShortMealyVisualizationHelper<S, T>(
             val output = automaton.getTransitionOutput(edge.transition)
             if (output.messages.isEmpty()) {
                 properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input}"
+            } else if (output.decryptionFailure) {
+                properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / {{DecryptionFailure}}"
             } else {
                 properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / ${output.messages.joinToString(",") { it.toCompactString() }}"
             }
@@ -120,6 +122,8 @@ class ShortMealyVisualizationHelper<S, T>(
                     val output = automaton.getTransitionOutput(it.second)
                     return@joinToString if (output.messages.isEmpty()) {
                         "${it.first}"
+                    } else if (output.decryptionFailure) {
+                        "${it.first} / {{DecryptionFailure}}"
                     } else {
                         "${it.first} / ${output.messages.joinToString(",") {
                                 message ->
@@ -133,6 +137,8 @@ class ShortMealyVisualizationHelper<S, T>(
             val output = automaton.getTransitionOutput(edge.transition)
             if (output.messages.isEmpty()) {
                 properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / [No output]"
+            } else if (output.decryptionFailure) {
+                properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / {{DecryptionFailure}}"
             } else {
                 properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / ${output.messages.joinToString(",") { it.toCompactString() }}"
             }
@@ -146,6 +152,8 @@ class ShortMealyVisualizationHelper<S, T>(
         // Compose edge label for long visualization
         if (transitionOutput.messages.isEmpty()) {
             properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / [No output]"
+        } else if (transitionOutput.decryptionFailure) {
+            properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / {{DecryptionFailure}}"
         } else {
             properties[VisualizationHelper.EdgeAttrs.LABEL] = "${edge.input} / ${
             transitionOutput.messages.joinToString(",") { it.toCompactString() }

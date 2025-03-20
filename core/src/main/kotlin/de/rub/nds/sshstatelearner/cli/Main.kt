@@ -139,7 +139,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
             ArgsLearner.equivOracleChainTypes,
             ArgsLearner.outputIntermediateHypothesis,
             ArgsGeneral.output,
-            ArgsSul.sulTyp.isClient
+            ArgsSul.sulTyp.isClient,
+            16
         )
         return learner.extractStateMachine()
     }

@@ -22,42 +22,11 @@ import java.math.BigInteger
  */
 object SshConfigManager {
 
-    private fun getSshPublicKey(): SshPublicKey<CustomEcPublicKey, CustomEcPrivateKey> = SshPublicKey(
-        PublicKeyFormat.ECDSA_SHA2_NISTP521,
-        CustomEcPublicKey(
-            PointFormatter.formatFromByteArray(
-                NamedEcGroup.SECP521R1,
-                ArrayConverter.hexStringToByteArray(
-                    "04007a9a61317b93ec991102aea304" +
-                            "7641b3b91254d5267ac1bade8972db" +
-                            "7ee61dd0189d5663ff1988815e2632" +
-                            "7634465f38f12112db2caa87020528" +
-                            "e40091140810da01c643704d3bad15" +
-                            "88572e1eeb36080c25e307e99f5263" +
-                            "6c926c5c15eccaf5526ff2c79e3e5f" +
-                            "683be0bfa5bd806217b690fd6bbfcc" +
-                            "ca27cd82fd79bb194fccae7858"
-                )
-            ),
-            NamedEcGroup.SECP521R1
-        ),
-        CustomEcPrivateKey(
-            BigInteger(
-                "01cac52efb225c5321f43e80bd28ee" +
-                        "e0c9f21297684305586bcc68dded8d" +
-                        "dc2acb2554b015810c8913211a8238" +
-                        "a0cb56aa9c2295143e62afa476b4a4" +
-                        "4fad5fee4717",
-                16
-            ),
-            NamedEcGroup.SECP521R1
-        )
-    )
-
-    private fun getDefaultConfig(): Config = Config.createConfig().apply {
+    private fun getDefaultConfig(): Config = Config().apply {
         workflowTraceType = WorkflowTraceType.KEX_INIT_ONLY
         stopActionsAfterDisconnect = false
         stopActionsAfterIOException = false
+        fallbackToNoneCipherOnDecryptionException = false
         serviceName = "ssh-userauth"
     }
 
@@ -76,10 +45,6 @@ object SshConfigManager {
             }
             defaultRunningMode = RunningModeType.SERVER
             serverSupportedHostKeyAlgorithms = listOf(PublicKeyAlgorithm.ECDSA_SHA2_NISTP521)
-            clientSupportedHostKeyAlgorithms = listOf(PublicKeyAlgorithm.ECDSA_SHA2_NISTP521)
-            hostKeys = listOf(
-                getSshPublicKey()
-            )
             serverSupportedCompressionMethodsClientToServer = listOf(CompressionMethod.NONE)
             serverSupportedCompressionMethodsServerToClient = listOf(CompressionMethod.NONE)
         }
@@ -97,8 +62,5 @@ object SshConfigManager {
             } else {
                 listOf(kex)
             }
-            userKeys = listOf(
-                getSshPublicKey()
-            )
         }
 }

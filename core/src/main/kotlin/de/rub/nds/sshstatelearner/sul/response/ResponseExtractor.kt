@@ -31,7 +31,7 @@ object ResponseExtractor {
         val messages = action.receivedMessages
         normalizeUnknownMessages(messages)
         val socketState = extractSocketState(state)
-        return ResponseFingerprint(messages, socketState)
+        return ResponseFingerprint(messages, socketState, false)
     }
 
     private fun normalizeUnknownMessages(messages: List<ProtocolMessage<*>>) {
