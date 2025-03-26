@@ -116,12 +116,12 @@ class NetworkSshClientSul(
      */
     private fun preVersionExchange(): Boolean {
         val receiveMessageVersionExchange =
-            ReceiveAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageCreator()).apply { execute(state) }
-        SendAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageCreator()).execute(state)
+            ReceiveAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageConstructor(state.sshContext)).apply { execute(state) }
+        SendAction(connectionAlias, SshSymbol.MSG_VERSION_EXCHANGE.messageConstructor(state.sshContext)).execute(state)
         ChangePacketLayerAction(connectionAlias, PacketLayerType.BINARY_PACKET).execute(state)
         Thread.sleep(timeout)
         val receiveKexInit =
-            ReceiveAction(connectionAlias, SshSymbol.MSG_KEXINIT.messageCreator()).apply { execute(state) }
+            ReceiveAction(connectionAlias, SshSymbol.MSG_KEXINIT.messageConstructor(state.sshContext)).apply { execute(state) }
         // Checks if everything went according to plan and if the connection is still open
         return receiveMessageVersionExchange.executedAsPlanned() && receiveKexInit.executedAsPlanned() && !state.sshContext.transportHandler.isClosed
     }
@@ -133,7 +133,8 @@ class NetworkSshClientSul(
      */
     override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
         LOGGER.trace("Executing symbol: {}", symbol)
-        val protocolMessage = symbol.createAndPrepareAndAfterPrepare(state.sshContext)
+        val protocolMessage = symbol.messageConstructor(state.sshContext)
+        protocolMessage.getHandler(state.sshContext).getPreparator().prepare()
         sendMessage(protocolMessage)
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         val retrieveDelay = 50L

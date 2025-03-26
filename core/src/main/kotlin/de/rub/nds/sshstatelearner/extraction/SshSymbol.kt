@@ -12,7 +12,6 @@ import de.rub.nds.modifiablevariable.util.Modifiable
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthBannerMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthFailureMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
-import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPubkeyMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthSuccessMessage
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelCloseMessage
@@ -54,26 +53,19 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.UnknownMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.SshContext
 
-enum class SshSymbol(
-    val messageCreator: () -> ProtocolMessage<*>,
-    private val afterPrepare: ((message: ProtocolMessage<*>, context: SshContext) -> Unit)? = null
-) {
+enum class SshSymbol(val messageConstructor: (SshContext?) -> ProtocolMessage<*>) {
     /*
      * SSH transport protocol symbols
      */
     MSG_VERSION_EXCHANGE({ VersionExchangeMessage() }),
     MSG_DISCONNECT({ DisconnectMessage() }),
     MSG_IGNORE({ IgnoreMessage() }),
-    MSG_UNIMPLEMENTED({ UnimplementedMessage() }, { message, context ->
-        (message as UnimplementedMessage).apply {
-            setSequenceNumber(context.readSequenceNumber - 1)
-        }
-    }),
+    MSG_UNIMPLEMENTED({ UnimplementedMessage().apply {
+        setSequenceNumber((it?.readSequenceNumber ?: 1) - 1)
+    }}),
     MSG_DEBUG({ DebugMessage() }),
     MSG_SERVICE_REQUEST_USERAUTH({
-        ServiceRequestMessage()
-    }, { message, _ ->
-        (message as ServiceRequestMessage).apply {
+        ServiceRequestMessage().apply {
             serviceNameLength = Modifiable.explicit(12)
             serviceName = Modifiable.explicit("ssh-userauth")
         }
@@ -105,9 +97,7 @@ enum class SshSymbol(
     MSG_USERAUTH_FAILURE({ UserAuthFailureMessage() }),
     MSG_USERAUTH_BANNER({ UserAuthBannerMessage() }),
     MSG_SERVICE_REQUEST_CONNECTION({
-        ServiceRequestMessage()
-    }, { message, _ ->
-        (message as ServiceRequestMessage).apply {
+        ServiceRequestMessage().apply {
             serviceNameLength = Modifiable.explicit(14)
             serviceName = Modifiable.explicit("ssh-connection")
         }
@@ -131,33 +121,14 @@ enum class SshSymbol(
     /*
      * Unknown SSH message IDs
      */
-    MSG_UNKNOWN_ID_RESERVED_0({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(0.toByte()) } }),
-    MSG_UNKNOWN_ID_TRANSPORT_GENERIC({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(9.toByte()) } }),
-    MSG_UNKNOWN_ID_ALGORITHM_NEGOTIATION({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(22.toByte()) } }),
-    MSG_UNKNOWN_ID_KEY_EXCHANGE_SPECIFIC({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(49.toByte()) } }),
-    MSG_UNKNOWN_ID_USERAUTH_GENERIC({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(54.toByte()) } }),
-    MSG_UNKNOWN_ID_USERAUTH_SPECIFIC({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(79.toByte()) } }),
-    MSG_UNKNOWN_ID_CONNECTION_GENERIC({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(83.toByte()) } }),
-    MSG_UNKNOWN_ID_CHANNEL_RELATED({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit(101.toByte()) } }),
-    MSG_UNKNOWN_ID_RESERVED_CLIENT({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit((-128).toByte()) } }),
-    MSG_UNKNOWN_ID_RESERVED_PRIVATE({ UnknownMessage() },
-        { message, _ -> (message as UnknownMessage).apply { messageId = Modifiable.explicit((-64).toByte()) } });
-
-
-    private fun createAndPrepare(context: SshContext): ProtocolMessage<*> = this.messageCreator().apply {
-        getHandler(context).preparator.prepare()
-    }
-
-    fun createAndPrepareAndAfterPrepare(context: SshContext): ProtocolMessage<*> =
-        createAndPrepare(context).apply { this@SshSymbol.afterPrepare?.invoke(this, context) }
-
+    MSG_UNKNOWN_ID_RESERVED_0({ UnknownMessage().apply { messageId = Modifiable.explicit(0.toByte()) } }),
+    MSG_UNKNOWN_ID_TRANSPORT_GENERIC({ UnknownMessage().apply { messageId = Modifiable.explicit(9.toByte()) } }),
+    MSG_UNKNOWN_ID_ALGORITHM_NEGOTIATION({ UnknownMessage().apply { messageId = Modifiable.explicit(22.toByte()) } }),
+    MSG_UNKNOWN_ID_KEY_EXCHANGE_SPECIFIC({ UnknownMessage().apply { messageId = Modifiable.explicit(49.toByte()) } }),
+    MSG_UNKNOWN_ID_USERAUTH_GENERIC({ UnknownMessage().apply { messageId = Modifiable.explicit(54.toByte()) } }),
+    MSG_UNKNOWN_ID_USERAUTH_SPECIFIC({ UnknownMessage().apply { messageId = Modifiable.explicit(79.toByte()) } }),
+    MSG_UNKNOWN_ID_CONNECTION_GENERIC({ UnknownMessage().apply { messageId = Modifiable.explicit(83.toByte()) } }),
+    MSG_UNKNOWN_ID_CHANNEL_RELATED({ UnknownMessage().apply { messageId = Modifiable.explicit(101.toByte()) } }),
+    MSG_UNKNOWN_ID_RESERVED_CLIENT({ UnknownMessage().apply { messageId = Modifiable.explicit((-128).toByte()) } }),
+    MSG_UNKNOWN_ID_RESERVED_PRIVATE({ UnknownMessage().apply { messageId = Modifiable.explicit((-64).toByte()) } });
 }
