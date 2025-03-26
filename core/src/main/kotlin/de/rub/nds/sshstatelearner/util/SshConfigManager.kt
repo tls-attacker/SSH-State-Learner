@@ -45,8 +45,6 @@ object SshConfigManager {
             }
             defaultRunningMode = RunningModeType.SERVER
             serverSupportedHostKeyAlgorithms = listOf(PublicKeyAlgorithm.ECDSA_SHA2_NISTP521)
-            serverSupportedEncryptionAlgorithmsClientToServer = listOf(EncryptionAlgorithm.CHACHA20_POLY1305_OPENSSH_COM)
-            serverSupportedEncryptionAlgorithmsServerToClient = listOf(EncryptionAlgorithm.CHACHA20_POLY1305_OPENSSH_COM)
             serverSupportedCompressionMethodsClientToServer = listOf(CompressionMethod.NONE)
             serverSupportedCompressionMethodsServerToClient = listOf(CompressionMethod.NONE)
         }
@@ -64,10 +62,8 @@ object SshConfigManager {
             } else {
                 listOf(kex)
             }
-            clientSupportedEncryptionAlgorithmsClientToServer = listOf(EncryptionAlgorithm.CHACHA20_POLY1305_OPENSSH_COM)
-            clientSupportedEncryptionAlgorithmsServerToClient = listOf(EncryptionAlgorithm.CHACHA20_POLY1305_OPENSSH_COM)
+            defaultRunningMode = RunningModeType.CLIENT
             clientSupportedCompressionMethodsClientToServer = listOf(CompressionMethod.NONE)
             clientSupportedCompressionMethodsServerToClient = listOf(CompressionMethod.NONE)
-            defaultRunningMode = RunningModeType.CLIENT
         }
 }
