@@ -1,0 +1,65 @@
+services:
+  asyncssh-server-0:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30020:22"
+  asyncssh-server-1:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30021:22"
+  asyncssh-server-2:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30022:22"
+  asyncssh-server-3:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30023:22"
+  asyncssh-server-4:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30024:22"
+  asyncssh-server-5:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30025:22"
+  asyncssh-server-6:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30026:22"
+  asyncssh-server-7:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30027:22"
+  asyncssh-server-8:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30028:22"
+  asyncssh-server-9:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30029:22"
+  asyncssh-server-10:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30030:22"
+  asyncssh-server-11:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30031:22"
+  asyncssh-server-12:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30032:22"
+  asyncssh-server-13:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30033:22"
+  asyncssh-server-14:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30034:22"
+  asyncssh-server-15:
+    image: rub-nds/asyncssh-server:2.20.0
+    ports:
+      - "127.0.0.1:30035:22"

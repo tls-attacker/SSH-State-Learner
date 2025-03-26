@@ -1,0 +1,65 @@
+services:
+  openssh-server-0:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30020:22"
+  openssh-server-1:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30021:22"
+  openssh-server-2:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30022:22"
+  openssh-server-3:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30023:22"
+  openssh-server-4:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30024:22"
+  openssh-server-5:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30025:22"
+  openssh-server-6:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30026:22"
+  openssh-server-7:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30027:22"
+  openssh-server-8:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30028:22"
+  openssh-server-9:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30029:22"
+  openssh-server-10:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30030:22"
+  openssh-server-11:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30031:22"
+  openssh-server-12:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30032:22"
+  openssh-server-13:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30033:22"
+  openssh-server-14:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30034:22"
+  openssh-server-15:
+    image: rub-nds/openssh-server:9.9p2
+    ports:
+      - "127.0.0.1:30035:22"
