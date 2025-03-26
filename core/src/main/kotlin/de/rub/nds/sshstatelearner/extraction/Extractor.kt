@@ -51,7 +51,7 @@ class Extractor(
     private val storeIntermediateHypotheses: Boolean,
     private val outputDirectory: String,
     private val isClient: Boolean,
-    private val forkCount: Int = 1
+    private val parallel: Int = 1
 ) {
 
     /**
@@ -103,7 +103,7 @@ class Extractor(
     private fun constructOracles() {
         // Forks the SUL and then stores it in the cache
         val suls = mutableListOf<SULOracle<SshSymbol, ResponseFingerprint>>()
-        repeat(forkCount) {
+        repeat(parallel - 1) {
             suls.add(SULOracle(sul.fork()))
         }
         membershipOracle = ResponseTreeCache(suls, EmptySMLLimiter(), 1)
@@ -113,7 +113,7 @@ class Extractor(
             sul,
             membershipOracle,
             isClient,
-            4 * forkCount
+            4 * parallel
         )
     }
 

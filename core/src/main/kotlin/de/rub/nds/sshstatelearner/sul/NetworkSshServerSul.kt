@@ -42,6 +42,9 @@ class NetworkSshServerSul(
          * Logger for the NetworkSshSul class.
          */
         private val LOGGER: Logger = LogManager.getLogger()
+
+        // TODO: Manage available server forks more elegantly
+        private var forkCount: Int = 0
     }
 
     /**
@@ -80,7 +83,7 @@ class NetworkSshServerSul(
      */
     override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
         LOGGER.trace("Executing symbol: {}", symbol)
-        val protocolMessage = symbol.messageCreator()
+        val protocolMessage = symbol.messageConstructor(state.sshContext)
         protocolMessage.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         sendMessage(protocolMessage)
@@ -102,7 +105,8 @@ class NetworkSshServerSul(
      * Returns a new SUL instance that must behave exactly as the original SUL.
      */
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        return NetworkSshServerSul(name, hostname, port, timeout, resetDelay, stage, kex, strictKex)
+        forkCount++
+        return NetworkSshServerSul(name, hostname, port + forkCount, timeout, resetDelay, stage, kex, strictKex)
     }
 
     override fun toString(): String {

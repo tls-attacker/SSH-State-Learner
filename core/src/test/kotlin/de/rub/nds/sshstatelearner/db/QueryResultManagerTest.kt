@@ -4,7 +4,7 @@ import de.rub.nds.sshstatelearner.algorithms.Statistics
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
-import net.automatalib.words.Word
+import net.automatalib.word.Word
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
@@ -21,9 +21,9 @@ class QueryResultManagerTest {
         val suffix = Word.fromSymbols(SshSymbol.MSG_IGNORE)
         val suffix2 = Word.fromSymbols(SshSymbol.MSG_IGNORE, SshSymbol.MSG_NEWKEYS)
         val responseFingerprint =
-            Word.fromSymbols(ResponseFingerprint(listOf(SshSymbol.MSG_IGNORE.messageCreator()), SocketState.UP))
+            Word.fromSymbols(ResponseFingerprint(listOf(SshSymbol.MSG_IGNORE.messageConstructor(null)), SocketState.UP, false))
         val responseFingerprint2 =
-            Word.fromSymbols(ResponseFingerprint(listOf(SshSymbol.MSG_NEWKEYS.messageCreator()), SocketState.UP))
+            Word.fromSymbols(ResponseFingerprint(listOf(SshSymbol.MSG_NEWKEYS.messageConstructor(null)), SocketState.UP, false))
 
         queryResultManager.addDBQueryResult(prefix, suffix, responseFingerprint)
         queryResultManager.addDBQueryResult(prefix, suffix, responseFingerprint2)

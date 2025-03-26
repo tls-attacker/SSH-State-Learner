@@ -7,7 +7,7 @@ import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiterTyp
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import net.automatalib.words.Word
+import net.automatalib.word.Word
 
 /**
  * This class bundles all configuration options for state learning.

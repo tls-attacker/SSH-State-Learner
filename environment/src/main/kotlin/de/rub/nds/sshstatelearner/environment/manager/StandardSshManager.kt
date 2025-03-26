@@ -12,7 +12,7 @@ import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
 import net.automatalib.alphabet.Alphabet
-import net.automatalib.words.impl.ListAlphabet
+import net.automatalib.alphabet.impl.ListAlphabet
 import java.io.File
 import java.io.FileWriter
 

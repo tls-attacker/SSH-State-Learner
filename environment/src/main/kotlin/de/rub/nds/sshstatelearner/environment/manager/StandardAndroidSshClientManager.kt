@@ -65,6 +65,7 @@ class StandardAndroidSshClientManager(
                         configAndroidClientSul.resetDelay,
                         configAndroidClientSul.protocolStage,
                         configAndroidClientSul.kexAlgorithm,
+                        configAndroidClientSul.strictKex,
                         configAndroidClientSul.enableEncryptionOnNewKeysMessage,
                         clientConnectionHandler
                     )

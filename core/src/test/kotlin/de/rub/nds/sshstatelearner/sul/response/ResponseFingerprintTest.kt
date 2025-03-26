@@ -8,22 +8,22 @@ class ResponseFingerprintTest {
 
     @Test
     fun testHashCode() {
-        val fingerprintEmptyMessageAndClosedMessage = ResponseFingerprint(listOf(), SocketState.CLOSED)
-        val fingerprintEmptyMessageAndOpenMessage = ResponseFingerprint(listOf(), SocketState.UP)
+        val fingerprintEmptyMessageAndClosedMessage = ResponseFingerprint(listOf(), SocketState.CLOSED, false)
+        val fingerprintEmptyMessageAndOpenMessage = ResponseFingerprint(listOf(), SocketState.UP, false)
         Assertions.assertFalse(fingerprintEmptyMessageAndOpenMessage == fingerprintEmptyMessageAndClosedMessage)
     }
 
     @Test
     fun testHashCode2() {
-        val fingerprintEmptyMessageAndClosedMessage = ResponseFingerprint(listOf(), SocketState.UP)
-        val fingerprintEmptyMessageAndOpenMessage = ResponseFingerprint(listOf(), SocketState.UP)
+        val fingerprintEmptyMessageAndClosedMessage = ResponseFingerprint(listOf(), SocketState.UP, false)
+        val fingerprintEmptyMessageAndOpenMessage = ResponseFingerprint(listOf(), SocketState.UP, false)
         Assertions.assertTrue(fingerprintEmptyMessageAndOpenMessage == fingerprintEmptyMessageAndClosedMessage)
     }
 
     @Test
     fun testHashCode3() {
-        val fingerprintEmptyMessageAndClosedMessage = ResponseFingerprint(listOf(), SocketState.CLOSED)
-        val fingerprintEmptyMessageAndOpenMessage = ResponseFingerprint(listOf(), SocketState.CLOSED)
+        val fingerprintEmptyMessageAndClosedMessage = ResponseFingerprint(listOf(), SocketState.CLOSED, false)
+        val fingerprintEmptyMessageAndOpenMessage = ResponseFingerprint(listOf(), SocketState.CLOSED, false)
         Assertions.assertTrue(fingerprintEmptyMessageAndOpenMessage == fingerprintEmptyMessageAndClosedMessage)
     }
 }
