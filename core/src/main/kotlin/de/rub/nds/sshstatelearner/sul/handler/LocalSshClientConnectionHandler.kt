@@ -1,13 +1,15 @@
-package de.rub.nds.sshstatelearner.sul
+package de.rub.nds.sshstatelearner.sul.handler
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 
 /**
  * This class starts the local client and establishes a connection to the SUL.
  */
-class LocalSSHClientConnectionHandler(
+class LocalSshClientConnectionHandler(
     private val ip: String,
-    private val port: Int,
+    override val port: Int,
     private val preLearnFingerprintAcceptance: Boolean
 ) : ClientConnectionHandler {
     private val acceptFingerprintOption = "-o StrictHostKeyChecking=accept-new"
@@ -21,20 +23,16 @@ class LocalSSHClientConnectionHandler(
 
     private val jobs: MutableList<Process> = mutableListOf()
 
-    override fun init() {
-        // Nothing to init
+    override fun init() = Unit
+
+    override suspend fun connect() {
+        delay(10)
+        jobs.add(withContext(Dispatchers.IO) {
+            process.start()
+        })
     }
 
     override fun exit() {
         jobs.forEach { if (it.isAlive) it.destroy() }
-    }
-
-    override suspend fun subscribeForConnection() {
-        delay(10)
-        jobs.add(process.start())
-    }
-
-    override fun getPort(): Int {
-        return port
     }
 }

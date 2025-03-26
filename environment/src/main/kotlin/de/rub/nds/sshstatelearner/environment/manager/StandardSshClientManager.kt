@@ -2,10 +2,10 @@ package de.rub.nds.sshstatelearner.environment.manager
 
 import de.rub.nds.sshstatelearner.config.ConfigClientSul
 import de.rub.nds.sshstatelearner.config.ConfigGeneral
-import de.rub.nds.sshstatelearner.sul.ClientConnectionHandler
-import de.rub.nds.sshstatelearner.sul.LocalSSHClientConnectionHandler
+import de.rub.nds.sshstatelearner.sul.handler.ClientConnectionHandler
+import de.rub.nds.sshstatelearner.sul.handler.LocalSshClientConnectionHandler
 import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
-import de.rub.nds.sshstatelearner.sul.NetworkSshClientSulProxy
+import de.rub.nds.sshstatelearner.sul.PooledNetworkSshClientSul
 import de.rub.nds.sshstatelearner.sul.SshClientWorker
 import de.rub.nds.sshstatelearner.sul.SshSul
 import kotlinx.coroutines.Dispatchers
@@ -24,7 +24,7 @@ class StandardSshClientManager(configGeneral: ConfigGeneral, private val configC
         fun createConnectionHandlersForClients() {
             runBlocking {
                 for (connectionInfo in configClientSul.connectionInfos) {
-                    val connectionHandler = LocalSSHClientConnectionHandler(
+                    val connectionHandler = LocalSshClientConnectionHandler(
                         connectionInfo.ipToServer,
                         connectionInfo.portToServer,
                         configClientSul.preLearnFingerprintAcceptance
@@ -43,7 +43,7 @@ class StandardSshClientManager(configGeneral: ConfigGeneral, private val configC
                 suls.add(
                     NetworkSshClientSul(
                         configClientSul.name,
-                        clientConnectionHandler.getPort(),
+                        clientConnectionHandler.port,
                         configClientSul.timeout,
                         configClientSul.resetDelay,
                         configClientSul.protocolStage,
@@ -63,7 +63,7 @@ class StandardSshClientManager(configGeneral: ConfigGeneral, private val configC
 
     override fun getCountOfParallelSuls(): Int = configClientSul.connectionInfos.size
 
-    override fun getSul(): SshSul = NetworkSshClientSulProxy(
+    override fun getSul(): SshSul = PooledNetworkSshClientSul(
         configClientSul.name,
         configClientSul.timeout,
         configClientSul.resetDelay,

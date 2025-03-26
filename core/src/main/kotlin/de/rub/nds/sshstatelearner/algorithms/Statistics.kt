@@ -22,6 +22,7 @@ data class Statistics(
     val equivSymbolCount: Long,
     val equivResetCount: Long,
     val cacheInconsistencyRestarts: Int,
+    val cacheHitRate: Double,
     val duration: Long
 ) {
     var totalQueryCount: Long? = null
@@ -47,6 +48,7 @@ data class Statistics(
             println("Number of steps during equivalence checks: $equivSymbolCount")
             println("Number of resets during equivalence checks: $equivResetCount")
             println("Number of restarts due to cache inconsistencies: $cacheInconsistencyRestarts")
+            println("Cache hit rate: $cacheHitRate")
             println("Time it took to learn state machine: $duration milliseconds")
             totalQueryCount?.let { println("Total count of queries: $it") }
             totalUniqueQueryCount?.let { println("Total count of unique queries: $it") }

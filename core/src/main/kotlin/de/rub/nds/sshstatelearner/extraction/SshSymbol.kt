@@ -14,6 +14,7 @@ import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthFailu
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthPasswordMessage
 import de.rub.nds.sshattacker.core.protocol.authentication.message.UserAuthSuccessMessage
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
+import de.rub.nds.sshattacker.core.protocol.common.SshMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelCloseMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelEofMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelFailureMessage

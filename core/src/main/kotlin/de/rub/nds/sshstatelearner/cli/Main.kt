@@ -8,7 +8,6 @@
  */
 package de.rub.nds.sshstatelearner.cli
 
-//import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import com.beust.jcommander.JCommander
 import com.googlecode.lanterna.gui2.AsynchronousTextGUIThread
 import com.googlecode.lanterna.gui2.MultiWindowTextGUI
@@ -21,12 +20,13 @@ import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
 import de.rub.nds.sshstatelearner.cli.args.ArgsSul
 import de.rub.nds.sshstatelearner.constants.ExecutorType
-import de.rub.nds.sshstatelearner.constants.SULTyp
+import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
 import de.rub.nds.sshstatelearner.sul.NetworkSshServerSul
+import de.rub.nds.sshstatelearner.sul.SshSul
 import net.automatalib.alphabet.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider
@@ -36,7 +36,7 @@ import java.security.Security
 import kotlin.system.exitProcess
 
 /**
- * Prepares the JCE (Java Cryptographic Extension) by adding the BouncyCastle provider.
+ * Prepares the JCE (Java Cryptographic Extension) by adding the BouncyCastle providers.
  */
 private fun prepareJCE() {
     Security.addProvider(BouncyCastleProvider())
@@ -100,50 +100,47 @@ private fun setEquivalenceOracleDefaults() {
  */
 private fun conductProtocolLearning(): Extractor.ExtractorResult {
     val alphabet = if (ArgsSul.alphabet != null) ListAlphabet(ArgsSul.alphabet) else AlphabetFactory.construct(
+        ArgsSul.sulType,
         ArgsSul.protocolStage,
-        ArgsSul.kexAlgorithm,
-        ArgsSul.sulTyp.isClient
+        ArgsSul.kexAlgorithm
     )
     MainWindow.infoAlphabetSize.text = alphabet.size.toString()
-    when (ArgsGeneral.executor) {
-        ExecutorType.NYX -> throw NotImplementedException("NYX executor is not yet implemented")
-        ExecutorType.NETWORK ->
-            when (ArgsSul.sulTyp) {
-                SULTyp.CLIENT_IS_UNDER_TEST -> NetworkSshClientSul(
-                    ArgsSul.name,
-                    ArgsSul.port,
-                    ArgsSul.timeout,
-                    ArgsSul.resetDelay,
-                    ArgsSul.protocolStage,
-                    ArgsSul.kexAlgorithm,
-                    ArgsSul.strictKex
-                )
+    val sulList: List<SshSul> = ArgsSul.port.map {
+        when (ArgsGeneral.executor) {
+            ExecutorType.NETWORK ->
+                when (ArgsSul.sulType) {
+                    SulType.CLIENT -> NetworkSshClientSul(
+                        ArgsSul.name,
+                        it,
+                        ArgsSul.timeout,
+                        ArgsSul.resetDelay,
+                        ArgsSul.protocolStage,
+                        ArgsSul.kexAlgorithm,
+                        ArgsSul.strictKex
+                    )
 
-                SULTyp.SERVER_IS_UNDER_TEST -> NetworkSshServerSul(
-                    ArgsSul.name,
-                    ArgsSul.hostname,
-                    ArgsSul.port,
-                    ArgsSul.timeout,
-                    ArgsSul.resetDelay,
-                    ArgsSul.protocolStage,
-                    ArgsSul.kexAlgorithm,
-                    ArgsSul.strictKex
-                )
-            }
-
-    }.use {
-        val learner = Extractor(
-            alphabet,
-            it,
-            ArgsLearner.learningAlgorithmType,
-            ArgsLearner.equivOracleChainTypes,
-            ArgsLearner.outputIntermediateHypothesis,
-            ArgsGeneral.output,
-            ArgsSul.sulTyp.isClient,
-            16
-        )
-        return learner.extractStateMachine()
+                    SulType.SERVER -> NetworkSshServerSul(
+                        ArgsSul.name,
+                        ArgsSul.hostname,
+                        it,
+                        ArgsSul.timeout,
+                        ArgsSul.resetDelay,
+                        ArgsSul.protocolStage,
+                        ArgsSul.kexAlgorithm,
+                        ArgsSul.strictKex
+                    )
+                }
+        }
     }
+    val learner = Extractor(
+        alphabet,
+        sulList,
+        ArgsLearner.learningAlgorithmType,
+        ArgsLearner.equivOracleChainTypes,
+        ArgsLearner.outputIntermediateHypothesis,
+        ArgsGeneral.output
+    )
+    return learner.extractStateMachine()
 }
 
 private fun analyzeExtractorResult(result: Extractor.ExtractorResult) = result.learnedModel.analyzeMealyMachine()
@@ -181,7 +178,6 @@ private fun updateMainWindowInfoPanel() {
     // TODO: CLI parameters
     MainWindow.infoExecutor.text = ArgsGeneral.executor.toString()
     MainWindow.infoTarget.text = when (ArgsGeneral.executor) {
-        ExecutorType.NYX -> "/home/fabian/Workspace/targets/packed_targets/nyx_openssh"
         ExecutorType.NETWORK -> "ssh://${ArgsSul.hostname}:${ArgsSul.port}"
     }
     MainWindow.infoStage.text = ArgsSul.protocolStage.toString()

@@ -16,7 +16,8 @@ import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.SendAction
-import de.rub.nds.sshstatelearner.constants.SULTyp
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.SshConfigManager
@@ -42,9 +43,6 @@ class NetworkSshServerSul(
          * Logger for the NetworkSshSul class.
          */
         private val LOGGER: Logger = LogManager.getLogger()
-
-        // TODO: Manage available server forks more elegantly
-        private var forkCount: Int = 0
     }
 
     /**
@@ -67,7 +65,7 @@ class NetworkSshServerSul(
     }
 
     /**
-     * Executes a version exchange on the state and changes the packet layer to binary packets afterwards. This function
+     * Executes a version exchange on the state and changes the packet layer to binary packets afterward. This function
      * will be called during the pre() lifecycle hook after initializing a new state and opening the connection.
      */
     private fun preVersionExchange() {
@@ -87,27 +85,16 @@ class NetworkSshServerSul(
         protocolMessage.getHandler(state.sshContext).preparator.prepare()
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         sendMessage(protocolMessage)
-        Thread.sleep(50L)
-        return retrieveMessages()
+        return retrieveMessages(100L)
     }
 
-    override val isClient: Boolean
-        get() = SULTyp.SERVER_IS_UNDER_TEST.isClient
+    override val sulType: SulType
+        get() = SulType.SERVER
 
     /**
      * Indicates whether this SUL can be forked for parallel queries.
      */
-    override fun canFork(): Boolean {
-        return true
-    }
-
-    /**
-     * Returns a new SUL instance that must behave exactly as the original SUL.
-     */
-    override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        forkCount++
-        return NetworkSshServerSul(name, hostname, port + forkCount, timeout, resetDelay, stage, kex, strictKex)
-    }
+    override fun canFork(): Boolean = false
 
     override fun toString(): String {
         return "NetworkSshSul[hostname=$hostname,port=$port,timeout=$timeout,resetDelay=$resetDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"

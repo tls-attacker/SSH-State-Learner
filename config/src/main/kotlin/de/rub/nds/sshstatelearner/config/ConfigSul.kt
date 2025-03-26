@@ -8,9 +8,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo
 import de.rub.nds.sshattacker.core.constants.ConnectionDirection
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.analysis.classifier.StateNameAndSuccessorTransition
-import de.rub.nds.sshstatelearner.constants.SULTyp
+import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
 
 /**
@@ -77,8 +77,8 @@ abstract class ConfigSul(
 
 
     @field:JsonPropertyDescription("Type under test")
-    @field:JsonProperty(defaultValue = "CLIENT_IS_UNDER_TEST")
-    var sulTyp: SULTyp = SULTyp.CLIENT_IS_UNDER_TEST,
+    @field:JsonProperty(defaultValue = "SERVER")
+    var sulType: SulType = SulType.SERVER,
 
 
     @field:JsonPropertyDescription("This attribute allows the SSH client to automatically accept the server's fingerprint before initiating the learning process")

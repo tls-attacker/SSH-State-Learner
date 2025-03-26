@@ -13,18 +13,7 @@ class StandardSshServerManager(configGeneral: ConfigGeneral, val configServerSul
     }
 
     override fun getSul(): SshSul = when (configGeneral.executorType) {
-//        ExecutorType.NYX -> NyxSshSul(
-//            ArgsSul.name,
-//            "/home/fabian/Workspace/targets/packed_targets/nyx_openssh",
-//            "/tmp/nyx",
-//            0,
-//            ArgsSul.timeout,
-//            ArgsSul.resetDelay,
-//            ArgsSul.protocolStage,
-//            ArgsSul.kexAlgorithm
-//        )
-
-        ExecutorType.NYX, ExecutorType.NETWORK -> {
+        ExecutorType.NETWORK -> {
             NetworkSshServerSul(
                 configServerSul.name,
                 configServerSul.hostname,
@@ -42,5 +31,4 @@ class StandardSshServerManager(configGeneral: ConfigGeneral, val configServerSul
     override fun setDown() {
         /* Do Nothing */
     }
-
 }

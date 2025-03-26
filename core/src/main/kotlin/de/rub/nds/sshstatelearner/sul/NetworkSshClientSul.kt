@@ -17,8 +17,11 @@ import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.SendAction
-import de.rub.nds.sshstatelearner.constants.SULTyp
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
+import de.rub.nds.sshstatelearner.sul.handler.ClientConnectionHandler
+import de.rub.nds.sshstatelearner.sul.handler.EmptyClientConnectionHandler
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.SshConfigManager
 import de.rub.nds.tlsattacker.transport.tcp.ServerTcpTransportHandler
@@ -75,7 +78,7 @@ class NetworkSshClientSul(
                         launch(Dispatchers.IO) {
                             delay(10.toDuration(DurationUnit.SECONDS))
                             state.sshContext.transportHandler.closeConnection()
-                            LOGGER.warn("SUL with port ${port} could not be started successfully within 60 seconds! Try again!")
+                            LOGGER.warn("SUL with port $port could not be started successfully within 60 seconds! Try again!")
                             this.cancel()
                         }
 
@@ -86,7 +89,7 @@ class NetworkSshClientSul(
                         serverIsReady = true
                     }
                     val jobClient = launch(Dispatchers.IO) {
-                        clientConnectionHandler.subscribeForConnection()
+                        clientConnectionHandler.connect()
                         connectionIsReady = true
                     }
                     joinAll(jobClient, jobServer)
@@ -134,39 +137,20 @@ class NetworkSshClientSul(
     override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
         LOGGER.trace("Executing symbol: {}", symbol)
         val protocolMessage = symbol.messageConstructor(state.sshContext)
-        protocolMessage.getHandler(state.sshContext).getPreparator().prepare()
+        protocolMessage.getHandler(state.sshContext).preparator.prepare()
         sendMessage(protocolMessage)
         // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
         val retrieveDelay = 50L
         return retrieveMessages(retrieveDelay)
     }
 
-    override val isClient: Boolean
-        get() = SULTyp.CLIENT_IS_UNDER_TEST.isClient
+    override val sulType: SulType
+        get() = SulType.CLIENT
 
     /**
      * Indicates whether this SUL can be forked for parallel queries.
      */
-    override fun canFork(): Boolean {
-        return false
-    }
-
-    /**
-     * Returns a new SUL instance that must behave exactly as the original SUL.
-     */
-    override fun fork(): SUL<SshSymbol, ResponseFingerprint> {
-        return NetworkSshClientSul(
-            name,
-            port,
-            timeout,
-            resetDelay,
-            stage,
-            kex,
-            strictKex,
-            enableEncryptionOnNewKeysMessage,
-            clientConnectionHandler
-        )
-    }
+    override fun canFork(): Boolean = false
 
     override fun toString(): String {
         return "NetworkSshClientSul[port=$port,timeout=$timeout,resetDelay=$resetDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"

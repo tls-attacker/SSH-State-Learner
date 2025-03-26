@@ -8,9 +8,9 @@ import de.rub.nds.sshattacker.core.workflow.factory.WorkflowTraceType
 import de.rub.nds.sshstatelearner.util.SshConfigManager
 
 /**
- * Class for starting an SSH server to accept the host key before the SML.
+ * A simple SSH server based on SSH-Attacker. May be used to prepare client connections for learning.
  */
-class SshServerForFingerprint(port: Int) {
+class SimpleSshServer(port: Int) {
     private val config: Config =
         SshConfigManager.getServerConfig().apply {
             workflowTraceType = WorkflowTraceType.FULL
@@ -19,11 +19,9 @@ class SshServerForFingerprint(port: Int) {
 
     private val state: State = State(config)
 
-    private val workflowExecuter = DefaultWorkflowExecutor(state)
+    private val workflowExecutor = DefaultWorkflowExecutor(state)
 
-    fun execute() {
-        workflowExecuter.executeWorkflow()
-    }
+    fun execute() = workflowExecutor.executeWorkflow()
 
     fun close() {
         if (!state.sshContext.transportHandler.isInitialized) {

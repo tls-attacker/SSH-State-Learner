@@ -11,7 +11,8 @@ package de.rub.nds.sshstatelearner.extraction
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
 import de.rub.nds.sshattacker.core.exceptions.NotImplementedException
-import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.SulType
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import net.automatalib.word.Word
 
 /**
@@ -25,12 +26,12 @@ object HappyFlowFactory {
     /**
      * Constructs an array of key exchange specific symbols based on the flow type of the selected key exchange algorithm.
      *
-     * @param client Whether the symbols should be constructed for a client or a server.
+     * @param sulType Specifies whether the symbols are constructed for a client or a server.
      * @param kex The selected key exchange algorithm.
      * @return An array of key exchange specific symbols in valid order.
      */
-    private fun constructKexFlow(client: Boolean, kex: KeyExchangeAlgorithm): Array<SshSymbol> {
-        return if (client) when (kex.flowType) {
+    private fun constructKexFlow(sulType: SulType, kex: KeyExchangeAlgorithm): Array<SshSymbol> {
+        return if (sulType == SulType.SERVER) when (kex.flowType) {
                 KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> arrayOf(
                     SshSymbol.MSG_KEX_DH_GEX_REQUEST,
                     SshSymbol.MSG_KEX_DH_GEX_INIT
@@ -74,22 +75,22 @@ object HappyFlowFactory {
     /**
      * Constructs a happy flow which, applied on a fresh SUL oracle, lead to a desired output.
      *
-     * @param client Whether the happy flow should be constructed for a client or a server.
+     * @param sulType Specifies whether the happy flow is constructed for a client or a server.
      * @param stage The protocol stage to construct a happy flow for.
      * @param kex The selected key exchange method to construct a happy flow for.
      * @return The word representing a happy flow within the provided protocol stage and key exchange algorithm.
      */
-    fun constructHappyFlow(client: Boolean, stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
-        return if (client) when (stage) {
+    fun constructHappyFlow(sulType: SulType, stage: ProtocolStage, kex: KeyExchangeAlgorithm): Word<SshSymbol> {
+        return if (sulType == SulType.SERVER) when (stage) {
             ProtocolStage.TRANSPORT -> Word.fromSymbols(
                 SshSymbol.MSG_KEXINIT,
-                *constructKexFlow(true, kex),
+                *constructKexFlow(sulType, kex),
                 SshSymbol.MSG_NEWKEYS,
                 SshSymbol.MSG_SERVICE_REQUEST_USERAUTH
             )
             ProtocolStage.TRANSPORT_KEX -> Word.fromSymbols(
                 SshSymbol.MSG_KEXINIT,
-                *constructKexFlow(true, kex),
+                *constructKexFlow(sulType, kex),
                 SshSymbol.MSG_NEWKEYS
             )
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
@@ -104,13 +105,13 @@ object HappyFlowFactory {
         else when (stage) {
             ProtocolStage.TRANSPORT -> Word.fromSymbols(
                 SshSymbol.MSG_KEXINIT,
-                *constructKexFlow(false, kex),
+                *constructKexFlow(sulType, kex),
                 SshSymbol.MSG_NEWKEYS,
                 SshSymbol.MSG_SERVICE_ACCEPT
             )
             ProtocolStage.TRANSPORT_KEX -> Word.fromSymbols(
                 SshSymbol.MSG_KEXINIT,
-                *constructKexFlow(false, kex),
+                *constructKexFlow(sulType, kex),
                 SshSymbol.MSG_NEWKEYS,
             )
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(

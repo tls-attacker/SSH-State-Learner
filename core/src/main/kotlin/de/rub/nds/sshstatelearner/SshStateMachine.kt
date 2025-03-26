@@ -21,7 +21,7 @@ import de.rub.nds.sshstatelearner.analysis.data.SshManualGraphDetails
 import de.rub.nds.sshstatelearner.analysis.data.SshTransportGraphDetails
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.visualization.SSHDOTVisualizationHelper
 import de.rub.nds.sshstatelearner.visualization.ShortMealyVisualizationHelper

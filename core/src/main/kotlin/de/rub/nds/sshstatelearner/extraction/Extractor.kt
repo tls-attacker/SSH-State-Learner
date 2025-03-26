@@ -9,14 +9,17 @@
 package de.rub.nds.sshstatelearner.extraction
 
 import de.learnlib.oracle.EquivalenceOracle
-import de.learnlib.query.DefaultQuery
+import de.learnlib.oracle.ParallelOracle
+import de.learnlib.oracle.ThreadPool
 import de.learnlib.oracle.membership.SULOracle
+import de.learnlib.query.DefaultQuery
+import de.learnlib.oracle.parallelism.ParallelOracleBuilders
+import de.learnlib.sul.SUL
 import de.rub.nds.sshstatelearner.SshStateMachine
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
-import de.rub.nds.sshstatelearner.algorithms.ResponseTreeCache
+import de.rub.nds.sshstatelearner.algorithms.ParallelResponseTreeCache
 import de.rub.nds.sshstatelearner.algorithms.Statistics
-import de.rub.nds.sshstatelearner.analysis.limiter.EmptySMLLimiter
 import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
@@ -45,24 +48,32 @@ import java.util.*
  */
 class Extractor(
     private val alphabet: Alphabet<SshSymbol>,
-    sul: SshSul,
+    private val sshSulList: List<SshSul>,
     private val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT,
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
     private val storeIntermediateHypotheses: Boolean,
-    private val outputDirectory: String,
-    private val isClient: Boolean,
-    private val parallel: Int = 1
+    private val outputDirectory: String
 ) {
 
     /**
-     * The SUL to learn.
+     * Data structure to store statistics about the learning process.
      */
-    private var sul: AdvancedStatisticSul<SshSul, SshSymbol, ResponseFingerprint>
+    private val learningStats: AdvancedStatisticSul.Data = AdvancedStatisticSul.Data()
+
+    /**
+     * The list of SULs that are used to construct the oracles used in the learning process.
+     */
+    private val sulList: List<AdvancedStatisticSul<SshSul, SshSymbol, ResponseFingerprint>> = sshSulList.map { AdvancedStatisticSul(it, learningStats) }
+
+    /**
+     * The parallel oracle that is used within the learning algorithm.
+     */
+    private lateinit var oracle: ParallelOracle<SshSymbol, Word<ResponseFingerprint>>
 
     /**
      * The membership oracle that is used within the learning algorithm. A cached variant of a SULOracle is used.
      */
-    private lateinit var membershipOracle: ResponseTreeCache
+    private lateinit var membershipOracle: ParallelResponseTreeCache
 
     /**
      * The equivalence oracle that is used during the learning process.
@@ -75,7 +86,7 @@ class Extractor(
     private var cacheInconsistencyRestarts: Int = 0
 
     /**
-     * Unix time (in milliseconds) when
+     * Unix time (in milliseconds) when the extraction process started.
      */
     private var extractionStartTime: Long = 0
 
@@ -89,10 +100,6 @@ class Extractor(
      */
     private var guiUpdateTimer: Timer = Timer("GUIUpdateTimer")
 
-    init {
-        this.sul = AdvancedStatisticSul(sul)
-    }
-
     companion object {
         private val LOGGER: Logger = LogManager.getLogger()
     }
@@ -101,19 +108,20 @@ class Extractor(
      * Constructs the membership and equivalence oracle to use within the learning process.
      */
     private fun constructOracles() {
-        // Forks the SUL and then stores it in the cache
-        val suls = mutableListOf<SULOracle<SshSymbol, ResponseFingerprint>>()
-        repeat(parallel - 1) {
-            suls.add(SULOracle(sul.fork()))
-        }
-        membershipOracle = ResponseTreeCache(suls, EmptySMLLimiter(), 1)
+        // Create a parallel membership oracle with the specified number of parallel SULs
+        oracle = ParallelOracleBuilders
+            .newStaticParallelOracle(sulList.map { SULOracle(it) }.toMutableList())
+            .withMinBatchSize(5)
+            .withPoolPolicy(ThreadPool.PoolPolicy.FIXED)
+            .create()
+        membershipOracle = ParallelResponseTreeCache(oracle)
         equivalenceOracle = EquivalenceOracleFactory.createChain(
             equivalenceOracleChainTypes,
             membershipOracle.asOracle(),
-            sul,
+            sulList[0],
+            sshSulList[0].sulType,
             membershipOracle,
-            isClient,
-            4 * parallel
+            25 * sulList.size
         )
     }
 
@@ -133,12 +141,12 @@ class Extractor(
                 extractorResult = provideResult()
             } catch (e: CacheConflictException) {
                 LOGGER.warn(e.message)
-                val majorityResult = sul.nestedSul.majorityVote(e.inputPrefix, e.inputSuffix, 7)
-                membershipOracle.overwrite(e.inputPrefix, e.inputSuffix, majorityResult)
+                val majorityResult = sshSulList[0].majorityVote(e.inputPrefix, e.inputSuffix, 7)
+                membershipOracle.update(e.inputPrefix, e.inputSuffix, majorityResult, true)
                 cacheInconsistencyRestarts++
             }
         } while (extractorResult == null)
-
+        oracle.shutdownNow()
         return extractorResult
     }
 
@@ -151,10 +159,11 @@ class Extractor(
                 MainWindow.statLearningRound.text = rounds.toString()
                 MainWindow.statLearningExecTime.text = "${(System.currentTimeMillis() - extractionStartTime) / 1000} s"
                 MainWindow.statLearningSteps.text =
-                    "${sul.totalSymbolCount} (${sul.learnSymbolCount} / ${sul.equivSymbolCount})"
+                    "${learningStats.totalSymbolCount} (${learningStats.learnSymbolCount} / ${learningStats.equivSymbolCount})"
                 MainWindow.statLearningResets.text =
-                    "${sul.totalResetCount} (${sul.learnResetCount} / ${sul.equivResetCount})"
+                    "${learningStats.totalResetCount} (${learningStats.learnResetCount} / ${learningStats.equivResetCount})"
                 MainWindow.statLearningCacheInconsistencies.text = cacheInconsistencyRestarts.toString()
+                MainWindow.statLearningCacheHitRate.text = membershipOracle.cacheHitRate.toString()
             }
         }
         guiUpdateTimer.scheduleAtFixedRate(task, 0, 250)
@@ -175,13 +184,13 @@ class Extractor(
         var hypothesis: MealyMachine<*, SshSymbol, *, ResponseFingerprint>
         var counterExample: DefaultQuery<SshSymbol, Word<ResponseFingerprint>>?
 
-        sul.switchToLearningCounters()
+        sulList.forEach { it.switchToLearningCounters() }
         MainWindow.statLearningPhase.text = "LEARNING"
         learningAlgorithm.startLearning()
         do {
             hypothesis = learningAlgorithm.hypothesisModel
             val stateMachine =
-                SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex, sul.nestedSul.strictKex)
+                SshStateMachine(hypothesis, alphabet, sshSulList[0].name, sshSulList[0].stage, sshSulList[0].kex, sshSulList[0].strictKex)
             extractorResult.addHypothesis(stateMachine)
 
             if (storeIntermediateHypotheses) {
@@ -189,39 +198,40 @@ class Extractor(
                 stateMachine.analyzeMealyMachine()
                 serializeHypothesis(stateMachine, "hyp$rounds.dot")
             }
-            LOGGER.info("Finished learning round ${rounds++}, searching for counter examples (executed SUL steps: ${sul.totalSymbolCount})")
+            LOGGER.info("Finished learning round ${rounds++}, searching for counter examples (executed SUL steps: ${learningStats.totalSymbolCount})")
 
-            sul.switchToEquivalenceCounters()
+            sulList.forEach { it.switchToEquivalenceCounters() }
             MainWindow.statLearningPhase.text = "EQUIVALENCE CHECK"
 
             counterExample = equivalenceOracle.findCounterExample(hypothesis, alphabet)
             if (counterExample != null) {
                 LOGGER.info("The equivalence oracle found a counter example: $counterExample")
                 LOGGER.info("Passing counter example to learning algorithm for hypothesis refinement")
-                sul.switchToLearningCounters()
+                sulList.forEach{ it.switchToLearningCounters() }
                 MainWindow.statLearningPhase.text = "LEARNING"
                 learningAlgorithm.refineHypothesis(counterExample)
             }
         } while (counterExample != null)
 
         LOGGER.info("Finished learning the target SUL after $rounds rounds")
-        LOGGER.info("Total steps: ${sul.totalSymbolCount} (Learning: ${sul.learnSymbolCount} | Equivalence: ${sul.equivSymbolCount})")
-        LOGGER.info("Total resets: ${sul.totalResetCount} (Learning: ${sul.learnResetCount} | Equivalence: ${sul.equivResetCount})")
+        LOGGER.info("Total steps: ${learningStats.totalSymbolCount} (Learning: ${learningStats.learnSymbolCount} | Equivalence: ${learningStats.equivSymbolCount})")
+        LOGGER.info("Total resets: ${learningStats.totalResetCount} (Learning: ${learningStats.learnResetCount} | Equivalence: ${learningStats.equivResetCount})")
 
         guiUpdateTimer.cancel()
 
         val stateMachine =
-            SshStateMachine(hypothesis, alphabet, sul.nestedSul.name, sul.nestedSul.stage, sul.nestedSul.kex, sul.nestedSul.strictKex)
+            SshStateMachine(hypothesis, alphabet, sshSulList[0].name, sshSulList[0].stage, sshSulList[0].kex, sshSulList[0].strictKex)
         val statistics = Statistics(
             states = stateMachine.mealyMachine.size(),
             counterExampleCount = rounds - 1,
-            totalSymbolCount = sul.totalSymbolCount,
-            totalResetCount = sul.totalResetCount,
-            learnSymbolCount = sul.learnSymbolCount,
-            learnResetCount = sul.learnResetCount,
-            equivSymbolCount = sul.equivSymbolCount,
-            equivResetCount = sul.equivResetCount,
+            totalSymbolCount = learningStats.totalSymbolCount,
+            totalResetCount = learningStats.totalResetCount,
+            learnSymbolCount = learningStats.learnSymbolCount,
+            learnResetCount = learningStats.learnResetCount,
+            equivSymbolCount = learningStats.equivSymbolCount,
+            equivResetCount = learningStats.equivResetCount,
             cacheInconsistencyRestarts = cacheInconsistencyRestarts,
+            cacheHitRate = membershipOracle.cacheHitRate,
             duration = System.currentTimeMillis() - extractionStartTime
         )
 

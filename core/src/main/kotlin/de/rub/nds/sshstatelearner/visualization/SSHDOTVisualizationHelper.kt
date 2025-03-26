@@ -10,7 +10,7 @@ package de.rub.nds.sshstatelearner.visualization
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import net.automatalib.serialization.dot.DefaultDOTVisualizationHelper
 import net.automatalib.visualization.VisualizationHelper
 import net.automatalib.alphabet.Alphabet

@@ -9,7 +9,7 @@ import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.extraction.ParallelOracleExtractor
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
 import net.automatalib.alphabet.Alphabet
 import net.automatalib.alphabet.impl.ListAlphabet
@@ -34,7 +34,7 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
         val alphabet = getInputAlphabet()
         MainWindow.infoAlphabetSize.text = alphabet.size.toString()
         val sul = getSul()
-        val learner = ParallelOracleExtractor(
+        val learner = Extractor(
             alphabet,
             sul,
             getCountOfParallelSuls(),
@@ -42,7 +42,7 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.learnerConfig.equivOracleChainTypes,
             configGeneral.learnerConfig.outputIntermediateHypothesis,
             configGeneral.outputDirectory,
-            configGeneral.sulConfig.sulTyp.isClient,
+            configGeneral.sulConfig.sulType,
             configGeneral.learnerConfig.smlLimiterTyp,
             configGeneral.learnerConfig.smlLimiterFilePath,
             configGeneral.learnerConfig.batchSize,
@@ -76,7 +76,7 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
                 else -> AlphabetFactory.construct(
                     configGeneral.sulConfig.protocolStage,
                     configGeneral.sulConfig.kexAlgorithm,
-                    configGeneral.sulConfig.sulTyp.isClient
+                    configGeneral.sulConfig.sulType.isClient
                 )
             }
         return alphabet

@@ -3,7 +3,7 @@ package de.rub.nds.sshstatelearner.environment.manager
 import de.rub.nds.sshstatelearner.config.ConfigAndroidClientSul
 import de.rub.nds.sshstatelearner.config.ConfigGeneral
 import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
-import de.rub.nds.sshstatelearner.sul.NetworkSshClientSulProxy
+import de.rub.nds.sshstatelearner.sul.PooledNetworkSshClientSul
 import de.rub.nds.sshstatelearner.sul.SshClientWorker
 import de.rub.nds.sshstatelearner.sul.SshSul
 import kotlinx.coroutines.Dispatchers
@@ -60,7 +60,7 @@ class StandardAndroidSshClientManager(
                 suls.add(
                     NetworkSshClientSul(
                         configAndroidClientSul.name,
-                        clientConnectionHandler.getPort(),
+                        clientConnectionHandler.port,
                         configAndroidClientSul.timeout,
                         configAndroidClientSul.resetDelay,
                         configAndroidClientSul.protocolStage,
@@ -80,7 +80,7 @@ class StandardAndroidSshClientManager(
 
     override fun getCountOfParallelSuls(): Int = configAndroidClientSul.androidConnectionInfos.size
 
-    override fun getSul(): SshSul = NetworkSshClientSulProxy(
+    override fun getSul(): SshSul = PooledNetworkSshClientSul(
         configAndroidClientSul.name,
         configAndroidClientSul.timeout,
         configAndroidClientSul.resetDelay,

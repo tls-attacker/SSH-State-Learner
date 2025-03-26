@@ -15,6 +15,7 @@ import de.rub.nds.sshattacker.core.exceptions.CryptoException
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.executor.SendMessageHelper
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseExtractor
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -38,6 +39,9 @@ abstract class NetworkSshSul(
     protected var connectionClosed = false
         protected set
 
+    /**
+     * The alias of the connection to use for the transport handler.
+     */
     protected abstract var connectionAlias: String
 
     companion object {
@@ -140,6 +144,7 @@ abstract class NetworkSshSul(
      * @return The response fingerprint returned by the SSH peer.
      */
     protected fun retrieveMessages(retrieveDelay: Long = 0): ResponseFingerprint {
+        Thread.sleep(retrieveDelay)
         try {
             if (state.sshContext.transportHandler.isClosed) {
                 return ResponseFingerprint(listOf(), SocketState.CLOSED, false)
@@ -148,7 +153,6 @@ abstract class NetworkSshSul(
             throw SULException(e)
         }
         try {
-            Thread.sleep(retrieveDelay)
             val action = ReceiveAction(connectionAlias)
             try {
                 action.execute(state)

@@ -13,29 +13,9 @@ import de.learnlib.filter.statistic.Counter
 import java.util.concurrent.atomic.AtomicBoolean
 
 class AdvancedStatisticSul<S : SUL<I, O>, I, O>(
-    val nestedSul: S,
+    private val nestedSul: S,
+    val data: Data
 ) : SUL<I, O> {
-
-    companion object {
-        fun resetData() {
-            data = Data()
-        }
-
-        private var data = Data()
-    }
-
-    val totalSymbolCount
-        get() = data.totalSymbolCounter.count
-    val totalResetCount
-        get() = data.totalResetCounter.count
-    val learnSymbolCount
-        get() = data.learnSymbolCounter.count
-    val learnResetCount
-        get() = data.learnResetCounter.count
-    val equivSymbolCount
-        get() = data.equivSymbolCounter.count
-    val equivResetCount
-        get() = data.equivResetCounter.count
 
     override fun pre() {
         data.totalResetCounter.increment()
@@ -68,6 +48,7 @@ class AdvancedStatisticSul<S : SUL<I, O>, I, O>(
     override fun fork(): SUL<I, O> {
         return AdvancedStatisticSul(
             nestedSul.fork(),
+            data
         )
     }
 
@@ -79,7 +60,7 @@ class AdvancedStatisticSul<S : SUL<I, O>, I, O>(
         data.learningMode.set(true)
     }
 
-    private class Data {
+    class Data {
         val totalSymbolCounter: Counter = Counter("Total symbol count", "Symbols")
         val totalResetCounter: Counter = Counter("Total reset count", "Resets")
         val learnSymbolCounter: Counter = Counter("Symbol count during learning", "Symbols")
@@ -87,5 +68,18 @@ class AdvancedStatisticSul<S : SUL<I, O>, I, O>(
         val equivSymbolCounter: Counter = Counter("Symbol count during equivalence checks", "Symbols")
         val equivResetCounter: Counter = Counter("Reset count during equivalence checks", "Resets")
         var learningMode: AtomicBoolean = AtomicBoolean(true)
+
+        val totalSymbolCount
+            get() = totalSymbolCounter.count
+        val totalResetCount
+            get() = totalResetCounter.count
+        val learnSymbolCount
+            get() = learnSymbolCounter.count
+        val learnResetCount
+            get() = learnResetCounter.count
+        val equivSymbolCount
+            get() = equivSymbolCounter.count
+        val equivResetCount
+            get() = equivResetCounter.count
     }
 }

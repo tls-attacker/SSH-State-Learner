@@ -24,7 +24,9 @@ import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.exceptions.IllegalKeyExchangeException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.SulType
+import de.rub.nds.sshstatelearner.sul.SshSul
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import net.automatalib.automaton.transducer.MealyMachine
 import net.automatalib.word.Word
@@ -35,9 +37,7 @@ import java.util.*
  * setup. It allows default values to be set via the according setter functions for each equivalence algorithm.
  */
 object EquivalenceOracleFactory {
-    /*
-     * Factory defaults
-     */
+
     /**
      * The default protocol stage used to determine the correct happy flow to use.
      */
@@ -257,8 +257,8 @@ object EquivalenceOracleFactory {
         type: EquivalenceOracleType,
         membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
         sul: SUL<SshSymbol, ResponseFingerprint>,
+        sulType: SulType,
         learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>,
-        isClient: Boolean,
         batchSize: Int
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
@@ -272,7 +272,7 @@ object EquivalenceOracleFactory {
                 happyFlowProtocolStage,
                 happyFlowKex,
                 happyFlowMaximumInsertions,
-                isClient,
+                sulType,
                 batchSize,
                 happyFlow
             )
@@ -334,8 +334,8 @@ object EquivalenceOracleFactory {
         types: Iterable<EquivalenceOracleType>,
         membershipOracle: MembershipOracle<SshSymbol, Word<ResponseFingerprint>>,
         sul: SUL<SshSymbol, ResponseFingerprint>,
+        sulType: SulType,
         learningCache: LearningCache<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>>,
-        useClientAlphabet: Boolean,
         batchSize: Int
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         return EQOracleChain(types.map {
@@ -343,8 +343,8 @@ object EquivalenceOracleFactory {
                 it,
                 membershipOracle,
                 sul,
+                sulType,
                 learningCache,
-                useClientAlphabet,
                 batchSize
             )
         })

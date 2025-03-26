@@ -39,11 +39,6 @@
             <version>0.18.0</version>
             <type>pom</type>
         </dependency>
-        <!--        <dependency>-->
-        <!--            <groupId>de.rub.nds</groupId>-->
-        <!--            <artifactId>jnyx</artifactId>-->
-        <!--            <version>1.0.0-SNAPSHOT</version>-->
-        <!--        </dependency>-->
         <dependency>
             <groupId>de.rub.nds.ssh.attacker</groupId>
             <artifactId>ssh-core</artifactId>
@@ -51,11 +46,6 @@
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-core</artifactId>
-            <version>6.5.2.Final</version>
         </dependency>
         <!-- scope: test -->
         <dependency>

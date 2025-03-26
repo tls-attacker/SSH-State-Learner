@@ -12,6 +12,8 @@ import de.learnlib.sul.SUL
 import de.rub.nds.sshattacker.core.config.Config
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.state.State
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -52,7 +54,7 @@ abstract class SshSul(
     /**
      * Whether the SUL is a client or a server.
       */
-    protected abstract val isClient: Boolean
+    abstract val sulType: SulType
 
     companion object {
         /**
@@ -96,7 +98,7 @@ abstract class SshSul(
         if (stage == ProtocolStage.AUTHENTICATION || stage == ProtocolStage.CONNECTION) {
             preamble = preamble.concat(
                 HappyFlowFactory.constructHappyFlow(
-                    isClient,
+                    sulType,
                     ProtocolStage.TRANSPORT,
                     kex
                 )
@@ -105,7 +107,7 @@ abstract class SshSul(
         if (stage == ProtocolStage.CONNECTION) {
             preamble = preamble.concat(
                 HappyFlowFactory.constructHappyFlow(
-                    isClient,
+                    sulType,
                     ProtocolStage.AUTHENTICATION,
                     kex,
                 )

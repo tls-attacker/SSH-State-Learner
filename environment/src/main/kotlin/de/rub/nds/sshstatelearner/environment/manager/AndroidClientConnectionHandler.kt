@@ -3,8 +3,8 @@ package de.rub.nds.sshstatelearner.environment.manager
 import de.rub.nds.sshstatelearner.android.controller.AndroidSSHClientController
 import de.rub.nds.sshstatelearner.android.controller.constants.AndroidSshClientTyp
 import de.rub.nds.sshstatelearner.android.controller.util.AndroidSSHClientControllerFactory
-import de.rub.nds.sshstatelearner.sul.ClientConnectionHandler
-import de.rub.nds.sshstatelearner.sul.SshServerForFingerprint
+import de.rub.nds.sshstatelearner.sul.handler.ClientConnectionHandler
+import de.rub.nds.sshstatelearner.sul.SimpleSshServer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -22,23 +22,20 @@ class AndroidClientConnectionHandler(
     private val pathToApks: List<String>,
     private val udid: String,
     private val preLearnFingerprintAcceptance: Boolean
-
 ) : ClientConnectionHandler {
-    private val androidSSHClientController: AndroidSSHClientController
 
-    override fun getPort(): Int = androidSSHClientController.portToServer
+    private val androidSSHClientController: AndroidSSHClientController = AndroidSSHClientControllerFactory.getClientController(
+        androidSshClientTyp,
+        ipToAppium,
+        portToAppium,
+        ipToSshServer,
+        portToSshServer,
+        pathToApks,
+        udid
+    )
 
-    init {
-        androidSSHClientController = AndroidSSHClientControllerFactory.getClientController(
-            androidSshClientTyp,
-            ipToAppium,
-            portToAppium,
-            ipToSshServer,
-            portToSshServer,
-            pathToApks,
-            udid
-        )
-    }
+    override val port: Int
+        get() = androidSSHClientController.portToServer
 
     override fun exit() {
         androidSSHClientController.quit()
@@ -46,12 +43,12 @@ class AndroidClientConnectionHandler(
 
     override fun init() {
         try {
-            runBlocking() {
-                val sshServerForFingerprint = SshServerForFingerprint(getPort())
+            runBlocking {
+                val simpleSshServer = SimpleSshServer(port)
                 val fingerprint = launch(Dispatchers.IO) {
                     // 1.SETUP SERVER for fingerprint
-                    sshServerForFingerprint.execute()
-                    sshServerForFingerprint.close()
+                    simpleSshServer.execute()
+                    simpleSshServer.close()
                 }
 
                 val fingerprintAndroid = launch(Dispatchers.IO) {
@@ -68,7 +65,7 @@ class AndroidClientConnectionHandler(
                 try {
                     joinAll(fingerprint, fingerprintAndroid)
                 } finally {
-                    if (!fingerprint.isCompleted) sshServerForFingerprint.close()
+                    if (!fingerprint.isCompleted) simpleSshServer.close()
                     if (!fingerprintAndroid.isCompleted) androidSSHClientController.quit()
                 }
             }
@@ -77,7 +74,7 @@ class AndroidClientConnectionHandler(
         }
     }
     
-    override suspend fun subscribeForConnection() {
+    override suspend fun connect() {
         androidSSHClientController.oneConnectForStateLearning()
     }
 }

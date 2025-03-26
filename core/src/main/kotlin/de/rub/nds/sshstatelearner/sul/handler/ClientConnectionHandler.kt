@@ -1,4 +1,4 @@
-package de.rub.nds.sshstatelearner.sul
+package de.rub.nds.sshstatelearner.sul.handler
 
 /**
  * Interface for initializing and controlling various types of clients.
@@ -11,17 +11,17 @@ interface ClientConnectionHandler {
     fun init()
 
     /**
+     * Starts a connection attempt
+     */
+    suspend fun connect()
+
+    /**
      * To terminate all created dependencies.
      */
     fun exit()
 
     /**
-     * Starts a connection attempt
-     */
-    suspend fun subscribeForConnection()
-
-    /**
      * Returns the port to which the connection attempt is made.
      */
-    fun getPort(): Int
+    val port: Int
 }

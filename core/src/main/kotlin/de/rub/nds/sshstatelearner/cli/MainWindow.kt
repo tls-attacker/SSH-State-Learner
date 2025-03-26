@@ -67,6 +67,7 @@ object MainWindow : BasicWindow("SSH State Learner") {
     val statLearningSteps = Label("").apply { layoutData = GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.BEGINNING) }
     val statLearningResets = Label("").apply { layoutData = GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.BEGINNING) }
     val statLearningCacheInconsistencies = Label("").apply { layoutData = GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.BEGINNING) }
+    val statLearningCacheHitRate = Label("").apply { layoutData = GridLayout.createLayoutData(GridLayout.Alignment.END, GridLayout.Alignment.BEGINNING) }
 
     private val statPanel = Panel(GridLayout(2)).apply {
         addComponent(
@@ -91,6 +92,8 @@ object MainWindow : BasicWindow("SSH State Learner") {
         addComponent(statLearningResets)
         addComponent(Label("Cache Inconsistencies:"))
         addComponent(statLearningCacheInconsistencies)
+        addComponent(Label("Cache Hit Rate:"))
+        addComponent(statLearningCacheHitRate)
 
         layoutData = LinearLayout.createLayoutData(LinearLayout.Alignment.Fill)
     }

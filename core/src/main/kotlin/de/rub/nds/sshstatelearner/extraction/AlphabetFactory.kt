@@ -10,8 +10,9 @@ package de.rub.nds.sshstatelearner.extraction
 
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.KeyExchangeFlowType
+import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.exceptions.IllegalKeyExchangeException
-import de.rub.nds.sshstatelearner.sul.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import net.automatalib.alphabet.Alphabet
 import net.automatalib.alphabet.impl.ListAlphabet
 
@@ -195,7 +196,7 @@ object AlphabetFactory {
      *                 If true, the server alphabet is returned.
      * @return An alphabet with valid SSH symbols to use within the given protocol stage and key exchange algorithm.
      */
-    fun construct(stage: ProtocolStage, kex: KeyExchangeAlgorithm, isClientAlphabet: Boolean): Alphabet<SshSymbol> {
+    fun construct(sulType: SulType, stage: ProtocolStage, kex: KeyExchangeAlgorithm): Alphabet<SshSymbol> {
         // TODO: For now, we always return the entire alphabet. This should be changed to return only the relevant symbols.
         return ListAlphabet(SshSymbol.entries)
     }

@@ -2,14 +2,16 @@ package de.rub.nds.sshstatelearner.sul
 
 import de.learnlib.sul.SUL
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
-import de.rub.nds.sshstatelearner.constants.SULTyp
+import de.rub.nds.sshstatelearner.constants.ProtocolStage
+import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 
 /**
- * SUL Proxy die sich einen SUL aus dem Pool holt.
+ * This class represents a pooled network SSH client SUL. It is used to pool network SSH client SULs and to provide a
+ * SUL that can be used in the learning process.
  */
-class NetworkSshClientSulProxy(
+class PooledNetworkSshClientSul(
     name: String,
     timeout: Long = DEFAULT_SUL_TIMEOUT,
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
@@ -23,8 +25,8 @@ class NetworkSshClientSulProxy(
         currentUsedNetworkSshClientSul = sshClientWorker.getReadySulToUse()
     }
 
-    override val isClient: Boolean
-        get() = SULTyp.CLIENT_IS_UNDER_TEST.isClient
+    override val sulType: SulType
+        get() = SulType.CLIENT
 
 
     override fun post() {
@@ -39,6 +41,6 @@ class NetworkSshClientSulProxy(
 
 
     override fun fork(): SUL<SshSymbol, ResponseFingerprint> =
-        NetworkSshClientSulProxy(name, timeout, resetDelay, stage, kex, sshClientWorker)
+        PooledNetworkSshClientSul(name, timeout, resetDelay, stage, kex, sshClientWorker)
 
 }
