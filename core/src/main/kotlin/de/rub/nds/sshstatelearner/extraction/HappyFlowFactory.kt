@@ -44,6 +44,9 @@ object HappyFlowFactory {
                 KeyExchangeFlowType.HYBRID -> arrayOf(
                     SshSymbol.MSG_KEX_HBR_INIT
                 )
+                KeyExchangeFlowType.RSA -> arrayOf(
+                    SshSymbol.MSG_KEX_RSA_SECRET
+                )
                 else -> throw NotImplementedException("Key exchange algorithm flow type ${kex.flowType} is not yet supported by SSH-State-Learner")
             }
             else when (kex.flowType) {
@@ -59,6 +62,10 @@ object HappyFlowFactory {
                 )
                 KeyExchangeFlowType.HYBRID -> arrayOf(
                     SshSymbol.MSG_KEX_HBR_REPLY
+                )
+                KeyExchangeFlowType.RSA -> arrayOf(
+                    SshSymbol.MSG_KEX_RSA_PUBKEY,
+                    SshSymbol.MSG_KEX_RSA_DONE
                 )
                 else -> throw NotImplementedException("Key exchange algorithm flow type ${kex.flowType} is not yet supported by SSH-State-Learner")
             }
