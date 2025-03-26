@@ -262,7 +262,6 @@ object EquivalenceOracleFactory {
         batchSize: Int
     ): EquivalenceOracle<MealyMachine<*, SshSymbol, *, ResponseFingerprint>, SshSymbol, Word<ResponseFingerprint>> {
         // TODO: Implement custom RANDOM_WALK that supports a membership oracle
-        val constantSeed = 0L
         return when (type) {
 
             EquivalenceOracleType.CACHE_CONSISTENCY -> learningCache.createCacheConsistencyTest()
@@ -290,7 +289,7 @@ object EquivalenceOracleFactory {
                 randomWordsMinLength,
                 randomWordsMaxLength,
                 randomWordsMaxTests,
-                Random(constantSeed),
+                Random(Date().time),
                 batchSize
             )
 
@@ -298,7 +297,7 @@ object EquivalenceOracleFactory {
                 sul,
                 randomWalkRestartProbability,
                 randomWalkMaxSteps,
-                Random(constantSeed)
+                Random(Date().time)
             )
 
             EquivalenceOracleType.W -> WMethodEQOracle(membershipOracle, wMaxDepth, batchSize)
