@@ -1,0 +1,65 @@
+services:
+  tinyssh-server-0:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30020:22"
+  tinyssh-server-1:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30021:22"
+  tinyssh-server-2:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30022:22"
+  tinyssh-server-3:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30023:22"
+  tinyssh-server-4:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30024:22"
+  tinyssh-server-5:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30025:22"
+  tinyssh-server-6:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30026:22"
+  tinyssh-server-7:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30027:22"
+  tinyssh-server-8:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30028:22"
+  tinyssh-server-9:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30029:22"
+  tinyssh-server-10:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30030:22"
+  tinyssh-server-11:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30031:22"
+  tinyssh-server-12:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30032:22"
+  tinyssh-server-13:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30033:22"
+  tinyssh-server-14:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30034:22"
+  tinyssh-server-15:
+    image: rub-nds/tinyssh-server:20250201
+    ports:
+      - "127.0.0.1:30035:22"

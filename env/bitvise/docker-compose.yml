@@ -1,0 +1,65 @@
+services:
+  bitvise-server-0:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30020:22"
+  bitvise-server-1:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30021:22"
+  bitvise-server-2:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30022:22"
+  bitvise-server-3:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30023:22"
+  bitvise-server-4:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30024:22"
+  bitvise-server-5:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30025:22"
+  bitvise-server-6:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30026:22"
+  bitvise-server-7:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30027:22"
+  bitvise-server-8:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30028:22"
+  bitvise-server-9:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30029:22"
+  bitvise-server-10:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30030:22"
+  bitvise-server-11:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30031:22"
+  bitvise-server-12:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30032:22"
+  bitvise-server-13:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30033:22"
+  bitvise-server-14:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30034:22"
+  bitvise-server-15:
+    image: rub-nds/bitvise-server:9.43
+    ports:
+      - "30035:22"

@@ -1,0 +1,65 @@
+services:
+  erlang-ssh-server-0:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30020:22"
+  erlang-ssh-server-1:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30021:22"
+  erlang-ssh-server-2:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30022:22"
+  erlang-ssh-server-3:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30023:22"
+  erlang-ssh-server-4:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30024:22"
+  erlang-ssh-server-5:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30025:22"
+  erlang-ssh-server-6:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30026:22"
+  erlang-ssh-server-7:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30027:22"
+  erlang-ssh-server-8:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30028:22"
+  erlang-ssh-server-9:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30029:22"
+  erlang-ssh-server-10:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30030:22"
+  erlang-ssh-server-11:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30031:22"
+  erlang-ssh-server-12:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30032:22"
+  erlang-ssh-server-13:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30033:22"
+  erlang-ssh-server-14:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30034:22"
+  erlang-ssh-server-15:
+    image: rub-nds/erlang-ssh-server:27.3.0.0
+    ports:
+      - "127.0.0.1:30035:22"
