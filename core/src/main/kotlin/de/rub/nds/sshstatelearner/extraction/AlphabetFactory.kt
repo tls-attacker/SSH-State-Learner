@@ -30,7 +30,7 @@ object AlphabetFactory {
         return when (kex.flowType) {
             KeyExchangeFlowType.DIFFIE_HELLMAN_GROUP_EXCHANGE -> listOf(
                 SshSymbol.MSG_KEX_DH_GEX_REQUEST,
-                SshSymbol.MSG_KEX_DH_GEX_REQUEST_OLD,
+                SshSymbol.MSG_KEX_DH_GEX_OLD_REQUEST,
                 SshSymbol.MSG_KEX_DH_GEX_INIT
             )
 
@@ -115,7 +115,7 @@ object AlphabetFactory {
 
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
-                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWORD,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER
@@ -164,7 +164,7 @@ object AlphabetFactory {
 
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
-                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWD,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PASSWORD,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER
