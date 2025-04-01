@@ -11,10 +11,8 @@ package de.rub.nds.sshstatelearner.extraction
 import de.learnlib.oracle.EquivalenceOracle
 import de.learnlib.oracle.ParallelOracle
 import de.learnlib.oracle.ThreadPool
-import de.learnlib.oracle.membership.SULOracle
 import de.learnlib.query.DefaultQuery
 import de.learnlib.oracle.parallelism.ParallelOracleBuilders
-import de.learnlib.sul.SUL
 import de.rub.nds.sshstatelearner.SshStateMachine
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
@@ -27,6 +25,7 @@ import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.sul.AdvancedStatisticSul
 import de.rub.nds.sshstatelearner.sul.SshSul
+import de.rub.nds.sshstatelearner.sul.MajorityVoteSulOracle
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import net.automatalib.automaton.transducer.MealyMachine
 import net.automatalib.alphabet.Alphabet
@@ -110,7 +109,7 @@ class Extractor(
     private fun constructOracles() {
         // Create a parallel membership oracle with the specified number of parallel SULs
         oracle = ParallelOracleBuilders
-            .newStaticParallelOracle(sulList.map { SULOracle(it) }.toMutableList())
+            .newStaticParallelOracle(sulList.map { MajorityVoteSulOracle(it,1 ) }.toMutableList())
             .withMinBatchSize(5)
             .withPoolPolicy(ThreadPool.PoolPolicy.FIXED)
             .create()
@@ -140,8 +139,8 @@ class Extractor(
             try {
                 extractorResult = provideResult()
             } catch (e: CacheConflictException) {
-                LOGGER.warn(e.message)
-                val majorityResult = sshSulList[0].majorityVote(e.inputPrefix, e.inputSuffix, 7)
+                LOGGER.warn("${e.message}\nInput prefix: ${e.inputPrefix}\nInput suffix: ${e.inputSuffix}\nExpected output: ${e.expectedOutput}\nActual output: ${e.actualOutput}")
+                val majorityResult = MajorityVoteSulOracle(sulList[0], 7).answerQuery(e.inputPrefix, e.inputSuffix)
                 membershipOracle.update(e.inputPrefix, e.inputSuffix, majorityResult, true)
                 cacheInconsistencyRestarts++
             }
