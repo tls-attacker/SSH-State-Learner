@@ -13,6 +13,7 @@ import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.constants.ProtocolStage
+import de.rub.nds.sshstatelearner.sul.NetworkSshSul
 import de.rub.nds.sshstatelearner.sul.SshSul
 
 /**
@@ -40,27 +41,31 @@ object ArgsSul {
     var resetDelay: Long = SshSul.DEFAULT_SUL_RESET_DELAY
         private set
 
-    @Parameter(names = ["--stage"], description = "The SSH protocol stage whose state machine is to be extracted", order = 15)
+    @Parameter(names = ["--retrieve-delay"], description = "Delay in milliseconds before the response from the remote peer is read", order = 15)
+    var retrieveDelay: Long = NetworkSshSul.DEFAULT_RETRIEVE_DELAY
+        private set
+
+    @Parameter(names = ["--stage"], description = "The SSH protocol stage whose state machine is to be extracted", order = 16)
     var protocolStage: ProtocolStage = SshSul.DEFAULT_PROTOCOL_STAGE
         private set
 
-    @Parameter(names = ["--kex"], description = "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm", order = 16)
+    @Parameter(names = ["--kex"], description = "The SSH key exchange method to use. If the alphabet is not specified and the TRANSPORT protocol stage is about to be learned, it derives the alphabet from the provided kex algorithm", order = 17)
     var kexAlgorithm: KeyExchangeAlgorithm = SshSul.DEFAULT_KEX_ALGORITHM
         private set
 
-    @Parameter(names = ["--alphabet"], description = "A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm", listConverter = SshSymbolSplitter::class, order = 17)
+    @Parameter(names = ["--alphabet"], description = "A comma-separated list of SshSymbol names to use as the alphabet. If not specified, the alphabet is derived from the protocol stage and the key exchange algorithm", listConverter = SshSymbolSplitter::class, order = 18)
     var alphabet: List<SshSymbol>? = null
         private set
 
     @Parameter(
         names = ["--sul-type"],
         description = "Specifies whether the SUL is a client or a server.",
-        order = 18
+        order = 19
     )
     var sulType: SulType = SulType.SERVER
         private set
 
-    @Parameter(names = ["--strict-kex"], description = "If set to true, the SUL will offer the strict key exchange protocol extension.", order = 19)
+    @Parameter(names = ["--strict-kex"], description = "If set to true, the SUL will offer the strict key exchange protocol extension.", order = 20)
     var strictKex: Boolean = SshSul.DEFAULT_STRICT_KEX_ENABLED
         private set
 }

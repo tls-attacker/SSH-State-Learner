@@ -44,6 +44,10 @@ import java.util.*
  * @param algorithm The learning algorithm to use in order to learn the SUL.
  * @param equivalenceOracleChainTypes A list of equivalence oracle types to use as the equivalence oracle within the
  *                                    learning process.
+ * @param storeIntermediateHypotheses Whether to store intermediate hypotheses during the learning process.
+ * @param outputDirectory The directory to store the intermediate hypotheses in.
+ * @param majorityVotes The number of majority votes to use for every query to the SUL.
+ * @param cacheConflictMajorityVotes The number of majority votes to use for queries that caused cache conflicts.
  */
 class Extractor(
     private val alphabet: Alphabet<SshSymbol>,
@@ -51,7 +55,9 @@ class Extractor(
     private val algorithm: LearningAlgorithmType = LearningAlgorithmType.TTT,
     private val equivalenceOracleChainTypes: List<EquivalenceOracleType>,
     private val storeIntermediateHypotheses: Boolean,
-    private val outputDirectory: String
+    private val outputDirectory: String,
+    private val majorityVotes: Int = 1,
+    private val cacheConflictMajorityVotes: Int = 7
 ) {
 
     /**
@@ -109,7 +115,7 @@ class Extractor(
     private fun constructOracles() {
         // Create a parallel membership oracle with the specified number of parallel SULs
         oracle = ParallelOracleBuilders
-            .newStaticParallelOracle(sulList.map { MajorityVoteSulOracle(it,1 ) }.toMutableList())
+            .newStaticParallelOracle(sulList.map { MajorityVoteSulOracle(it, majorityVotes ) }.toMutableList())
             .withMinBatchSize(5)
             .withPoolPolicy(ThreadPool.PoolPolicy.FIXED)
             .create()
@@ -140,7 +146,7 @@ class Extractor(
                 extractorResult = provideResult()
             } catch (e: CacheConflictException) {
                 LOGGER.warn("${e.message}\nInput prefix: ${e.inputPrefix}\nInput suffix: ${e.inputSuffix}\nExpected output: ${e.expectedOutput}\nActual output: ${e.actualOutput}")
-                val majorityResult = MajorityVoteSulOracle(sulList[0], 7).answerQuery(e.inputPrefix, e.inputSuffix)
+                val majorityResult = MajorityVoteSulOracle(sulList[0], cacheConflictMajorityVotes).answerQuery(e.inputPrefix, e.inputSuffix)
                 membershipOracle.update(e.inputPrefix, e.inputSuffix, majorityResult, true)
                 cacheInconsistencyRestarts++
             }

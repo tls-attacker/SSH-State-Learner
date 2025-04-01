@@ -17,6 +17,7 @@ import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.executor.SendMessageHelper
 import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
+import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul.Companion
 import de.rub.nds.sshstatelearner.sul.response.ResponseExtractor
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
@@ -31,6 +32,7 @@ abstract class NetworkSshSul(
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+    val retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY
 ) : SshSul(name, timeout, resetDelay, stage, kex, strictKex) {
 
     /**
@@ -49,6 +51,11 @@ abstract class NetworkSshSul(
          * Logger for the NetworkSshSul class.
          */
         private val LOGGER: Logger = LogManager.getLogger()
+
+        /**
+         * The default amount of time to wait before retrieving the next response from the SUL in milliseconds.
+         */
+        const val DEFAULT_RETRIEVE_DELAY: Long = 100
     }
 
     /**
@@ -92,6 +99,19 @@ abstract class NetworkSshSul(
     }
 
     /**
+     * Executes a single symbol. Assumes that the config and state have been initialized properly.
+     *
+     * @param symbol The symbol to execute
+     */
+    fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
+        LOGGER.trace("Executing symbol: {}", symbol)
+        val protocolMessage = symbol.messageConstructor(state.sshContext)
+        protocolMessage.getHandler(state.sshContext).preparator.prepare()
+        sendMessage(protocolMessage)
+        return retrieveMessages(retrieveDelay)
+    }
+
+    /**
      * Tear down all stateful components of this SUL, like the internal sulState and transport handler connection.
      */
     override fun post() {
@@ -117,13 +137,6 @@ abstract class NetworkSshSul(
             /* Ignore */
         }
     }
-
-    /**
-     * Executes a single symbol. Assumes that the config and state have been initialized properly.
-     *
-     * @param symbol The symbol to execute
-     */
-    protected abstract fun executeSymbol(symbol: SshSymbol): ResponseFingerprint
 
     /**
      * A simple wrapper to send a single message to the SSH peer.

@@ -2,7 +2,7 @@
   <configuration default="false" name="Dropbear 2025.87 (Hybrid)" type="Application" factoryName="Application" folderName="Dropbear">
     <option name="MAIN_CLASS_NAME" value="de.rub.nds.sshstatelearner.cli.MainKt" />
     <module name="core" />
-    <option name="PROGRAM_PARAMETERS" value="-p 30020-30035 --name &quot;Dropbear 2025.87&quot; --kex SNTRUP761X25519_SHA512_OPENSSH_COM --stage TRANSPORT --strict-kex --sul-type SERVER --equiv-random-words-max-tests 10000" />
+    <option name="PROGRAM_PARAMETERS" value="-p 30020-30035 --name &quot;Dropbear 2025.87&quot; --kex SNTRUP761X25519_SHA512_OPENSSH_COM --stage TRANSPORT --strict-kex --retrieve-delay 250 --sul-type SERVER --equiv-random-words-max-tests 10000" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="false" />

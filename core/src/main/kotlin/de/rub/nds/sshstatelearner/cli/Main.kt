@@ -116,7 +116,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.resetDelay,
                         ArgsSul.protocolStage,
                         ArgsSul.kexAlgorithm,
-                        ArgsSul.strictKex
+                        ArgsSul.strictKex,
+                        ArgsSul.retrieveDelay
                     )
 
                     SulType.SERVER -> NetworkSshServerSul(
@@ -127,7 +128,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.resetDelay,
                         ArgsSul.protocolStage,
                         ArgsSul.kexAlgorithm,
-                        ArgsSul.strictKex
+                        ArgsSul.strictKex,
+                        ArgsSul.retrieveDelay
                     )
                 }
         }
@@ -138,7 +140,9 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
         ArgsLearner.learningAlgorithmType,
         ArgsLearner.equivOracleChainTypes,
         ArgsLearner.outputIntermediateHypothesis,
-        ArgsGeneral.output
+        ArgsGeneral.output,
+        ArgsLearner.majorityVotes,
+        ArgsLearner.conflictVotes
     )
     return learner.extractStateMachine()
 }
@@ -178,7 +182,7 @@ private fun updateMainWindowInfoPanel() {
     // TODO: CLI parameters
     MainWindow.infoExecutor.text = ArgsGeneral.executor.toString()
     MainWindow.infoTarget.text = when (ArgsGeneral.executor) {
-        ExecutorType.NETWORK -> "ssh://${ArgsSul.hostname}:${ArgsSul.port}"
+        ExecutorType.NETWORK -> "ssh://${ArgsSul.hostname}:${ArgsSul.port.first()}..${ArgsSul.port.last()}"
     }
     MainWindow.infoStage.text = ArgsSul.protocolStage.toString()
     MainWindow.infoKex.text = ArgsSul.kexAlgorithm.toString()

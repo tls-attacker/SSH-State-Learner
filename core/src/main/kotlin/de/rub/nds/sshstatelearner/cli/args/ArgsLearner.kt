@@ -22,8 +22,16 @@ object ArgsLearner {
     var learningAlgorithmType: LearningAlgorithmType = LearningAlgorithmType.TTT
         private set
 
-    @Parameter(names = ["--output-intermediate-hypothesis"], description = "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis", order = 52)
+    @Parameter(names = ["--output-intermediate-hypothesis"], description = "If set, the state learner will not only output the final hypothesis but rather every intermediate hypothesis", order = 51)
     var outputIntermediateHypothesis: Boolean = true
+        private set
+
+    @Parameter(names = ["--majority-votes"], description = "The number of majority votes to perform for normal queries. This value defaults to 1, i.e. majority votes are disabled for normal queries.", order = 52)
+    var majorityVotes: Int = 1
+        private set
+
+    @Parameter(names = ["--conflict-votes"], description = "The number of majority votes to perform for conflicting queries. This value defaults to 7.", order = 53)
+    var conflictVotes: Int = 7
         private set
  
     @Parameter(names = ["--equiv-oracle-chain"], description = "The equivalence oracle chain to use (comma-separated combination of CACHE_CONSISTENCY, HAPPY_FLOW, COMPLETE_EXPLORATION, RANDOM_WORDS, RANDOM_WALK, RANDOM_W, RANDOM_WP, W, WP)", listConverter = EQOracleChainSplitter::class, order = 100)

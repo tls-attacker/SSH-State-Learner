@@ -33,17 +33,11 @@ class NetworkSshServerSul(
     resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
-    strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex) {
+    strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+    retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY,
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, retrieveDelay) {
 
     override var connectionAlias = "client"
-
-    companion object {
-        /**
-         * Logger for the NetworkSshSul class.
-         */
-        private val LOGGER: Logger = LogManager.getLogger()
-    }
 
     /**
      * Set up the network-based SSH for Servers under Test by instantiating a new SSH-Attacker state and connection to the peer.
@@ -74,20 +68,6 @@ class NetworkSshServerSul(
         ChangePacketLayerAction(connectionAlias, PacketLayerType.BINARY_PACKET).execute(state)
     }
 
-    /**
-     * Executes a single symbol. Assumes that the config and state have been initialized properly.
-     *
-     * @param symbol The symbol to execute
-     */
-    override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
-        LOGGER.trace("Executing symbol: {}", symbol)
-        val protocolMessage = symbol.messageConstructor(state.sshContext)
-        protocolMessage.getHandler(state.sshContext).preparator.prepare()
-        // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
-        sendMessage(protocolMessage)
-        return retrieveMessages(100L)
-    }
-
     override val sulType: SulType
         get() = SulType.SERVER
 
@@ -97,6 +77,6 @@ class NetworkSshServerSul(
     override fun canFork(): Boolean = false
 
     override fun toString(): String {
-        return "NetworkSshSul[hostname=$hostname,port=$port,timeout=$timeout,resetDelay=$resetDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"
+        return "NetworkSshServerSul[hostname=$hostname,port=$port,timeout=$timeout,resetDelay=$resetDelay,retrieveDelay=$retrieveDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"
     }
 }

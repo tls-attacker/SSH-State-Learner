@@ -44,9 +44,10 @@ class NetworkSshClientSul(
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+    retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY,
     private val enableEncryptionOnNewKeysMessage: ConnectionDirection = ConnectionDirection.BOTH,
     private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler(),
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex) {
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, retrieveDelay) {
 
     override var connectionAlias = "server"
 
@@ -129,21 +130,6 @@ class NetworkSshClientSul(
         return receiveMessageVersionExchange.executedAsPlanned() && receiveKexInit.executedAsPlanned() && !state.sshContext.transportHandler.isClosed
     }
 
-    /**
-     * Executes a single symbol. Assumes that the config and state have been initialized properly.
-     *
-     * @param symbol The symbol to execute
-     */
-    override fun executeSymbol(symbol: SshSymbol): ResponseFingerprint {
-        LOGGER.trace("Executing symbol: {}", symbol)
-        val protocolMessage = symbol.messageConstructor(state.sshContext)
-        protocolMessage.getHandler(state.sshContext).preparator.prepare()
-        sendMessage(protocolMessage)
-        // TODO: Find a better way to allow for custom retrieve delays without shifting implementation to symbols
-        val retrieveDelay = 50L
-        return retrieveMessages(retrieveDelay)
-    }
-
     override val sulType: SulType
         get() = SulType.CLIENT
 
@@ -153,6 +139,6 @@ class NetworkSshClientSul(
     override fun canFork(): Boolean = false
 
     override fun toString(): String {
-        return "NetworkSshClientSul[port=$port,timeout=$timeout,resetDelay=$resetDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"
+        return "NetworkSshClientSul[port=$port,timeout=$timeout,resetDelay=$resetDelay,retrieveDelay=$retrieveDelay,connectionClosed=$connectionClosed,executedSteps=$executedSteps]"
     }
 }
