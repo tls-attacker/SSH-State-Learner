@@ -2,7 +2,7 @@
   <configuration default="false" name="Tectia 6.6.5.353 (ECDH)" type="Application" factoryName="Application" folderName="Tectia">
     <option name="MAIN_CLASS_NAME" value="de.rub.nds.sshstatelearner.cli.MainKt" />
     <module name="core" />
-    <option name="PROGRAM_PARAMETERS" value="-p 22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22 --name &quot;Tectia 6.6.5.353&quot; --retrieve-delay 250 --kex ECDH_SHA2_NISTP256 --stage TRANSPORT --strict-kex --sul-type SERVER --equiv-random-words-max-tests 10000" />
+    <option name="PROGRAM_PARAMETERS" value="-p 22,22,22,22,22,22,22,22,22,22,22,22,22,22,22,22 --name &quot;Tectia 6.6.5.353&quot; --retrieve-delay 250 --kex ECDH_SHA2_NISTP256 --stage TRANSPORT --strict-kex --auth-request-limit 1 --sul-type SERVER --equiv-random-words-max-tests 10000" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="false" />

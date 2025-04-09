@@ -18,7 +18,6 @@ import de.rub.nds.sshstatelearner.extraction.HappyFlowFactory
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import net.automatalib.word.Word
-import net.automatalib.word.WordBuilder
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 
@@ -28,7 +27,8 @@ abstract class SshSul(
     val resetDelay: Long = DEFAULT_SUL_RESET_DELAY,
     val stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     val kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
-    val strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED
+    val strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+    val limitAuthRequests: Int = -1
 ) : SUL<SshSymbol, ResponseFingerprint>, AutoCloseable {
 
     /**
@@ -91,6 +91,12 @@ abstract class SshSul(
          * The default value for whether to disable key re-exchange (i.e. sending SSH_MSG_KEXINIT in the secure channel)
          */
         const val DEFAULT_DISABLE_REKEX = false
+
+        /**
+         * The default value for the maximum number of authentication requests to be sent before closing the connection.
+         * Set to -1 to disable this feature.
+         */
+        const val DEFAULT_AUTH_REQUEST_LIMIT = -1
     }
 
     /**

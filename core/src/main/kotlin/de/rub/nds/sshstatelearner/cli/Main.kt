@@ -118,6 +118,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.kexAlgorithm,
                         ArgsSul.strictKex,
                         ArgsSul.disableRekex,
+                        ArgsSul.authRequestLimit,
                         ArgsSul.retrieveDelay
                     )
 
@@ -131,6 +132,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.kexAlgorithm,
                         ArgsSul.strictKex,
                         ArgsSul.disableRekex,
+                        ArgsSul.authRequestLimit,
                         ArgsSul.retrieveDelay
                     )
                 }

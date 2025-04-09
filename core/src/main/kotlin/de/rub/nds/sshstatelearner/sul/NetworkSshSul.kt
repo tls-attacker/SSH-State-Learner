@@ -33,8 +33,9 @@ abstract class NetworkSshSul(
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
     val disableRekex: Boolean = DEFAULT_DISABLE_REKEX,
+    limitAuthRequests: Int = -1,
     val retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY
-) : SshSul(name, timeout, resetDelay, stage, kex, strictKex) {
+) : SshSul(name, timeout, resetDelay, stage, kex, strictKex, limitAuthRequests) {
 
     /**
      * Indicates whether the underlying network connection is available or closed.
@@ -78,6 +79,15 @@ abstract class NetworkSshSul(
                 disableRekex) {
                 // The learner is trying to rekex (i.e. send a KEXINIT message inside the secure channel), but rekex is disabled
                 // The SUL should not execute the KEXINIT message, but rather return a closed socket state
+                state.sshContext.transportHandler.closeConnection()
+                connectionClosed = true
+                return ResponseFingerprint(emptyList(), SocketState.CLOSED, false)
+            }
+            // Sometimes limiting the number of authentication requests is necessary to allow the learner to terminate
+            if (limitAuthRequests >= 0 &&
+                executedSteps.count { it.name.startsWith("MSG_USERAUTH_REQUEST") } >= limitAuthRequests) {
+                // The SUL has reached the limit of authentication requests, but the learner is still trying to send more
+                // Close the connection to the SUL and return a closed socket state
                 state.sshContext.transportHandler.closeConnection()
                 connectionClosed = true
                 return ResponseFingerprint(emptyList(), SocketState.CLOSED, false)

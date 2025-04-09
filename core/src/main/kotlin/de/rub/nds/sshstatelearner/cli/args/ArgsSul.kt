@@ -72,4 +72,8 @@ object ArgsSul {
     @Parameter(names = ["--disable-rekex"], description = "If set to true, the SUL will try to prevent key re-exchanges by simulating a closed connection. This can be helpful if implementations queue received messages during key re-exchange in which case the learner does not terminate.", order = 21)
     var disableRekex: Boolean = SshSul.DEFAULT_DISABLE_REKEX
         private set
+
+    @Parameter(names = ["--auth-request-limit"], description = "The maximum number of authentication requests to be sent before closing the connection. Set to -1 to disable this feature.", order = 22)
+    var authRequestLimit: Int = SshSul.DEFAULT_AUTH_REQUEST_LIMIT
+        private set
 }
