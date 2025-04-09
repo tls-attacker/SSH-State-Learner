@@ -2,7 +2,7 @@
   <configuration default="false" name="Bitvise 9.43 (ECDH)" type="Application" factoryName="Application" folderName="Bitvise">
     <option name="MAIN_CLASS_NAME" value="de.rub.nds.sshstatelearner.cli.MainKt" />
     <module name="core" />
-    <option name="PROGRAM_PARAMETERS" value="-p 30020-30035 --name &quot;Bitvise 9.43&quot; --kex ECDH_SHA2_NISTP256 --stage TRANSPORT --strict-kex --sul-type SERVER --equiv-random-words-max-tests 10000" />
+    <option name="PROGRAM_PARAMETERS" value="-p 30020-30035 --name &quot;Bitvise 9.43&quot; --kex ECDH_SHA2_NISTP256 --stage TRANSPORT --strict-kex --disable-rekex --sul-type SERVER --equiv-random-words-max-tests 10000" />
     <extension name="net.ashald.envfile">
       <option name="IS_ENABLED" value="false" />
       <option name="IS_SUBST" value="false" />

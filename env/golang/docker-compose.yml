@@ -1,0 +1,65 @@
+services:
+  golang-server-0:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30020:22"
+  golang-server-1:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30021:22"
+  golang-server-2:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30022:22"
+  golang-server-3:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30023:22"
+  golang-server-4:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30024:22"
+  golang-server-5:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30025:22"
+  golang-server-6:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30026:22"
+  golang-server-7:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30027:22"
+  golang-server-8:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30028:22"
+  golang-server-9:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30029:22"
+  golang-server-10:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30030:22"
+  golang-server-11:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30031:22"
+  golang-server-12:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30032:22"
+  golang-server-13:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30033:22"
+  golang-server-14:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30034:22"
+  golang-server-15:
+    image: rub-nds/golang-server:0.37.0
+    ports:
+      - "127.0.0.1:30035:22"
