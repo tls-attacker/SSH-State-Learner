@@ -117,6 +117,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.protocolStage,
                         ArgsSul.kexAlgorithm,
                         ArgsSul.strictKex,
+                        ArgsSul.disableRekex,
                         ArgsSul.retrieveDelay
                     )
 
@@ -129,6 +130,7 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.protocolStage,
                         ArgsSul.kexAlgorithm,
                         ArgsSul.strictKex,
+                        ArgsSul.disableRekex,
                         ArgsSul.retrieveDelay
                     )
                 }

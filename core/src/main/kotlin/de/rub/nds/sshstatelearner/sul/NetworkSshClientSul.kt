@@ -44,10 +44,11 @@ class NetworkSshClientSul(
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+    disableRekex: Boolean = DEFAULT_DISABLE_REKEX,
     retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY,
     private val enableEncryptionOnNewKeysMessage: ConnectionDirection = ConnectionDirection.BOTH,
     private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler(),
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, retrieveDelay) {
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, disableRekex, retrieveDelay) {
 
     override var connectionAlias = "server"
 

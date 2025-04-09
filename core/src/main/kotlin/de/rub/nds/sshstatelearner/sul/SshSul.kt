@@ -86,6 +86,11 @@ abstract class SshSul(
          * The default value for the strict key exchange protocol extension
          */
         const val DEFAULT_STRICT_KEX_ENABLED: Boolean = false
+
+        /**
+         * The default value for whether to disable key re-exchange (i.e. sending SSH_MSG_KEXINIT in the secure channel)
+         */
+        const val DEFAULT_DISABLE_REKEX = false
     }
 
     /**

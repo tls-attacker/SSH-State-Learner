@@ -68,4 +68,8 @@ object ArgsSul {
     @Parameter(names = ["--strict-kex"], description = "If set to true, the SUL will offer the strict key exchange protocol extension.", order = 20)
     var strictKex: Boolean = SshSul.DEFAULT_STRICT_KEX_ENABLED
         private set
+
+    @Parameter(names = ["--disable-rekex"], description = "If set to true, the SUL will try to prevent key re-exchanges by simulating a closed connection. This can be helpful if implementations queue received messages during key re-exchange in which case the learner does not terminate.", order = 21)
+    var disableRekex: Boolean = SshSul.DEFAULT_DISABLE_REKEX
+        private set
 }

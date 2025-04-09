@@ -32,6 +32,7 @@ abstract class NetworkSshSul(
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+    val disableRekex: Boolean = DEFAULT_DISABLE_REKEX,
     val retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY
 ) : SshSul(name, timeout, resetDelay, stage, kex, strictKex) {
 
@@ -68,6 +69,17 @@ abstract class NetworkSshSul(
             }
             // If the connection is closed, we do not expect any response from the server and therefore can respond without execution
             if (connectionClosed) {
+                return ResponseFingerprint(emptyList(), SocketState.CLOSED, false)
+            }
+            // Sometimes disabling rekex is necessary to allow the learner to terminate
+            if (p0 == SshSymbol.MSG_KEXINIT &&
+                state.sshContext.packetLayer.readEpoch > 0 &&
+                state.sshContext.packetLayer.writeEpoch > 0 &&
+                disableRekex) {
+                // The learner is trying to rekex (i.e. send a KEXINIT message inside the secure channel), but rekex is disabled
+                // The SUL should not execute the KEXINIT message, but rather return a closed socket state
+                state.sshContext.transportHandler.closeConnection()
+                connectionClosed = true
                 return ResponseFingerprint(emptyList(), SocketState.CLOSED, false)
             }
             val response = executeSymbol(p0)

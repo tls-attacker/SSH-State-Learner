@@ -8,7 +8,7 @@
  */
 package de.rub.nds.sshstatelearner.sul
 
-import de.learnlib.sul.SUL
+import de.rub.nds.protocol.exception.TransportHandlerConnectException
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.PacketLayerType
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
@@ -18,8 +18,6 @@ import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.SendAction
 import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.constants.SulType
-import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.SshConfigManager
 import de.rub.nds.tlsattacker.transport.tcp.ClientTcpTransportHandler
 import org.apache.logging.log4j.LogManager
@@ -34,10 +32,18 @@ class NetworkSshServerSul(
     stage: ProtocolStage = DEFAULT_PROTOCOL_STAGE,
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
+    disableRekex: Boolean = DEFAULT_DISABLE_REKEX,
     retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY,
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, retrieveDelay) {
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, disableRekex, retrieveDelay) {
 
     override var connectionAlias = "client"
+
+    companion object {
+        /**
+         * Logger for the NetworkSshSul class.
+         */
+        private val LOGGER: Logger = LogManager.getLogger()
+    }
 
     /**
      * Set up the network-based SSH for Servers under Test by instantiating a new SSH-Attacker state and connection to the peer.
@@ -45,10 +51,22 @@ class NetworkSshServerSul(
     override fun pre() {
         config = SshConfigManager.getClientConfig(kex, strictKex)
         // Initialize transport handler
-        state = State(config).apply {
-            sshContext.transportHandler = ClientTcpTransportHandler(timeout, timeout, hostname, port)
-            sshContext.initTransportHandler()
-        }
+        var connectionSuccessful: Boolean
+        do {
+            try {
+                state = State(config).apply {
+                    sshContext.transportHandler = ClientTcpTransportHandler(timeout, timeout, hostname, port)
+                    sshContext.initTransportHandler()
+                }
+                connectionSuccessful = true
+            } catch (e: TransportHandlerConnectException) {
+                LOGGER.error("Could not connect to the server at $hostname:$port.")
+                connectionSuccessful = false
+            } catch (e: Exception) {
+                LOGGER.error("An error occurred while connecting to the server: ${e.message}")
+                connectionSuccessful = false
+            }
+        } while (!connectionSuccessful)
         connectionClosed = false
 
         preVersionExchange()
