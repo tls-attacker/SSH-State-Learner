@@ -19,6 +19,7 @@ import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ParallelResponseTreeCache
 import de.rub.nds.sshstatelearner.algorithms.Statistics
 import de.rub.nds.sshstatelearner.cli.MainWindow
+import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
@@ -33,6 +34,7 @@ import net.automatalib.word.Word
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.File
+import java.io.FileWriter
 import java.util.*
 
 /**
@@ -136,6 +138,7 @@ class Extractor(
      * @return The extracted state machine.
      */
     fun extractStateMachine(): ExtractorResult {
+        clearOutput()
         constructOracles()
         var extractorResult: ExtractorResult? = null
         cacheInconsistencyRestarts = 0
@@ -146,6 +149,7 @@ class Extractor(
                 extractorResult = provideResult()
             } catch (e: CacheConflictException) {
                 LOGGER.warn("${e.message}\nInput prefix: ${e.inputPrefix}\nInput suffix: ${e.inputSuffix}\nExpected output: ${e.expectedOutput}\nActual output: ${e.actualOutput}")
+                saveStatisticsAtCacheConflict(rounds, cacheInconsistencyRestarts)
                 val majorityResult = MajorityVoteSulOracle(sulList[0], cacheConflictMajorityVotes).answerQuery(e.inputPrefix, e.inputSuffix)
                 membershipOracle.update(e.inputPrefix, e.inputSuffix, majorityResult, true)
                 cacheInconsistencyRestarts++
@@ -153,6 +157,33 @@ class Extractor(
         } while (extractorResult == null)
         oracle.shutdownNow()
         return extractorResult
+    }
+
+    /**
+     * Saves the statistics of the learning process to a file in the output directory.
+     * This function is called to save the current statistics when a cache conflict occurs.
+     */
+    private fun saveStatisticsAtCacheConflict(round: Int, conflictCount: Int) {
+        val folder = File(ArgsGeneral.output).also { it.mkdirs() }
+        val statistics = Statistics(
+            // Do not pass any value for the number of states (i.e. states = 0)
+            states = 0,
+            counterExampleCount = rounds - 1,
+            totalSymbolCount = learningStats.totalSymbolCount,
+            totalResetCount = learningStats.totalResetCount,
+            learnSymbolCount = learningStats.learnSymbolCount,
+            learnResetCount = learningStats.learnResetCount,
+            equivSymbolCount = learningStats.equivSymbolCount,
+            equivResetCount = learningStats.equivResetCount,
+            cacheInconsistencyRestarts = cacheInconsistencyRestarts,
+            cacheHitRate = membershipOracle.cacheHitRate,
+            duration = System.currentTimeMillis() - extractionStartTime
+        )
+        val statsFile = File(folder, "statistics_round${round}_conflict$conflictCount.txt").also { it.createNewFile() }
+        with(FileWriter(statsFile)) {
+            statistics.export(this)
+            this.close()
+        }
     }
 
     /**
@@ -180,7 +211,6 @@ class Extractor(
      * @return The learned state machine.
      */
     private fun provideResult(): ExtractorResult {
-        clearOutput()
         createGUIUpdateTimer()
 
         val extractorResult = ExtractorResult()

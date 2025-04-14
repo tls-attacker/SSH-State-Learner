@@ -85,6 +85,7 @@ abstract class NetworkSshSul(
             }
             // Sometimes limiting the number of authentication requests is necessary to allow the learner to terminate
             if (limitAuthRequests >= 0 &&
+                p0.name.startsWith("MSG_USERAUTH_REQUEST") &&
                 executedSteps.count { it.name.startsWith("MSG_USERAUTH_REQUEST") } >= limitAuthRequests) {
                 // The SUL has reached the limit of authentication requests, but the learner is still trying to send more
                 // Close the connection to the SUL and return a closed socket state
