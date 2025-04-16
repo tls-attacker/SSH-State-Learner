@@ -9,6 +9,7 @@
 package de.rub.nds.sshstatelearner.extraction
 
 import de.rub.nds.modifiablevariable.util.Modifiable
+import de.rub.nds.sshattacker.core.constants.MessageIdConstant
 import de.rub.nds.sshattacker.core.protocol.authentication.message.*
 import de.rub.nds.sshattacker.core.protocol.common.ProtocolMessage
 import de.rub.nds.sshattacker.core.protocol.connection.message.ChannelCloseMessage
@@ -83,125 +84,126 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.UnknownMessage
 import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMessage
 import de.rub.nds.sshattacker.core.state.SshContext
 
-enum class SshSymbol(val messageConstructor: (SshContext?) -> ProtocolMessage<*>) {
+enum class SshSymbol(val messageId: UByte?, val messageConstructor: (SshContext?) -> ProtocolMessage<*>) {
+
     /*
      * SSH transport protocol symbols
      */
-    MSG_DEBUG({ DebugMessage() }),
-    MSG_KEX_DH_GEX_GROUP({ DhGexKeyExchangeGroupMessage() }),
-    MSG_KEX_DH_GEX_INIT({ DhGexKeyExchangeInitMessage() }),
-    MSG_KEX_DH_GEX_OLD_REQUEST({ DhGexKeyExchangeOldRequestMessage() }),
-    MSG_KEX_DH_GEX_REPLY({ DhGexKeyExchangeReplyMessage() }),
-    MSG_KEX_DH_GEX_REQUEST({ DhGexKeyExchangeRequestMessage() }),
-    MSG_KEXDH_INIT({ DhKeyExchangeInitMessage() }),
-    MSG_KEXDH_REPLY({ DhKeyExchangeReplyMessage() }),
-    MSG_DISCONNECT({ DisconnectMessage() }),
-    MSG_KEX_ECDH_INIT({ EcdhKeyExchangeInitMessage() }),
-    MSG_KEX_ECDH_REPLY({ EcdhKeyExchangeReplyMessage() }),
-    MSG_EXT_INFO({ ExtensionInfoMessage() }),
-    MSG_KEX_HBR_INIT({ HybridKeyExchangeInitMessage() }),
-    MSG_KEX_HBR_REPLY({ HybridKeyExchangeReplyMessage() }),
-    MSG_IGNORE({ IgnoreMessage() }),
-    MSG_KEXINIT({ KeyExchangeInitMessage() }),
-    MSG_NEWCOMPRESS({ NewCompressMessage() }),
-    MSG_NEWKEYS({ NewKeysMessage() }),
-    MSG_PING_OPENSSH({ PingOpenSshMessage() }),
-    MSG_PONG_OPENSSH({ PongOpenSshMessage() }),
-    MSG_KEX_RSA_DONE({ RsaKeyExchangeDoneMessage() }),
-    MSG_KEX_RSA_PUBKEY({ RsaKeyExchangePubkeyMessage() }),
-    MSG_KEX_RSA_SECRET({ RsaKeyExchangeSecretMessage() }),
-    MSG_SERVICE_ACCEPT({ ServiceAcceptMessage() }),
-    MSG_SERVICE_REQUEST_USERAUTH({
+    MSG_DEBUG(MessageIdConstant.SSH_MSG_DEBUG, { DebugMessage() }),
+    MSG_KEX_DH_GEX_GROUP(MessageIdConstant.SSH_MSG_KEX_DH_GEX_GROUP, { DhGexKeyExchangeGroupMessage() }),
+    MSG_KEX_DH_GEX_INIT(MessageIdConstant.SSH_MSG_KEX_DH_GEX_INIT, { DhGexKeyExchangeInitMessage() }),
+    MSG_KEX_DH_GEX_OLD_REQUEST(MessageIdConstant.SSH_MSG_KEX_DH_GEX_REQUEST_OLD, { DhGexKeyExchangeOldRequestMessage() }),
+    MSG_KEX_DH_GEX_REPLY(MessageIdConstant.SSH_MSG_KEX_DH_GEX_REPLY, { DhGexKeyExchangeReplyMessage() }),
+    MSG_KEX_DH_GEX_REQUEST(MessageIdConstant.SSH_MSG_KEX_DH_GEX_REQUEST, { DhGexKeyExchangeRequestMessage() }),
+    MSG_KEXDH_INIT(MessageIdConstant.SSH_MSG_KEXDH_INIT, { DhKeyExchangeInitMessage() }),
+    MSG_KEXDH_REPLY(MessageIdConstant.SSH_MSG_KEXDH_REPLY, { DhKeyExchangeReplyMessage() }),
+    MSG_DISCONNECT(MessageIdConstant.SSH_MSG_DISCONNECT, { DisconnectMessage() }),
+    MSG_KEX_ECDH_INIT(MessageIdConstant.SSH_MSG_KEX_ECDH_INIT, { EcdhKeyExchangeInitMessage() }),
+    MSG_KEX_ECDH_REPLY(MessageIdConstant.SSH_MSG_KEX_ECDH_REPLY, { EcdhKeyExchangeReplyMessage() }),
+    MSG_EXT_INFO(MessageIdConstant.SSH_MSG_EXT_INFO, { ExtensionInfoMessage() }),
+    MSG_KEX_HBR_INIT(MessageIdConstant.SSH_MSG_HBR_INIT, { HybridKeyExchangeInitMessage() }),
+    MSG_KEX_HBR_REPLY(MessageIdConstant.SSH_MSG_HBR_REPLY, { HybridKeyExchangeReplyMessage() }),
+    MSG_IGNORE(MessageIdConstant.SSH_MSG_IGNORE, { IgnoreMessage() }),
+    MSG_KEXINIT(MessageIdConstant.SSH_MSG_KEXINIT, { KeyExchangeInitMessage() }),
+    MSG_NEWCOMPRESS(MessageIdConstant.SSH_MSG_NEWCOMPRESS, { NewCompressMessage() }),
+    MSG_NEWKEYS(MessageIdConstant.SSH_MSG_NEWKEYS, { NewKeysMessage() }),
+    MSG_PING_OPENSSH(MessageIdConstant.SSH_MSG_PING, { PingOpenSshMessage() }),
+    MSG_PONG_OPENSSH(MessageIdConstant.SSH_MSG_PONG, { PongOpenSshMessage() }),
+    MSG_KEX_RSA_DONE(MessageIdConstant.SSH_MSG_KEXRSA_DONE, { RsaKeyExchangeDoneMessage() }),
+    MSG_KEX_RSA_PUBKEY(MessageIdConstant.SSH_MSG_KEXRSA_PUBKEY, { RsaKeyExchangePubkeyMessage() }),
+    MSG_KEX_RSA_SECRET(MessageIdConstant.SSH_MSG_KEXRSA_SECRET, { RsaKeyExchangeSecretMessage() }),
+    MSG_SERVICE_ACCEPT(MessageIdConstant.SSH_MSG_SERVICE_ACCEPT, { ServiceAcceptMessage() }),
+    MSG_SERVICE_REQUEST_USERAUTH(MessageIdConstant.SSH_MSG_SERVICE_REQUEST, {
         ServiceRequestMessage().apply {
             setServiceName(Modifiable.explicit("ssh-userauth"), true)
         }
     }),
-    MSG_SERVICE_REQUEST_CONNECTION({
+    MSG_SERVICE_REQUEST_CONNECTION(MessageIdConstant.SSH_MSG_SERVICE_REQUEST, {
         ServiceRequestMessage().apply {
             setServiceName(Modifiable.explicit("ssh-connection"), true)
         }
     }),
-    MSG_UNIMPLEMENTED({
+    MSG_UNIMPLEMENTED(MessageIdConstant.SSH_MSG_UNIMPLEMENTED, {
         UnimplementedMessage().apply {
             setSequenceNumber((it?.readSequenceNumber ?: 1) - 1)
         }
     }),
-    MSG_VERSION_EXCHANGE({ VersionExchangeMessage() }),
+    MSG_VERSION_EXCHANGE(null, { VersionExchangeMessage() }),
 
     /*
      * SSH authentication protocol symbols
      */
-    MSG_USERAUTH_BANNER({ UserAuthBannerMessage() }),
-    MSG_USERAUTH_FAILURE({ UserAuthFailureMessage() }),
-    MSG_USERAUTH_INFO_REQUEST({ UserAuthInfoRequestMessage() }),
-    MSG_USERAUTH_INFO_RESPONSE({ UserAuthInfoResponseMessage() }),
-    MSG_USERAUTH_PASSWD_CHANGEREQ({ UserAuthPasswdChangeReqMessage() }),
-    MSG_USERAUTH_PK_OK({ UserAuthPkOkMessage() }),
-    MSG_USERAUTH_REQUEST_HOSTBASED({ UserAuthRequestHostbasedMessage() }),
-    MSG_USERAUTH_REQUEST_KEYBOARD_INTERACTIVE({ UserAuthRequestKeyboardInteractiveMessage() }),
-    MSG_USERAUTH_REQUEST_NONE({ UserAuthRequestNoneMessage() }),
-    MSG_USERAUTH_REQUEST_PASSWORD({ UserAuthRequestPasswordMessage().apply { setPassword(Modifiable.explicit("invalid"), true) } }),
-    MSG_USERAUTH_REQUEST_PUBLICKEY_HOSTBOUND_OPENSSH({ UserAuthRequestPublicKeyHostboundOpenSshMessage() }),
-    MSG_USERAUTH_REQUEST_PUBLICKEY({ UserAuthRequestPublicKeyMessage() }),
-    MSG_USERAUTH_REQUEST_UNKNOWN({
+    MSG_USERAUTH_BANNER(MessageIdConstant.SSH_MSG_USERAUTH_BANNER, { UserAuthBannerMessage() }),
+    MSG_USERAUTH_FAILURE(MessageIdConstant.SSH_MSG_USERAUTH_FAILURE, { UserAuthFailureMessage() }),
+    MSG_USERAUTH_INFO_REQUEST(MessageIdConstant.SSH_MSG_USERAUTH_INFO_REQUEST, { UserAuthInfoRequestMessage() }),
+    MSG_USERAUTH_INFO_RESPONSE(MessageIdConstant.SSH_MSG_USERAUTH_INFO_RESPONSE, { UserAuthInfoResponseMessage() }),
+    MSG_USERAUTH_PASSWD_CHANGEREQ(MessageIdConstant.SSH_MSG_USERAUTH_PASSWD_CHANGEREQ, { UserAuthPasswdChangeReqMessage() }),
+    MSG_USERAUTH_PK_OK(MessageIdConstant.SSH_MSG_USERAUTH_PK_OK, { UserAuthPkOkMessage() }),
+    MSG_USERAUTH_REQUEST_HOSTBASED(MessageIdConstant.SSH_MSG_USERAUTH_REQUEST, { UserAuthRequestHostbasedMessage() }),
+    MSG_USERAUTH_REQUEST_KEYBOARD_INTERACTIVE(MessageIdConstant.SSH_MSG_USERAUTH_REQUEST, { UserAuthRequestKeyboardInteractiveMessage() }),
+    MSG_USERAUTH_REQUEST_NONE(MessageIdConstant.SSH_MSG_USERAUTH_REQUEST, { UserAuthRequestNoneMessage() }),
+    MSG_USERAUTH_REQUEST_PASSWORD(MessageIdConstant.SSH_MSG_USERAUTH_REQUEST, { UserAuthRequestPasswordMessage().apply { setPassword(Modifiable.explicit("invalid"), true) } }),
+    MSG_USERAUTH_REQUEST_PUBLICKEY_HOSTBOUND_OPENSSH(MessageIdConstant.SSH_MSG_USERAUTH_REQUEST, { UserAuthRequestPublicKeyHostboundOpenSshMessage() }),
+    MSG_USERAUTH_REQUEST_PUBLICKEY(MessageIdConstant.SSH_MSG_USERAUTH_REQUEST, { UserAuthRequestPublicKeyMessage() }),
+    MSG_USERAUTH_REQUEST_UNKNOWN(MessageIdConstant.SSH_MSG_USERAUTH_REQUEST, {
         UserAuthRequestUnknownMessage().apply {
             setMethodName(Modifiable.explicit("unknown"), true)
     }}),
-    MSG_USERAUTH_SUCCESS({ UserAuthSuccessMessage() }),
+    MSG_USERAUTH_SUCCESS(MessageIdConstant.SSH_MSG_USERAUTH_SUCCESS, { UserAuthSuccessMessage() }),
 
     /*
      * SSH connection protocol symbols
      */
-    MSG_CHANNEL_CLOSE({ ChannelCloseMessage() }),
-    MSG_CHANNEL_DATA({ ChannelDataMessage() }),
-    MSG_CHANNEL_EOF({ ChannelEofMessage() }),
-    MSG_CHANNEL_EXTENDED_DATA({ ChannelExtendedDataMessage() }),
-    MSG_CHANNEL_FAILURE({ ChannelFailureMessage() }),
-    MSG_CHANNEL_OPEN_CONFIRMATION({ ChannelOpenConfirmationMessage() }),
-    MSG_CHANNEL_OPEN_DIRECT_STREAMLOCAL_OPENSSH({ ChannelOpenDirectStreamlocalOpenSshMessage() }),
-    MSG_CHANNEL_OPEN_DIRECT_TCPIP({ ChannelOpenDirectTcpIpMessage() }),
-    MSG_CHANNEL_OPEN_FAILURE({ ChannelOpenFailureMessage() }),
-    MSG_CHANNEL_OPEN_FORWARDED_STREAMLOCAL_OPENSSH({ ChannelOpenForwardedStreamlocalOpenSshMessage() }),
-    MSG_CHANNEL_OPEN_FORWARDED_TCPIP({ ChannelOpenForwardedTcpIpMessage() }),
-    MSG_CHANNEL_OPEN_SESSION({ ChannelOpenSessionMessage() }),
-    MSG_CHANNEL_OPEN_TUN_OPENSSH({ ChannelOpenTunOpenSshMessage() }),
-    MSG_CHANNEL_OPEN_UNKNOWN({
+    MSG_CHANNEL_CLOSE(MessageIdConstant.SSH_MSG_CHANNEL_CLOSE, { ChannelCloseMessage() }),
+    MSG_CHANNEL_DATA(MessageIdConstant.SSH_MSG_CHANNEL_DATA,{ ChannelDataMessage() }),
+    MSG_CHANNEL_EOF(MessageIdConstant.SSH_MSG_CHANNEL_EOF, { ChannelEofMessage() }),
+    MSG_CHANNEL_EXTENDED_DATA(MessageIdConstant.SSH_MSG_CHANNEL_EXTENDED_DATA, { ChannelExtendedDataMessage() }),
+    MSG_CHANNEL_FAILURE(MessageIdConstant.SSH_MSG_CHANNEL_FAILURE, { ChannelFailureMessage() }),
+    MSG_CHANNEL_OPEN_CONFIRMATION(MessageIdConstant.SSH_MSG_CHANNEL_OPEN_CONFIRMATION, { ChannelOpenConfirmationMessage() }),
+    MSG_CHANNEL_OPEN_DIRECT_STREAMLOCAL_OPENSSH(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenDirectStreamlocalOpenSshMessage() }),
+    MSG_CHANNEL_OPEN_DIRECT_TCPIP(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenDirectTcpIpMessage() }),
+    MSG_CHANNEL_OPEN_FAILURE(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenFailureMessage() }),
+    MSG_CHANNEL_OPEN_FORWARDED_STREAMLOCAL_OPENSSH(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenForwardedStreamlocalOpenSshMessage() }),
+    MSG_CHANNEL_OPEN_FORWARDED_TCPIP(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenForwardedTcpIpMessage() }),
+    MSG_CHANNEL_OPEN_SESSION(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenSessionMessage() }),
+    MSG_CHANNEL_OPEN_TUN_OPENSSH(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenTunOpenSshMessage() }),
+    MSG_CHANNEL_OPEN_UNKNOWN(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, {
         ChannelOpenUnknownMessage().apply {
             setChannelType(Modifiable.explicit("unknown"), true)
         }
     }),
-    MSG_CHANNEL_OPEN_X11({ ChannelOpenX11Message() }),
-    MSG_CHANNEL_REQUEST_AUTH_AGENT_OPENSSH({ ChannelRequestAuthAgentReqOpenSshMessage() }),
-    MSG_CHANNEL_REQUEST_BREAK({ ChannelRequestBreakMessage() }),
-    MSG_CHANNEL_REQUEST_ENV({ ChannelRequestEnvMessage() }),
-    MSG_CHANNEL_REQUEST_EOW_OPENSSH({ ChannelRequestEowOpenSshMessage() }),
-    MSG_CHANNEL_REQUEST_EXEC({ ChannelRequestExecMessage() }),
-    MSG_CHANNEL_REQUEST_EXIT_SIGNAL({ ChannelRequestExitSignalMessage() }),
-    MSG_CHANNEL_REQUEST_EXIT_STATUS({ ChannelRequestExitStatusMessage() }),
-    MSG_CHANNEL_REQUEST_PTY_REQ({ ChannelRequestPtyReqMessage() }),
-    MSG_CHANNEL_REQUEST_SHELL({ ChannelRequestShellMessage() }),
-    MSG_CHANNEL_REQUEST_SIGNAL({ ChannelRequestSignalMessage() }),
-    MSG_CHANNEL_REQUEST_SUBSYSTEM({ ChannelRequestSubsystemMessage() }),
-    MSG_CHANNEL_REQUEST_UNKNOWN({
+    MSG_CHANNEL_OPEN_X11(MessageIdConstant.SSH_MSG_CHANNEL_OPEN, { ChannelOpenX11Message() }),
+    MSG_CHANNEL_REQUEST_AUTH_AGENT_OPENSSH(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestAuthAgentReqOpenSshMessage() }),
+    MSG_CHANNEL_REQUEST_BREAK(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestBreakMessage() }),
+    MSG_CHANNEL_REQUEST_ENV(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestEnvMessage() }),
+    MSG_CHANNEL_REQUEST_EOW_OPENSSH(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestEowOpenSshMessage() }),
+    MSG_CHANNEL_REQUEST_EXEC(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestExecMessage() }),
+    MSG_CHANNEL_REQUEST_EXIT_SIGNAL(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestExitSignalMessage() }),
+    MSG_CHANNEL_REQUEST_EXIT_STATUS(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestExitStatusMessage() }),
+    MSG_CHANNEL_REQUEST_PTY_REQ(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestPtyReqMessage() }),
+    MSG_CHANNEL_REQUEST_SHELL(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestShellMessage() }),
+    MSG_CHANNEL_REQUEST_SIGNAL(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestSignalMessage() }),
+    MSG_CHANNEL_REQUEST_SUBSYSTEM(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestSubsystemMessage() }),
+    MSG_CHANNEL_REQUEST_UNKNOWN(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, {
         ChannelRequestUnknownMessage().apply {
             setRequestType(Modifiable.explicit("unknown"), true)
         }
     }),
-    MSG_CHANNEL_REQUEST_WINDOW_CHANGE({ ChannelRequestWindowChangeMessage() }),
-    MSG_CHANNEL_REQUEST_X11_REQ({ ChannelRequestX11ReqMessage() }),
-    MSG_CHANNEL_REQUEST_XON_XOFF({ ChannelRequestXonXoffMessage() }),
-    MSG_CHANNEL_SUCCESS({ ChannelSuccessMessage() }),
-    MSG_CHANNEL_WINDOW_ADJUST({ ChannelWindowAdjustMessage() }),
-    MSG_GLOBAL_REQUEST_CANCEL_STREAMLOCAL_FORWARD_OPENSSH({ GlobalRequestCancelStreamlocalForwardOpenSshMessage() }),
-    MSG_GLOBAL_REQUEST_CANCEL_TCPIP_FORWARD({ GlobalRequestCancelTcpIpForwardMessage() }),
-    MSG_REQUEST_FAILURE({ GlobalRequestFailureMessage() }),
-    MSG_GLOBAL_REQUEST_HOSTKEYS_OPENSSH({ GlobalRequestHostKeysOpenSshMessage() }),
-    MSG_GLOBAL_REQUEST_HOSTKEYS_PROVE_OPENSSH({ GlobalRequestHostKeysProveOpenSshMessage() }),
-    MSG_GLOBAL_REQUEST_NO_MORE_SESSIONS_OPENSSH({ GlobalRequestNoMoreSessionsOpenSshMessage() }),
-    MSG_GLOBAL_REQUEST_STREAMLOCAL_FORWARD_OPENSSH({ GlobalRequestStreamlocalForwardOpenSshMessage() }),
-    MSG_REQUEST_SUCCESS({ GlobalRequestSuccessMessage() }),
-    MSG_GLOBAL_REQUEST_TCPIP_FORWARD({ GlobalRequestTcpIpForwardMessage() }),
-    MSG_GLOBAL_REQUEST_UNKNOWN({
+    MSG_CHANNEL_REQUEST_WINDOW_CHANGE(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestWindowChangeMessage() }),
+    MSG_CHANNEL_REQUEST_X11_REQ(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestX11ReqMessage() }),
+    MSG_CHANNEL_REQUEST_XON_XOFF(MessageIdConstant.SSH_MSG_CHANNEL_REQUEST, { ChannelRequestXonXoffMessage() }),
+    MSG_CHANNEL_SUCCESS(MessageIdConstant.SSH_MSG_CHANNEL_SUCCESS, { ChannelSuccessMessage() }),
+    MSG_CHANNEL_WINDOW_ADJUST(MessageIdConstant.SSH_MSG_CHANNEL_WINDOW_ADJUST, { ChannelWindowAdjustMessage() }),
+    MSG_GLOBAL_REQUEST_CANCEL_STREAMLOCAL_FORWARD_OPENSSH(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, { GlobalRequestCancelStreamlocalForwardOpenSshMessage() }),
+    MSG_GLOBAL_REQUEST_CANCEL_TCPIP_FORWARD(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, { GlobalRequestCancelTcpIpForwardMessage() }),
+    MSG_REQUEST_FAILURE(MessageIdConstant.SSH_MSG_REQUEST_FAILURE, { GlobalRequestFailureMessage() }),
+    MSG_GLOBAL_REQUEST_HOSTKEYS_OPENSSH(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, { GlobalRequestHostKeysOpenSshMessage() }),
+    MSG_GLOBAL_REQUEST_HOSTKEYS_PROVE_OPENSSH(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, { GlobalRequestHostKeysProveOpenSshMessage() }),
+    MSG_GLOBAL_REQUEST_NO_MORE_SESSIONS_OPENSSH(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, { GlobalRequestNoMoreSessionsOpenSshMessage() }),
+    MSG_GLOBAL_REQUEST_STREAMLOCAL_FORWARD_OPENSSH(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, { GlobalRequestStreamlocalForwardOpenSshMessage() }),
+    MSG_REQUEST_SUCCESS(MessageIdConstant.SSH_MSG_REQUEST_SUCCESS, { GlobalRequestSuccessMessage() }),
+    MSG_GLOBAL_REQUEST_TCPIP_FORWARD(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, { GlobalRequestTcpIpForwardMessage() }),
+    MSG_GLOBAL_REQUEST_UNKNOWN(MessageIdConstant.SSH_MSG_GLOBAL_REQUEST, {
         GlobalRequestUnknownMessage().apply {
             setRequestName(Modifiable.explicit("unknown"), true)
         }
@@ -210,14 +212,16 @@ enum class SshSymbol(val messageConstructor: (SshContext?) -> ProtocolMessage<*>
     /*
      * Unknown SSH message IDs
      */
-    MSG_UNKNOWN_ID_RESERVED_0({ UnknownMessage().apply { messageId = Modifiable.explicit(0.toByte()) } }),
-    MSG_UNKNOWN_ID_TRANSPORT_GENERIC({ UnknownMessage().apply { messageId = Modifiable.explicit(9.toByte()) } }),
-    MSG_UNKNOWN_ID_ALGORITHM_NEGOTIATION({ UnknownMessage().apply { messageId = Modifiable.explicit(22.toByte()) } }),
-    MSG_UNKNOWN_ID_KEY_EXCHANGE_SPECIFIC({ UnknownMessage().apply { messageId = Modifiable.explicit(49.toByte()) } }),
-    MSG_UNKNOWN_ID_USERAUTH_GENERIC({ UnknownMessage().apply { messageId = Modifiable.explicit(54.toByte()) } }),
-    MSG_UNKNOWN_ID_USERAUTH_SPECIFIC({ UnknownMessage().apply { messageId = Modifiable.explicit(79.toByte()) } }),
-    MSG_UNKNOWN_ID_CONNECTION_GENERIC({ UnknownMessage().apply { messageId = Modifiable.explicit(83.toByte()) } }),
-    MSG_UNKNOWN_ID_CHANNEL_RELATED({ UnknownMessage().apply { messageId = Modifiable.explicit(101.toByte()) } }),
-    MSG_UNKNOWN_ID_RESERVED_CLIENT({ UnknownMessage().apply { messageId = Modifiable.explicit((-128).toByte()) } }),
-    MSG_UNKNOWN_ID_RESERVED_PRIVATE({ UnknownMessage().apply { messageId = Modifiable.explicit((-64).toByte()) } });
+    MSG_UNKNOWN_ID_RESERVED_0(0.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(0.toByte()) } }),
+    MSG_UNKNOWN_ID_TRANSPORT_GENERIC(9.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(9.toByte()) } }),
+    MSG_UNKNOWN_ID_ALGORITHM_NEGOTIATION(22.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(22.toByte()) } }),
+    MSG_UNKNOWN_ID_KEY_EXCHANGE_SPECIFIC(49.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(49.toByte()) } }),
+    MSG_UNKNOWN_ID_USERAUTH_GENERIC(54.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(54.toByte()) } }),
+    MSG_UNKNOWN_ID_USERAUTH_SPECIFIC(79.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(79.toByte()) } }),
+    MSG_UNKNOWN_ID_CONNECTION_GENERIC(83.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(83.toByte()) } }),
+    MSG_UNKNOWN_ID_CHANNEL_RELATED(101.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit(101.toByte()) } }),
+    MSG_UNKNOWN_ID_RESERVED_CLIENT(128.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit((-128).toByte()) } }),
+    MSG_UNKNOWN_ID_RESERVED_PRIVATE(192.toUByte(), { UnknownMessage().apply { messageId = Modifiable.explicit((-64).toByte()) } });
+
+    constructor(messageId: MessageIdConstant, messageConstructor: (SshContext?) -> ProtocolMessage<*>) : this(messageId.id.toUByte(), messageConstructor)
 }

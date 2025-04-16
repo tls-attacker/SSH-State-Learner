@@ -9,7 +9,6 @@
 package de.rub.nds.sshstatelearner.visualization
 
 import de.rub.nds.sshstatelearner.analysis.data.GraphDetails
-import de.rub.nds.sshstatelearner.analysis.limiter.message.NotInStateMachineLearningFocusMessage
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
@@ -70,11 +69,6 @@ class ShortMealyVisualizationHelper<S, T>(
             return false
         }
 
-        if (transitionOutput.messages.isNotEmpty()
-            && transitionOutput.messages.all { it is NotInStateMachineLearningFocusMessage }
-        ) {
-            return false
-        }
         if (!graphDetails.happyFlowTransitions.contains(edge.transition)) {
             // Combine multiple edges between src and tgt into a single one
             val label = alphabet.map { Triple(it, automaton.getTransition(src, it), automaton.getSuccessor(src, it)) }

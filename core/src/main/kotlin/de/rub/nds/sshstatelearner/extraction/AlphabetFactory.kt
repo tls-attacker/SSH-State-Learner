@@ -198,6 +198,12 @@ object AlphabetFactory {
      */
     fun construct(sulType: SulType, stage: ProtocolStage, kex: KeyExchangeAlgorithm): Alphabet<SshSymbol> {
         // TODO: For now, we always return the entire alphabet. This should be changed to return only the relevant symbols.
-        return ListAlphabet(SshSymbol.entries)
+        val clientKexSymbols = getKexSymbolsForClient(kex)
+        val serverKexSymbols = getKexSymbolsForServer(kex)
+        return ListAlphabet(SshSymbol.entries.filter {
+            // Filter all symbols with the same messageId as the valid kex symbols to avoid sporadic cache inconsistencies
+            it in clientKexSymbols || it in serverKexSymbols ||
+                    (it.messageId !in clientKexSymbols.map { s -> s.messageId } && it.messageId !in serverKexSymbols.map { s -> s.messageId })
+        })
     }
 }
