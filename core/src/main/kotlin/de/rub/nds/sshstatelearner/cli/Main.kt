@@ -14,7 +14,6 @@ import com.googlecode.lanterna.gui2.MultiWindowTextGUI
 import com.googlecode.lanterna.gui2.SeparateTextGUIThread
 import com.googlecode.lanterna.screen.TerminalScreen
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory
-import de.rub.nds.sshattacker.core.exceptions.NotImplementedException
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.cli.args.ArgsLearner
@@ -118,6 +117,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.kexAlgorithm,
                         ArgsSul.strictKex,
                         ArgsSul.disableRekex,
+                        ArgsSul.disableEncryptedNewKeys,
+                        ArgsSul.unencryptedStageOnly,
                         ArgsSul.authRequestLimit,
                         ArgsSul.retrieveDelay
                     )
@@ -132,6 +133,8 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
                         ArgsSul.kexAlgorithm,
                         ArgsSul.strictKex,
                         ArgsSul.disableRekex,
+                        ArgsSul.disableEncryptedNewKeys,
+                        ArgsSul.unencryptedStageOnly,
                         ArgsSul.authRequestLimit,
                         ArgsSul.retrieveDelay
                     )

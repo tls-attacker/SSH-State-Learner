@@ -17,7 +17,6 @@ import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
 import de.rub.nds.sshattacker.core.workflow.action.executor.SendMessageHelper
 import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
-import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul.Companion
 import de.rub.nds.sshstatelearner.sul.response.ResponseExtractor
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
@@ -33,6 +32,8 @@ abstract class NetworkSshSul(
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
     val disableRekex: Boolean = DEFAULT_DISABLE_REKEX,
+    val disableEncryptedNewKeys: Boolean = DEFAULT_DISABLE_ENCRYPTED_NEWKEYS,
+    val unencryptedStageOnly: Boolean = DEFAULT_UNENCRYPTED_STAGE_ONLY,
     limitAuthRequests: Int = -1,
     val retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY
 ) : SshSul(name, timeout, resetDelay, stage, kex, strictKex, limitAuthRequests) {
@@ -72,13 +73,12 @@ abstract class NetworkSshSul(
             if (connectionClosed) {
                 return ResponseFingerprint(emptyList(), SocketState.CLOSED, false)
             }
-            // Sometimes disabling rekex is necessary to allow the learner to terminate
-            if (p0 == SshSymbol.MSG_KEXINIT &&
-                state.sshContext.packetLayer.readEpoch > 0 &&
-                state.sshContext.packetLayer.writeEpoch > 0 &&
-                disableRekex) {
-                // The learner is trying to rekex (i.e. send a KEXINIT message inside the secure channel), but rekex is disabled
-                // The SUL should not execute the KEXINIT message, but rather return a closed socket state
+            if (((p0 == SshSymbol.MSG_KEXINIT && disableRekex)
+                        || (p0 == SshSymbol.MSG_NEWKEYS && disableEncryptedNewKeys)
+                        || unencryptedStageOnly) &&
+                executedSteps.contains(SshSymbol.MSG_NEWKEYS)) {
+                // The learner is trying to rekex (i.e. send a KEXINIT message inside the secure channel) or send an encrypted NEWKEYS message
+                // However, the SUL is not allowed to do so. Close the connection to the SUL and return a closed socket state
                 state.sshContext.transportHandler.closeConnection()
                 connectionClosed = true
                 return ResponseFingerprint(emptyList(), SocketState.CLOSED, false)

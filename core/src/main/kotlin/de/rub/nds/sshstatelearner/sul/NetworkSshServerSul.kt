@@ -33,9 +33,11 @@ class NetworkSshServerSul(
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
     disableRekex: Boolean = DEFAULT_DISABLE_REKEX,
+    disableEncryptedNewKeys: Boolean = DEFAULT_DISABLE_ENCRYPTED_NEWKEYS,
+    unencryptedStageOnly: Boolean = DEFAULT_UNENCRYPTED_STAGE_ONLY,
     limitAuthRequests: Int = DEFAULT_AUTH_REQUEST_LIMIT,
     retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY,
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, disableRekex, limitAuthRequests, retrieveDelay) {
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, disableRekex, disableEncryptedNewKeys, unencryptedStageOnly, limitAuthRequests, retrieveDelay) {
 
     override var connectionAlias = "client"
 

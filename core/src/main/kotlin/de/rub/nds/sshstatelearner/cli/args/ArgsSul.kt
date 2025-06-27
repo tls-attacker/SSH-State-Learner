@@ -73,7 +73,15 @@ object ArgsSul {
     var disableRekex: Boolean = SshSul.DEFAULT_DISABLE_REKEX
         private set
 
-    @Parameter(names = ["--auth-request-limit"], description = "The maximum number of authentication requests to be sent before closing the connection. Set to -1 to disable this feature.", order = 22)
+    @Parameter(names = ["--disable-encrypted-newkeys"], description = "If set to true, the SUL will close the connection if the learner tries to send an encrypted NEW_KEYS message. This can be helpful if the implementation behaves non-deterministicly when receiving an encrypted NEW_KEYS message.", order = 22)
+    var disableEncryptedNewKeys = SshSul.DEFAULT_DISABLE_ENCRYPTED_NEWKEYS
+        private set
+
+    @Parameter(names = ["--unencrypted-stage-only"], description = "If set to true, the SUL will close the connection after sending an encrypted SERVICE_REQUEST message. This can be helpful if the implementation behaves non-deterministicly in the authentication protocol.", order = 23)
+    var unencryptedStageOnly = SshSul.DEFAULT_UNENCRYPTED_STAGE_ONLY
+        private set
+
+    @Parameter(names = ["--auth-request-limit"], description = "The maximum number of authentication requests to be sent before closing the connection. Set to -1 to disable this feature.", order = 24)
     var authRequestLimit: Int = SshSul.DEFAULT_AUTH_REQUEST_LIMIT
         private set
 }

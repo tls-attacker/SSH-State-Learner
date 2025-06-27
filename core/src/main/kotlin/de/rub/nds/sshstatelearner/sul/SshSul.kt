@@ -93,6 +93,16 @@ abstract class SshSul(
         const val DEFAULT_DISABLE_REKEX = false
 
         /**
+         * The default value for whether to disable encrypted new keys (i.e. sending SSH_MSG_NEWKEYS in the secure channel)
+         */
+        const val DEFAULT_DISABLE_ENCRYPTED_NEWKEYS = false
+
+        /**
+         * The default value for whether to close the connection after sending an encrypted SERVICE_REQUEST message.
+         */
+        const val DEFAULT_UNENCRYPTED_STAGE_ONLY = false
+
+        /**
          * The default value for the maximum number of authentication requests to be sent before closing the connection.
          * Set to -1 to disable this feature.
          */

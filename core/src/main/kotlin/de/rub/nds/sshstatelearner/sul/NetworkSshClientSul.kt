@@ -8,7 +8,6 @@
  */
 package de.rub.nds.sshstatelearner.sul
 
-import de.learnlib.sul.SUL
 import de.rub.nds.sshattacker.core.constants.ConnectionDirection
 import de.rub.nds.sshattacker.core.constants.KeyExchangeAlgorithm
 import de.rub.nds.sshattacker.core.constants.PacketLayerType
@@ -22,7 +21,6 @@ import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.sul.handler.ClientConnectionHandler
 import de.rub.nds.sshstatelearner.sul.handler.EmptyClientConnectionHandler
-import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.sshstatelearner.util.SshConfigManager
 import de.rub.nds.tlsattacker.transport.tcp.ServerTcpTransportHandler
 import kotlinx.coroutines.Dispatchers
@@ -45,11 +43,13 @@ class NetworkSshClientSul(
     kex: KeyExchangeAlgorithm = DEFAULT_KEX_ALGORITHM,
     strictKex: Boolean = DEFAULT_STRICT_KEX_ENABLED,
     disableRekex: Boolean = DEFAULT_DISABLE_REKEX,
+    disableEncryptedNewKeys: Boolean = DEFAULT_DISABLE_ENCRYPTED_NEWKEYS,
+    unencryptedStageOnly: Boolean = DEFAULT_UNENCRYPTED_STAGE_ONLY,
     limitAuthRequests: Int = DEFAULT_AUTH_REQUEST_LIMIT,
     retrieveDelay: Long = DEFAULT_RETRIEVE_DELAY,
     private val enableEncryptionOnNewKeysMessage: ConnectionDirection = ConnectionDirection.BOTH,
     private val clientConnectionHandler: ClientConnectionHandler = EmptyClientConnectionHandler(),
-) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, disableRekex, limitAuthRequests, retrieveDelay) {
+) : NetworkSshSul(name, timeout, resetDelay, stage, kex, strictKex, disableRekex, disableEncryptedNewKeys, unencryptedStageOnly, limitAuthRequests, retrieveDelay) {
 
     override var connectionAlias = "server"
 
