@@ -3,7 +3,6 @@ package de.rub.nds.sshstatelearner.config
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonPropertyDescription
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
-import de.rub.nds.sshstatelearner.analysis.limiter.SMLLimiterTyp
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
 import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
@@ -95,10 +94,6 @@ class ConfigLearner {
     @JsonPropertyDescription("[RANDOM_W / RANDOM_WP only] The maximum number of words to test before hypothesis and SUL are considered equal. If this oracle is configured to be unbounded (bound = 0), it does not terminate if the hypothesis is correct")
     @JsonProperty(defaultValue = "1000")
     var equivRandomWBound: Int = EquivalenceOracleFactory.randomWBound
-
-    @JsonPropertyDescription("Possibility to restrict state machine learning (SML)")
-    @JsonProperty(defaultValue = "EMPTY_SML_LIMITER")
-    var smlLimiterTyp: SMLLimiterTyp = SMLLimiterTyp.EMPTY_SML_LIMITER
 
     @JsonPropertyDescription("Path to the sml limiter file")
     @JsonProperty(defaultValue = "")

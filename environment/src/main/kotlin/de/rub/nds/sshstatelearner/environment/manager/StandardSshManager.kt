@@ -7,7 +7,6 @@ import de.rub.nds.sshstatelearner.config.ConfigHelper
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
-import de.rub.nds.sshstatelearner.extraction.ParallelOracleExtractor
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.SshSul
@@ -36,20 +35,13 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
         val sul = getSul()
         val learner = Extractor(
             alphabet,
-            sul,
-            getCountOfParallelSuls(),
+            listOf(sul),
             configGeneral.learnerConfig.learningAlgorithmType,
             configGeneral.learnerConfig.equivOracleChainTypes,
             configGeneral.learnerConfig.outputIntermediateHypothesis,
             configGeneral.outputDirectory,
-            configGeneral.sulConfig.sulType,
-            configGeneral.learnerConfig.smlLimiterTyp,
-            configGeneral.learnerConfig.smlLimiterFilePath,
-            configGeneral.learnerConfig.batchSize,
             configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount,
-            configGeneral.sulConfig.stateNameAndSuccessorTransitions,
-            configGeneral.sulConfig.customProtocolStageNameForGraph,
-            ConfigHelper().toJsonString(configGeneral),
+            2 * configGeneral.learnerConfig.repeatedQueriesDuringLearningWithMajorityCount + 1
         )
         return learner.extractStateMachine()
 
@@ -74,9 +66,9 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
                 ProtocolStage.UNKNOWN -> ListAlphabet(configGeneral.sulConfig.alphabet)
 
                 else -> AlphabetFactory.construct(
+                    configGeneral.sulConfig.sulType,
                     configGeneral.sulConfig.protocolStage,
                     configGeneral.sulConfig.kexAlgorithm,
-                    configGeneral.sulConfig.sulType.isClient
                 )
             }
         return alphabet
