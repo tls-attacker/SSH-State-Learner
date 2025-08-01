@@ -70,19 +70,23 @@ object ArgsLearner {
     var equivRandomWalkMaxSteps: Long = EquivalenceOracleFactory.randomWalkMaxSteps
         private set
 
-    @Parameter(names = ["--equiv-w-max-depth"], description = "[W / WP only] The maximum length of the \"middle\" part of all words generated", order = 109)
-    var equivWMaxDepth: Int = EquivalenceOracleFactory.wMaxDepth
+    @Parameter(names = ["--equiv-w-lookahead"], description = "[W / WP only] The maximum length of the \"middle\" part of all words generated", order = 109)
+    var equivWLookahead: Int = EquivalenceOracleFactory.wLookahead
         private set
 
-    @Parameter(names = ["--equiv-random-w-minimal-size"], description = "[RANDOM_W / RANDOM_WP only] The minimal size of a random word", order = 110)
+    @Parameter(names = ["--equiv-w-expected-size"], description = "[W / WP only] The expected size of the system under learning", order = 110)
+    var equivWExpectedSize: Int = EquivalenceOracleFactory.wExpectedSize
+        private set
+
+    @Parameter(names = ["--equiv-random-w-minimal-size"], description = "[RANDOM_W / RANDOM_WP only] The minimal size of a random word", order = 111)
     var equivRandomWMinimalSize: Int = EquivalenceOracleFactory.randomWMinimalSize
         private set
 
-    @Parameter(names = ["--equiv-random-w-rnd-length"], description = "[RANDOM_W / RANDOM_WP only] The expected length of a random word. The effective expected length is minimal size + rnd length", order = 111)
+    @Parameter(names = ["--equiv-random-w-rnd-length"], description = "[RANDOM_W / RANDOM_WP only] The expected length of a random word. The effective expected length is minimal size + rnd length", order = 112)
     var equivRandomWRndLength: Int = EquivalenceOracleFactory.randomWRndLength
         private set
 
-    @Parameter(names = ["--equiv-random-w-bound"], description = "[RANDOM_W / RANDOM_WP only] The maximum number of words to test before hypothesis and SUL are considered equal. If this oracle is configured to be unbounded (bound = 0), it does not terminate if the hypothesis is correct", order = 112)
+    @Parameter(names = ["--equiv-random-w-bound"], description = "[RANDOM_W / RANDOM_WP only] The maximum number of words to test before hypothesis and SUL are considered equal. If this oracle is configured to be unbounded (bound = 0), it does not terminate if the hypothesis is correct", order = 113)
     var equivRandomWBound: Int = EquivalenceOracleFactory.randomWBound
         private set
 }

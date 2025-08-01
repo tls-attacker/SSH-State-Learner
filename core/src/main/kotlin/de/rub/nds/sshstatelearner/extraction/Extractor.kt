@@ -17,7 +17,6 @@ import de.rub.nds.sshstatelearner.SshStateMachine
 import de.rub.nds.sshstatelearner.algorithms.EquivalenceOracleFactory
 import de.rub.nds.sshstatelearner.algorithms.LearningAlgorithmFactory
 import de.rub.nds.sshstatelearner.algorithms.ParallelResponseTreeCache
-import de.rub.nds.sshstatelearner.algorithms.Statistics
 import de.rub.nds.sshstatelearner.cli.MainWindow
 import de.rub.nds.sshstatelearner.cli.args.ArgsGeneral
 import de.rub.nds.sshstatelearner.constants.EquivalenceOracleType
@@ -169,12 +168,7 @@ class Extractor(
             // Do not pass any value for the number of states (i.e. states = 0)
             states = 0,
             counterExampleCount = rounds - 1,
-            totalSymbolCount = learningStats.totalSymbolCount,
-            totalResetCount = learningStats.totalResetCount,
-            learnSymbolCount = learningStats.learnSymbolCount,
-            learnResetCount = learningStats.learnResetCount,
-            equivSymbolCount = learningStats.equivSymbolCount,
-            equivResetCount = learningStats.equivResetCount,
+            learningStats = learningStats.asImmutable(),
             cacheInconsistencyRestarts = cacheInconsistencyRestarts,
             cacheHitRate = membershipOracle.cacheHitRate,
             duration = System.currentTimeMillis() - extractionStartTime
@@ -259,12 +253,7 @@ class Extractor(
         val statistics = Statistics(
             states = stateMachine.mealyMachine.size(),
             counterExampleCount = rounds - 1,
-            totalSymbolCount = learningStats.totalSymbolCount,
-            totalResetCount = learningStats.totalResetCount,
-            learnSymbolCount = learningStats.learnSymbolCount,
-            learnResetCount = learningStats.learnResetCount,
-            equivSymbolCount = learningStats.equivSymbolCount,
-            equivResetCount = learningStats.equivResetCount,
+            learningStats = learningStats.asImmutable(),
             cacheInconsistencyRestarts = cacheInconsistencyRestarts,
             cacheHitRate = membershipOracle.cacheHitRate,
             duration = System.currentTimeMillis() - extractionStartTime

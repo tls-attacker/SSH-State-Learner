@@ -83,7 +83,8 @@ private fun setEquivalenceOracleDefaults() {
         ArgsLearner.equivRandomWalkMaxSteps
     )
     EquivalenceOracleFactory.setWDefaults(
-        ArgsLearner.equivWMaxDepth
+        ArgsLearner.equivWLookahead,
+        ArgsLearner.equivWExpectedSize
     )
     EquivalenceOracleFactory.setRandomWDefaults(
         ArgsLearner.equivRandomWMinimalSize,

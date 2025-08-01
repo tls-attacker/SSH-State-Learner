@@ -78,7 +78,7 @@ class ConfigLearner {
 
     @JsonPropertyDescription("[W / WP only] The maximum length of the \"middle\" part of all words generated")
     @JsonProperty(defaultValue = "10")
-    var equivWMaxDepth: Int = EquivalenceOracleFactory.wMaxDepth
+    var equivWMaxDepth: Int = EquivalenceOracleFactory.wLookahead
 
 
     @JsonPropertyDescription("[RANDOM_W / RANDOM_WP only] The minimal size of a random word")
