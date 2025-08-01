@@ -102,9 +102,19 @@ class Extractor(
     private var rounds: Int = 0
 
     /**
+     * The current size of the hypothesis state machine.
+     */
+    private var currentHypothesisSize: Int = 0
+
+    /**
      * Timer used to schedule updates on the GUI at a fixed rate
      */
     private var guiUpdateTimer: Timer = Timer("GUIUpdateTimer")
+
+    /**
+     * Timer used to schedule saving of statistics at a fixed rate
+     */
+    private var statisticsSaveTimer: Timer = Timer("StatisticsSaveTimer")
 
     companion object {
         private val LOGGER: Logger = LogManager.getLogger()
@@ -150,7 +160,8 @@ class Extractor(
                 // Handle unrecoverable cache conflict exception by logging the error and restarting the learning process
                 // We maintain the current cache state to speed up the initial learning process
                 LOGGER.error("${e.message}\nInput prefix: ${e.inputPrefix}\nInput suffix: ${e.inputSuffix}\nExpected output: ${e.expectedOutput}\nActual output: ${e.actualOutput}")
-                saveStatisticsAtCacheConflict(rounds, cacheInconsistencyRestarts)
+                currentHypothesisSize = 0
+                saveStatistics(true)
                 val majorityResult = MajorityVoteOracle(sulList[0], cacheConflictMajorityVotes).answerQuery(e.inputPrefix, e.inputSuffix)
                 membershipOracle.update(e.inputPrefix, e.inputSuffix, majorityResult, true)
                 cacheInconsistencyRestarts++
@@ -162,30 +173,35 @@ class Extractor(
 
     /**
      * Saves the statistics of the learning process to a file in the output directory.
-     * This function is called to save the current statistics when a cache conflict occurs.
      */
-    private fun saveStatisticsAtCacheConflict(round: Int, conflictCount: Int) {
+    private fun saveStatistics(isCacheConflict: Boolean = false) : Statistics {
         val folder = File(ArgsGeneral.output).also { it.mkdirs() }
         val statistics = Statistics(
-            // Do not pass any value for the number of states (i.e. states = 0)
-            states = 0,
+            states = currentHypothesisSize,
             counterExampleCount = rounds - 1,
             learningStats = learningStats.asImmutable(),
             cacheInconsistencyRestarts = cacheInconsistencyRestarts,
             cacheHitRate = membershipOracle.cacheHitRate,
             duration = System.currentTimeMillis() - extractionStartTime
         )
-        val statsFile = File(folder, "statistics_round${round}_conflict$conflictCount.txt").also { it.createNewFile() }
+        val fileName = if (isCacheConflict) {
+            "statistics_round${rounds}_conflict${cacheInconsistencyRestarts}.json"
+        } else {
+            "statistics.json"
+        }
+        val statsFile = File(folder, fileName).also { it.createNewFile() }
         with(FileWriter(statsFile)) {
+            statistics.toString()
             statistics.export(this)
             this.close()
         }
+        return statistics
     }
 
     /**
-     * Creates a timer that updates the GUI with the current learning statistics at a fixed rate.
+     * Creates a timer task that updates the GUI with the current learning statistics at a fixed rate.
      */
-    private fun createGUIUpdateTimer() {
+    private fun createGuiUpdateTimerTask() {
         val task = object : TimerTask() {
             override fun run() {
                 MainWindow.statLearningRound.text = rounds.toString()
@@ -202,12 +218,25 @@ class Extractor(
     }
 
     /**
+     * Creates a timer task that saves the learning statistics to a file at a fixed rate.
+     */
+    private fun createSaveStatisticsTimerTask() {
+        val task = object : TimerTask() {
+            override fun run() {
+                saveStatistics()
+            }
+        }
+        statisticsSaveTimer.scheduleAtFixedRate(task, 0, 10000)
+    }
+
+    /**
      * Conducts the learning process and returns the learned state machine.
      *
      * @return The learned state machine.
      */
     private fun provideResult(): ExtractorResult {
-        createGUIUpdateTimer()
+        createGuiUpdateTimerTask()
+        createSaveStatisticsTimerTask()
 
         val extractorResult = ExtractorResult()
         val learningAlgorithm = LearningAlgorithmFactory.create(algorithm, alphabet, membershipOracle)
@@ -223,6 +252,7 @@ class Extractor(
             val stateMachine =
                 SshStateMachine(hypothesis, alphabet, sshSulList[0].name, sshSulList[0].stage, sshSulList[0].kex, sshSulList[0].strictKex)
             extractorResult.addHypothesis(stateMachine)
+            currentHypothesisSize = stateMachine.mealyMachine.size()
 
             if (storeIntermediateHypotheses) {
                 // TODO: Remove analysis of intermediate hypotheses later on
@@ -249,20 +279,13 @@ class Extractor(
         LOGGER.info("Total resets: ${learningStats.totalResetCount} (Learning: ${learningStats.learnResetCount} | Equivalence: ${learningStats.equivResetCount})")
 
         guiUpdateTimer.cancel()
+        statisticsSaveTimer.cancel()
 
         val stateMachine =
             SshStateMachine(hypothesis, alphabet, sshSulList[0].name, sshSulList[0].stage, sshSulList[0].kex, sshSulList[0].strictKex)
-        val statistics = Statistics(
-            states = stateMachine.mealyMachine.size(),
-            counterExampleCount = rounds - 1,
-            learningStats = learningStats.asImmutable(),
-            cacheInconsistencyRestarts = cacheInconsistencyRestarts,
-            cacheHitRate = membershipOracle.cacheHitRate,
-            duration = System.currentTimeMillis() - extractionStartTime
-        )
 
         extractorResult.learnedModel = stateMachine
-        extractorResult.statistics = statistics
+        extractorResult.statistics = saveStatistics()
         return extractorResult
     }
 

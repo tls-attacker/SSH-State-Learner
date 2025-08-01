@@ -74,7 +74,7 @@ class ParallelResponseTreeCache(
      * The cache hit rate, which is the ratio of cache hits to the total number of queries answered by the cache.
      */
     val cacheHitRate: Double
-        get() = cacheHits.toDouble() / totalQueriesAnswered.toDouble()
+        get() = if (totalQueriesAnswered > 0) cacheHits.toDouble() / totalQueriesAnswered.toDouble() else 0.0
 
     private val majorityVoteDelegate: MajorityVoteOracle<SshSymbol, ResponseFingerprint> =
         MajorityVoteOracle<SshSymbol, ResponseFingerprint>(delegate, cacheConflictMajorityVotes)

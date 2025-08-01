@@ -163,12 +163,6 @@ private fun serializeExtractorResult(result: Extractor.ExtractorResult) {
     result.learnedModel.exportToDotAndPDF(File(folder, "${ArgsSul.hostname}_${ArgsSul.protocolStage}_long.dot"), VisualizationDetail.LONG)
     result.learnedModel.exportToDotAndPDF(File(folder, "${ArgsSul.hostname}_${ArgsSul.protocolStage}_medium.dot"), VisualizationDetail.MEDIUM)
     result.learnedModel.exportToDotAndPDF(File(folder, "${ArgsSul.hostname}_${ArgsSul.protocolStage}_short.dot"), VisualizationDetail.SHORT)
-    // Serialize extractor statistics
-    val statsFile = File(folder, "statistics.txt").also { it.createNewFile() }
-    with(FileWriter(statsFile)) {
-        result.statistics.export(this)
-        this.close()
-    }
 }
 
 private fun createTextGUI(): MultiWindowTextGUI? {
