@@ -132,7 +132,8 @@ abstract class StandardSshManager(protected val configGeneral: ConfigGeneral) : 
             configGeneral.learnerConfig.equivRandomWalkMaxSteps
         )
         EquivalenceOracleFactory.setWDefaults(
-            configGeneral.learnerConfig.equivWMaxDepth
+            configGeneral.learnerConfig.equivWLookahead,
+            configGeneral.learnerConfig.equivWExpectedSize
         )
         EquivalenceOracleFactory.setRandomWDefaults(
             configGeneral.learnerConfig.equivRandomWMinimalSize,

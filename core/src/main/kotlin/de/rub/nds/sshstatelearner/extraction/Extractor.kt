@@ -24,8 +24,8 @@ import de.rub.nds.sshstatelearner.constants.LearningAlgorithmType
 import de.rub.nds.sshstatelearner.constants.VisualizationDetail
 import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.sul.AdvancedStatisticSul
+import de.rub.nds.sshstatelearner.sul.MajorityVoteOracle
 import de.rub.nds.sshstatelearner.sul.SshSul
-import de.rub.nds.sshstatelearner.sul.MajorityVoteSulOracle
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import net.automatalib.automaton.transducer.MealyMachine
 import net.automatalib.alphabet.Alphabet
@@ -116,11 +116,11 @@ class Extractor(
     private fun constructOracles() {
         // Create a parallel membership oracle with the specified number of parallel SULs
         oracle = ParallelOracleBuilders
-            .newStaticParallelOracle(sulList.map { MajorityVoteSulOracle(it, majorityVotes ) }.toMutableList())
+            .newStaticParallelOracle(sulList.map { MajorityVoteOracle(it, majorityVotes) }.toMutableList())
             .withMinBatchSize(5)
             .withPoolPolicy(ThreadPool.PoolPolicy.FIXED)
             .create()
-        membershipOracle = ParallelResponseTreeCache(oracle)
+        membershipOracle = ParallelResponseTreeCache(oracle, cacheConflictMajorityVotes)
         equivalenceOracle = EquivalenceOracleFactory.createChain(
             equivalenceOracleChainTypes,
             membershipOracle.asOracle(),
@@ -147,9 +147,11 @@ class Extractor(
             try {
                 extractorResult = provideResult()
             } catch (e: CacheConflictException) {
-                LOGGER.warn("${e.message}\nInput prefix: ${e.inputPrefix}\nInput suffix: ${e.inputSuffix}\nExpected output: ${e.expectedOutput}\nActual output: ${e.actualOutput}")
+                // Handle unrecoverable cache conflict exception by logging the error and restarting the learning process
+                // We maintain the current cache state to speed up the initial learning process
+                LOGGER.error("${e.message}\nInput prefix: ${e.inputPrefix}\nInput suffix: ${e.inputSuffix}\nExpected output: ${e.expectedOutput}\nActual output: ${e.actualOutput}")
                 saveStatisticsAtCacheConflict(rounds, cacheInconsistencyRestarts)
-                val majorityResult = MajorityVoteSulOracle(sulList[0], cacheConflictMajorityVotes).answerQuery(e.inputPrefix, e.inputSuffix)
+                val majorityResult = MajorityVoteOracle(sulList[0], cacheConflictMajorityVotes).answerQuery(e.inputPrefix, e.inputSuffix)
                 membershipOracle.update(e.inputPrefix, e.inputSuffix, majorityResult, true)
                 cacheInconsistencyRestarts++
             }

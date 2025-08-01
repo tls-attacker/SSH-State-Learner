@@ -13,7 +13,7 @@
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>9.2.0</version>
+            <version>9.4.0</version>
         </dependency>
         <dependency>
             <groupId>de.rub.nds.ssh.statelearner</groupId>
@@ -31,9 +31,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.hibernate</groupId>
+            <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.6.8.Final</version>
+            <version>6.6.23.Final</version>
         </dependency>
     </dependencies>
 

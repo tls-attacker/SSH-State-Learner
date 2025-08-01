@@ -15,11 +15,14 @@ import de.learnlib.query.Query
 import de.learnlib.oracle.ParallelOracle
 import de.rub.nds.sshstatelearner.exceptions.CacheConflictException
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
+import de.rub.nds.sshstatelearner.sul.MajorityVoteOracle
 import de.rub.nds.sshstatelearner.sul.response.ResponseFingerprint
 import de.rub.nds.tlsattacker.transport.socket.SocketState
 import net.automatalib.automaton.transducer.MealyMachine
 import net.automatalib.word.Word
 import net.automatalib.word.WordBuilder
+import org.apache.logging.log4j.LogManager
+import org.apache.logging.log4j.Logger
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -32,7 +35,12 @@ import kotlin.concurrent.write
  */
 class ParallelResponseTreeCache(
     private val delegate: ParallelOracle<SshSymbol, Word<ResponseFingerprint>>,
+    private val cacheConflictMajorityVotes: Int
 ) : LearningCacheOracle.MealyLearningCacheOracle<SshSymbol, ResponseFingerprint>, ParallelOracle<SshSymbol, Word<ResponseFingerprint>> {
+
+    companion object {
+        private val LOGGER: Logger = LogManager.getLogger()
+    }
 
     /**
      * The root node of the cache tree
@@ -67,6 +75,9 @@ class ParallelResponseTreeCache(
      */
     val cacheHitRate: Double
         get() = cacheHits.toDouble() / totalQueriesAnswered.toDouble()
+
+    private val majorityVoteDelegate: MajorityVoteOracle<SshSymbol, ResponseFingerprint> =
+        MajorityVoteOracle<SshSymbol, ResponseFingerprint>(delegate, cacheConflictMajorityVotes)
 
     /**
      * Processes a collection of queries by iterating through the collection and calling answerQuery for each query.
@@ -116,8 +127,7 @@ class ParallelResponseTreeCache(
         }
         val delegateResponse = delegate.answerQuery(prefix, suffix)
         totalQueriesAnswered++
-        update(prefix, suffix, delegateResponse)
-        return delegateResponse
+        return update(prefix, suffix, delegateResponse)
     }
 
     /**
@@ -170,11 +180,20 @@ class ParallelResponseTreeCache(
      * @param prefix The prefix of the query.
      * @param suffix The suffix of the query.
      * @param output The output word of the automaton when execution the suffix.
+     * @param force If true, the cache will be updated even if the provided output conflicts with the stored information.
+     *
+     * @return The output word of the automaton when executing the suffix. The return value can differ from the provided output
+     *         if the cache was updated with a different output due to a conflict. Only the return value of this method
+     *         should be used to answer the query, as it is guaranteed to be consistent with the cache tree.
      *
      * @throws CacheConflictException Thrown when the provided query and output and the stored information are inconsistent
-     *                           with each other.
+     *                           with each other and a majority vote conflicts with the stored information.
      */
-    fun update(prefix: Word<SshSymbol>, suffix: Word<SshSymbol>, output: Word<ResponseFingerprint>, force: Boolean = false) {
+    fun update(prefix: Word<SshSymbol>,
+               suffix: Word<SshSymbol>,
+               output: Word<ResponseFingerprint>,
+               force: Boolean = false,
+               isMajorityVoted: Boolean = false) : Word<ResponseFingerprint> {
         lock.write {
             var current: Node = root
             var next: Node?
@@ -188,7 +207,10 @@ class ParallelResponseTreeCache(
                 }
                 if (next.isConnectionClosedLeaf() && !force) {
                     // The next nodes marks a closed connection, abort if we're not forced to update
-                    return
+                    if (isMajorityVoted) {
+                        LOGGER.info("Cache conflict resolved by majority vote, returning majority voted response")
+                    }
+                    return output
                 }
                 current = next
             }
@@ -209,6 +231,16 @@ class ParallelResponseTreeCache(
                     if (force) {
                         next.outputSymbol = outputSymbol
                     } else {
+                        if (!isMajorityVoted) {
+                            // The cache conflict may be resolved by a majority vote, so we delegate the query to the majority vote oracle
+                            // and update the cache with the majority vote result. If the majority vote oracle returns a conflicting response, we throw an exception.
+                            // If the majority vote oracle returns a consistent response, we update the cache with the majority vote result.
+                            // This allows us to resolve conflicts without throwing an exception in cases where the update is called with a
+                            // conflicting response but the cache contains the majority voted response, while still allowing the user to forcefully update the cache.
+                            LOGGER.info("Possible cache conflict detected, delegating to majority vote oracle")
+                            val majorityResponse = majorityVoteDelegate.answerQuery(prefix, suffix)
+                            return update(prefix, suffix, majorityResponse, isMajorityVoted = true)
+                        }
                         throw CacheConflictException(
                             "Unable to update tree node non-forcefully, conflicting response fingerprints for same node: $outputSymbol | ${next.outputSymbol}",
                             prefix,
@@ -221,10 +253,17 @@ class ParallelResponseTreeCache(
                 expectedOutput = expectedOutput.append(next.outputSymbol)
                 if (next.isConnectionClosedLeaf() && !force) {
                     // The next node marks a closed connection, abort if we're not forced to update
-                    return
+                    if (isMajorityVoted) {
+                        LOGGER.info("Cache conflict resolved by majority vote, returning majority voted response")
+                    }
+                    return output
                 }
                 current = next
             }
+            if (isMajorityVoted) {
+                LOGGER.info("Cache conflict resolved by majority vote, returning majority voted response")
+            }
+            return output
         }
     }
 
@@ -353,8 +392,7 @@ class ParallelResponseTreeCache(
 
         override fun answer(output: Word<ResponseFingerprint>) {
             try {
-                this@ParallelResponseTreeCache.update(prefix, suffix, output, false)
-                nestedQuery.answer(output)
+                nestedQuery.answer(this@ParallelResponseTreeCache.update(prefix, suffix, output))
             } catch (e: CacheConflictException) {
                 cacheConflict = e
             }
