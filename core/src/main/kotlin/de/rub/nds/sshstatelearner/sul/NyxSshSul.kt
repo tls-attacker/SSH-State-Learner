@@ -20,7 +20,6 @@ import de.rub.nds.sshattacker.core.protocol.transport.message.VersionExchangeMes
 import de.rub.nds.sshattacker.core.state.State
 import de.rub.nds.sshattacker.core.workflow.action.ChangePacketLayerAction
 import de.rub.nds.sshattacker.core.workflow.action.ReceiveAction
-import de.rub.nds.sshattacker.core.workflow.action.SendAction
 import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.util.SshConfigManager
@@ -132,7 +131,10 @@ class NyxSshSul(
      * will be called during the pre() lifecycle hook after initializing a new state.
      */
     private fun preVersionExchange() {
-        SendAction(connectionAlias, VersionExchangeMessage()).execute(state)
+        val versionExchange = VersionExchangeMessage()
+        versionExchange.getHandler(state.sshContext).preparator.prepare()
+        // Must use sendMessage instead of a SendAction, as only sendMessage passes the bytes to the Nyx VM
+        sendMessage(versionExchange)
         ReceiveAction(connectionAlias, VersionExchangeMessage()).execute(state)
         ChangePacketLayerAction(connectionAlias, PacketLayerType.BINARY_PACKET).execute(state)
     }
