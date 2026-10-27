@@ -25,6 +25,7 @@ import de.rub.nds.sshstatelearner.extraction.AlphabetFactory
 import de.rub.nds.sshstatelearner.extraction.Extractor
 import de.rub.nds.sshstatelearner.sul.NetworkSshClientSul
 import de.rub.nds.sshstatelearner.sul.NetworkSshServerSul
+import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import de.rub.nds.sshstatelearner.sul.SshSul
 import net.automatalib.alphabet.impl.ListAlphabet
 import org.bouncycastle.jce.provider.BouncyCastleProvider
@@ -56,6 +57,16 @@ private fun handleArgs(args: Array<out String>) {
     if (ArgsGeneral.help) {
         cliArgs.usage()
         exitProcess(0)
+    }
+    if (ArgsGeneral.executor == ExecutorType.NYX) {
+        if (ArgsSul.nyxSharedir == null) {
+            System.err.println("The NYX executor requires --nyx-sharedir to be set")
+            exitProcess(1)
+        }
+        if (ArgsSul.sulType != SulType.SERVER) {
+            System.err.println("The NYX executor only supports --sul-type SERVER")
+            exitProcess(1)
+        }
     }
 }
 
@@ -105,54 +116,75 @@ private fun conductProtocolLearning(): Extractor.ExtractorResult {
         ArgsSul.kexAlgorithm
     )
     MainWindow.infoAlphabetSize.text = alphabet.size.toString()
-    val sulList: List<SshSul> = ArgsSul.port.map {
-        when (ArgsGeneral.executor) {
-            ExecutorType.NETWORK ->
-                when (ArgsSul.sulType) {
-                    SulType.CLIENT -> NetworkSshClientSul(
-                        ArgsSul.name,
-                        it,
-                        ArgsSul.timeout,
-                        ArgsSul.resetDelay,
-                        ArgsSul.protocolStage,
-                        ArgsSul.kexAlgorithm,
-                        ArgsSul.strictKex,
-                        ArgsSul.disableRekex,
-                        ArgsSul.disableEncryptedNewKeys,
-                        ArgsSul.unencryptedStageOnly,
-                        ArgsSul.authRequestLimit,
-                        ArgsSul.retrieveDelay
-                    )
+    val sulList: List<SshSul> = when (ArgsGeneral.executor) {
+        // Nyx SULs cannot be forked, hence only a single instance is created
+        ExecutorType.NYX -> listOf(
+            NyxSshSul(
+                ArgsSul.name,
+                ArgsSul.nyxSharedir!!,
+                ArgsSul.nyxWorkdir,
+                ArgsSul.nyxCpuId,
+                ArgsSul.timeout,
+                ArgsSul.resetDelay,
+                ArgsSul.protocolStage,
+                ArgsSul.kexAlgorithm,
+                ArgsSul.strictKex,
+                ArgsSul.disableRekex,
+                ArgsSul.disableEncryptedNewKeys,
+                ArgsSul.unencryptedStageOnly,
+                ArgsSul.authRequestLimit
+            )
+        )
+        ExecutorType.NETWORK -> ArgsSul.port.map {
+            when (ArgsSul.sulType) {
+                SulType.CLIENT -> NetworkSshClientSul(
+                    ArgsSul.name,
+                    it,
+                    ArgsSul.timeout,
+                    ArgsSul.resetDelay,
+                    ArgsSul.protocolStage,
+                    ArgsSul.kexAlgorithm,
+                    ArgsSul.strictKex,
+                    ArgsSul.disableRekex,
+                    ArgsSul.disableEncryptedNewKeys,
+                    ArgsSul.unencryptedStageOnly,
+                    ArgsSul.authRequestLimit,
+                    ArgsSul.retrieveDelay
+                )
 
-                    SulType.SERVER -> NetworkSshServerSul(
-                        ArgsSul.name,
-                        ArgsSul.hostname,
-                        it,
-                        ArgsSul.timeout,
-                        ArgsSul.resetDelay,
-                        ArgsSul.protocolStage,
-                        ArgsSul.kexAlgorithm,
-                        ArgsSul.strictKex,
-                        ArgsSul.disableRekex,
-                        ArgsSul.disableEncryptedNewKeys,
-                        ArgsSul.unencryptedStageOnly,
-                        ArgsSul.authRequestLimit,
-                        ArgsSul.retrieveDelay
-                    )
-                }
+                SulType.SERVER -> NetworkSshServerSul(
+                    ArgsSul.name,
+                    ArgsSul.hostname,
+                    it,
+                    ArgsSul.timeout,
+                    ArgsSul.resetDelay,
+                    ArgsSul.protocolStage,
+                    ArgsSul.kexAlgorithm,
+                    ArgsSul.strictKex,
+                    ArgsSul.disableRekex,
+                    ArgsSul.disableEncryptedNewKeys,
+                    ArgsSul.unencryptedStageOnly,
+                    ArgsSul.authRequestLimit,
+                    ArgsSul.retrieveDelay
+                )
+            }
         }
     }
-    val learner = Extractor(
-        alphabet,
-        sulList,
-        ArgsLearner.learningAlgorithmType,
-        ArgsLearner.equivOracleChainTypes,
-        ArgsLearner.outputIntermediateHypothesis,
-        ArgsGeneral.output,
-        ArgsLearner.majorityVotes,
-        ArgsLearner.conflictVotes
-    )
-    return learner.extractStateMachine()
+    try {
+        val learner = Extractor(
+            alphabet,
+            sulList,
+            ArgsLearner.learningAlgorithmType,
+            ArgsLearner.equivOracleChainTypes,
+            ArgsLearner.outputIntermediateHypothesis,
+            ArgsGeneral.output,
+            ArgsLearner.majorityVotes,
+            ArgsLearner.conflictVotes
+        )
+        return learner.extractStateMachine()
+    } finally {
+        sulList.forEach { it.close() }
+    }
 }
 
 private fun analyzeExtractorResult(result: Extractor.ExtractorResult) = result.learnedModel.analyzeMealyMachine()
@@ -184,6 +216,7 @@ private fun updateMainWindowInfoPanel() {
     // TODO: CLI parameters
     MainWindow.infoExecutor.text = ArgsGeneral.executor.toString()
     MainWindow.infoTarget.text = when (ArgsGeneral.executor) {
+        ExecutorType.NYX -> ArgsSul.nyxSharedir
         ExecutorType.NETWORK -> "ssh://${ArgsSul.hostname}:${ArgsSul.port.first()}..${ArgsSul.port.last()}"
     }
     MainWindow.infoStage.text = ArgsSul.protocolStage.toString()

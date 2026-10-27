@@ -9,5 +9,6 @@
 package de.rub.nds.sshstatelearner.constants
 
 enum class ExecutorType {
+    NYX,
     NETWORK
 }

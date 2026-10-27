@@ -13,6 +13,7 @@ class StandardSshServerManager(configGeneral: ConfigGeneral, val configServerSul
     }
 
     override fun getSul(): SshSul = when (configGeneral.executorType) {
+        ExecutorType.NYX -> throw UnsupportedOperationException("The NYX executor is only supported by the CLI")
         ExecutorType.NETWORK -> {
             NetworkSshServerSul(
                 configServerSul.name,

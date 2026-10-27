@@ -166,7 +166,7 @@ abstract class NetworkSshSul(
      *
      * @param message Message to send.
      */
-    protected fun sendMessage(message: ProtocolMessage<*>) {
+    protected open fun sendMessage(message: ProtocolMessage<*>) {
         try {
             SendMessageHelper.sendMessage(state.sshContext, message)
         } catch (e: IOException) {

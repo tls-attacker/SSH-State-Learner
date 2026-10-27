@@ -40,6 +40,11 @@
             <type>pom</type>
         </dependency>
         <dependency>
+            <groupId>de.rub.nds</groupId>
+            <artifactId>jnyx</artifactId>
+            <version>1.0.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>de.rub.nds.ssh.attacker</groupId>
             <artifactId>ssh-core</artifactId>
         </dependency>

@@ -14,6 +14,7 @@ import de.rub.nds.sshstatelearner.constants.SulType
 import de.rub.nds.sshstatelearner.extraction.SshSymbol
 import de.rub.nds.sshstatelearner.constants.ProtocolStage
 import de.rub.nds.sshstatelearner.sul.NetworkSshSul
+import de.rub.nds.sshstatelearner.sul.NyxSshSul
 import de.rub.nds.sshstatelearner.sul.SshSul
 
 /**
@@ -83,5 +84,17 @@ object ArgsSul {
 
     @Parameter(names = ["--auth-request-limit"], description = "The maximum number of authentication requests to be sent before closing the connection. Set to -1 to disable this feature.", order = 24)
     var authRequestLimit: Int = SshSul.DEFAULT_AUTH_REQUEST_LIMIT
+        private set
+
+    @Parameter(names = ["--nyx-sharedir"], description = "[NYX executor only] Path to the packed Nyx target (sharedir). Required when using the NYX executor.", order = 25)
+    var nyxSharedir: String? = null
+        private set
+
+    @Parameter(names = ["--nyx-workdir"], description = "[NYX executor only] Path to the Nyx workdir", order = 26)
+    var nyxWorkdir: String = NyxSshSul.DEFAULT_NYX_WORKDIR
+        private set
+
+    @Parameter(names = ["--nyx-cpu"], description = "[NYX executor only] Id of the CPU which executes the Nyx VM", order = 27)
+    var nyxCpuId: Int = NyxSshSul.DEFAULT_NYX_CPUID
         private set
 }
