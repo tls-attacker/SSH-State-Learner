@@ -60,6 +60,15 @@
 
     <dependencyManagement>
         <dependencies>
+            <!-- Appium java-client 9.5.0 requires Selenium [4.34.0, 5.0) but its AndroidDriver still implements
+                 org.openqa.selenium.html5.LocationContext, which was removed in Selenium 4.35.0 -->
+            <dependency>
+                <groupId>org.seleniumhq.selenium</groupId>
+                <artifactId>selenium-bom</artifactId>
+                <version>4.34.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>de.rub.nds.ssh.attacker</groupId>
                 <artifactId>ssh-core</artifactId>
