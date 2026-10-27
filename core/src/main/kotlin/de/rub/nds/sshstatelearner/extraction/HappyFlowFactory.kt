@@ -94,7 +94,7 @@ object HappyFlowFactory {
                 SshSymbol.MSG_NEWKEYS
             )
             ProtocolStage.AUTHENTICATION -> Word.fromSymbols(
-                SshSymbol.MSG_USERAUTH_REQUEST_PASSWORD
+                SshSymbol.MSG_USERAUTH_REQUEST_PUBLICKEY
             )
             ProtocolStage.CONNECTION -> Word.fromSymbols(
                 SshSymbol.MSG_CHANNEL_OPEN_SESSION,

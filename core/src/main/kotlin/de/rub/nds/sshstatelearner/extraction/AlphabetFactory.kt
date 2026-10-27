@@ -116,6 +116,7 @@ object AlphabetFactory {
             ProtocolStage.AUTHENTICATION -> ListAlphabet(
                 listOf(
                     SshSymbol.MSG_USERAUTH_REQUEST_PASSWORD,
+                    SshSymbol.MSG_USERAUTH_REQUEST_PUBLICKEY,
                     SshSymbol.MSG_USERAUTH_SUCCESS,
                     SshSymbol.MSG_USERAUTH_FAILURE,
                     SshSymbol.MSG_USERAUTH_BANNER
