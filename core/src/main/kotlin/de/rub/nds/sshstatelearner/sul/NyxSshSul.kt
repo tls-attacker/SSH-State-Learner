@@ -160,12 +160,14 @@ class NyxSshSul(
             // The opcode 0x00 indicates a simple input to the agent (no additional hypercalls are being invoked)
             nyxProcess.input = byteArrayOf(0x00) + nyxInputStream.toByteArray()
             nyxInputStream.reset()
-            when (nyxProcess.exec()) {
+            val returnValue = nyxProcess.exec()
+            when (returnValue) {
                 NyxReturnValue.NORMAL ->
                     LOGGER.info("Nyx execution returned successfully, retrieving a total of ${nyxProcess.output.size} bytes from the output.")
                 NyxReturnValue.SOCKET_CLOSED -> {
-                    LOGGER.info("Nyx indicated that the underlying socket has been closed by the target. Closing the transport handler.")
-                    state.sshContext.transportHandler.closeConnection()
+                    LOGGER.info("Nyx indicated that the underlying socket has been closed by the target. Marking the transport handler as peer-closed.")
+                    // Do not close the transport handler here, data still buffered from previous executions must be received
+                    (state.sshContext.transportHandler as NyxTransportHandler).peerClosed = true
                     connectionClosed = true
                 }
                 NyxReturnValue.TIMEOUT ->
@@ -205,7 +207,11 @@ class NyxSshSul(
                     exitProcess(1)
                 }
             }
-            nyxOutputStream.refill(nyxProcess.output)
+            // On SOCKET_CLOSED, the agent releases the VM without flushing its output buffer (only
+            // HYPERCALL_KAFL_NEXT_INPUT_SYMBOL does), so nyxProcess.output still holds the previous execution's output
+            if (returnValue != NyxReturnValue.SOCKET_CLOSED) {
+                nyxOutputStream.refill(nyxProcess.output)
+            }
         } catch (e: IOException) {
             throw SULException(e)
         }

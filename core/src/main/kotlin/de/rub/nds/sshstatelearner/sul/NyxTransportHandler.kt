@@ -24,10 +24,17 @@ class NyxTransportHandler(
 
     private var closed = false
 
+    /**
+     * Set when Nyx reports that the target closed the socket (as opposed to [closed], which indicates a local close).
+     * Data written by the target before closing remains readable.
+     */
+    var peerClosed = false
+
     override fun preInitialize() { }
 
     override fun initialize() {
         cachedSocketState = null
+        peerClosed = false
         setStreams(PushbackInputStream(inputStream), outputStream)
     }
 

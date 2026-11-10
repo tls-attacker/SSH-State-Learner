@@ -61,8 +61,8 @@ object ResponseExtractor {
     private fun extractSocketState(state: State): SocketState {
         return when (val transportHandler = state.sshContext.transportHandler) {
             is TcpTransportHandler -> transportHandler.socketState
-            // TODO: Check if we can detect closed sockets via Nyx
-            is NyxTransportHandler -> SocketState.UP
+            // Closed sockets are reported by Nyx via the SOCKET_CLOSED return value (see NyxSshSul.sendMessage)
+            is NyxTransportHandler -> if (transportHandler.peerClosed) SocketState.CLOSED else SocketState.UP
             else -> {
                 TODO("Unsupported transport handler, unable to extract socket state")
             }
