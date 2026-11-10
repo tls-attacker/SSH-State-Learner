@@ -1,0 +1,1 @@
+python3 compare_state_machines.py out_network/localhost_TRANSPORT_long.dot out_nyx/localhost_TRANSPORT_long.dot

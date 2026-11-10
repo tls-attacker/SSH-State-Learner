@@ -4,9 +4,9 @@
 # Only a single SUL instance is used, -p has no effect with the NYX executor.
 
 java -Xmx10g -XX:+HeapDumpOnOutOfMemoryError -jar core/apps/SSH-State-Learner.jar \
-    -p 30020-30023 --name "Dropbear 2025.87" \
+    --name "Dropbear 2025.87" \
     --kex ECDH_SHA2_NISTP256 --stage TRANSPORT --strict-kex \
-    --sul-type SERVER --equiv-random-words-max-tests 500 -o out \
+    --sul-type SERVER --equiv-random-words-max-tests 500 -o out_nyx \
     --nyx-sharedir "$HOME/src/tls-attacker/nyx-targets/target/packed_targets/nyx_dropbear_2025.87" \
     --executor NYX \
     --disable-rekex --auth-request-limit 1 \

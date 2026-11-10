@@ -22,5 +22,9 @@ nbactions.xml
 .factorypath
 .vscode
 
-# Default output path
+# output paths
 out/
+out_network/
+out_nyx/
+
+__pycache__
