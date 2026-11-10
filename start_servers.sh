@@ -1,1 +1,1 @@
-docker compose -f env/openssh/docker-compose.yml up -d
+docker compose -f env/dropbear/docker-compose.yml up -d
