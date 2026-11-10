@@ -245,6 +245,9 @@ fun main(vararg args: String) {
     analyzeExtractorResult(extractorResult)
     serializeExtractorResult(extractorResult)
 
+    val doneHint = "Learning finished, results written to ${ArgsGeneral.output}. Close the window to exit."
+    MainWindow.ctrlStatus.text = doneHint
+    println(doneHint)
     MainWindow.waitUntilClosed()
     destroyTextGUI(gui)
 }

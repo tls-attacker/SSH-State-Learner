@@ -101,8 +101,10 @@ object MainWindow : BasicWindow("SSH State Learner") {
     private val exitButton = Button("Abort & Exit").apply {
         addListener { this@MainWindow.close() }
     }
+    val ctrlStatus = Label("")
     private val ctrlPanel = Panel(GridLayout(4)).apply {
         addComponent(exitButton)
+        addComponent(ctrlStatus)
     }
 
     init {
